@@ -112,6 +112,7 @@ class IBKRupdate:
         url = f'https://ndcdyn.interactivebrokers.com/AccountManagement/FlexWebService/SendRequest?t={self.token}&q={queryID}&v=3'
         user_agent = {'User-agent': 'Python/3.9'}
         response = requests.get(url, headers=user_agent)
+
         reference_code = re.findall('(?<=<ReferenceCode>)\d*(?=<\/ReferenceCode>)', response.text)[0]
         # print(reference_code)
         url = f'https://ndcdyn.interactivebrokers.com/AccountManagement/FlexWebService/GetStatement?t={self.token}&q={reference_code}&v=3'

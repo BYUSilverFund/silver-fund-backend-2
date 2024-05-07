@@ -315,7 +315,8 @@ class Performance:
         min_date = pret['date'].min()
         min_date_minus_1 = min_date - pd.Timedelta(days=1)
         new_row = {'date': min_date_minus_1, 'total_cumulative': 1.0, 'ETF_cumulative': 1.0}
-        pret = pret.append(new_row, ignore_index=True)
+        pret = pret._append(new_row, ignore_index=True)
+        pret = pret.sort_values(by='date')
 
         # Plot the cumulative products
         plt.figure(figsize=(10, 6))
