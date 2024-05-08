@@ -4,10 +4,6 @@ from services.service import Service
 
 app = Flask(__name__)
 
-@app.route("/")
-def hello_world():
-    return "<p>Hello, World!</p>"
-
 @app.route("/example")
 def example():
     data = Service.example()
