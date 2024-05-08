@@ -25,7 +25,7 @@ jobs:
         with:
           application-name: 47-Fund-EC2
           deployment-group-name: 47-Fund
-          # appspec-file: some-appspec-file
+          appspec-file: appspec.yml
 #      - name: Deploy to server
 #        uses: easingthemes/ssh-deploy@main
 #        env:
