@@ -8,9 +8,9 @@ app = Flask(__name__)
 def hello_world():
     return "<p>Hello, World!</p>"
 
-@app.route("/data")
-def data():
-    data = Service.handleData()
+@app.route("/example")
+def example():
+    data = Service.example()
     return data
 
 if __name__ == '__main__':

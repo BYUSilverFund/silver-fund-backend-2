@@ -1,4 +1,4 @@
 class Database:
 
-  def getData():
-    return "Some data"
+  def example():
+    return "Hello world"
