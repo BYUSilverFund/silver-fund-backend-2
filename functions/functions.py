@@ -11,3 +11,14 @@ def portfolio_alpha(xs_port_returns: List[float], xs_bmk_returns: List[float]) -
   alpha = results.params[0]
 
   return alpha
+
+def portfolio_beta(xs_port_returns: List[float], xs_bmk_returns: List[float]) -> float:
+
+  xs_port_returns = sm.add_constant(xs_port_returns)
+
+  model = sm.OLS(xs_bmk_returns, xs_port_returns)
+  results = model.fit()
+
+  alpha = results.params[1]
+
+  return alpha
