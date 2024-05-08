@@ -1,7 +1,7 @@
 from typing import List
 import statsmodels.api as sm
 
-def portfolio_alpha(xs_port_returns: List[float], xs_bmk_returns: List[float]):
+def portfolio_alpha(xs_port_returns: List[float], xs_bmk_returns: List[float]) -> float:
 
   xs_port_returns = sm.add_constant(xs_port_returns)
 
@@ -9,6 +9,5 @@ def portfolio_alpha(xs_port_returns: List[float], xs_bmk_returns: List[float]):
   results = model.fit()
 
   alpha = results.params[0]
-  # beta = results.params[1]
 
   return alpha
