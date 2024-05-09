@@ -11,5 +11,8 @@
 | xs | Excess |
 | port | Portfolio |
 | rf | Risk Free |
+| vol | Volatility |
+| ir | Information Ratio |
+| cum | cummulative |
 
 

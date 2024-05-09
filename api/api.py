@@ -11,7 +11,8 @@ def example():
 
 @app.route("/portfolio_summary") # Alpha, confidence interval, beta, volatility, information ratio, active risk
 def portfolio_alpha():
-    return ""
+    response = Service.portfolio_summary()
+    return response
 
 @app.route("/holdings_returns") # Vector of holding returns
 def holdings_returns():
