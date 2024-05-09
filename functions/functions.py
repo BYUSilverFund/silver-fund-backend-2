@@ -12,7 +12,13 @@ def portfolio_alpha(xs_port_returns: np.ndarray, xs_bmk_returns: np.ndarray) -> 
 
   alpha = results.params[0]
 
-  return alpha
+  print(results.params)
+
+  confidence_interval = results.conf_int(alpha=0.05) # 95% confidence interval
+  alpha_ci = confidence_interval[0]
+  print(alpha_ci)
+
+  return [alpha, alpha_ci[0], alpha_ci[1]]
 
 
 def portfolio_beta(xs_port_returns: np.ndarray, xs_bmk_returns: np.ndarray) -> float:
