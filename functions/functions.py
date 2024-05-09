@@ -43,8 +43,9 @@ def portfolio_tracking_error(port_returns: np.ndarray, bmk_returns: np.ndarray) 
 
 def portfolio_information_ratio(port_returns: np.ndarray, bmk_returns: np.ndarray) -> float:
 
-  difference = port_returns - bmk_returns
+  cum_port_return = port_returns[-1] / port_returns[0] - 1
+  cum_bmk_return = bmk_returns[-1] / bmk_returns[0] - 1
 
   tracking_error = portfolio_tracking_error(port_returns,bmk_returns)
   
-  return difference / tracking_error
+  return (cum_port_return - cum_bmk_return) / tracking_error
