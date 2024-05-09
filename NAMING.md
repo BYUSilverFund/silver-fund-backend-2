@@ -13,6 +13,7 @@
 | rf | Risk Free |
 | vol | Volatility |
 | ir | Information Ratio |
-| cum | cummulative |
+| cum | Cummulative |
+| ci | Confidence Interval |
 
 
