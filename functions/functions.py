@@ -1,4 +1,3 @@
-from typing import List
 import statsmodels.api as sm
 import numpy as np
 
@@ -46,6 +45,6 @@ def portfolio_information_ratio(port_returns: np.ndarray, bmk_returns: np.ndarra
 
   difference = port_returns - bmk_returns
 
-  tracking_error = tracking_error(port_returns,bmk_returns)
+  tracking_error = portfolio_tracking_error(port_returns,bmk_returns)
   
   return difference / tracking_error
