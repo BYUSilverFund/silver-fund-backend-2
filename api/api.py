@@ -16,7 +16,8 @@ def portfolio_alpha():
 
 @app.route("/holdings_returns") # Vector of holding returns
 def holdings_returns():
-    return ""
+    response = Service.holdings_returns()
+    return response
 
 @app.route("/holdings_alphas") # Vector of holding alpha contributions
 def holdings_alphas():
