@@ -12,18 +12,21 @@ class Service:
   def portfolio_summary():
     # Fake data until database is up and running.
     # This will normally be where the DB functions are called.
+
+    ####
     np.random.seed(42)
     port_returns = np.random.rand(50)
     epsilon = np.random.randn(50) * 0.5
     bmk_returns = 2 * port_returns + 1 + epsilon
     rf = np.array([.1 for x in range(50)])
+    ####
 
     xs_port_returns = port_returns - rf
     xs_bmk_returns = bmk_returns - rf
 
-    port_beta = portfolio_beta(xs_port_returns, xs_bmk_returns)
-    port_alpha = portfolio_alpha(xs_port_returns,xs_bmk_returns)
-    port_vol = portfolio_volatility(port_returns)
+    port_beta = beta(xs_port_returns, xs_bmk_returns)
+    port_alpha = alpha(xs_port_returns,xs_bmk_returns)
+    port_vol = volatility(port_returns)
     port_ir = portfolio_information_ratio(port_returns, bmk_returns)
 
     port_beta = round(port_beta,2)
