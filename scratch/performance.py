@@ -318,6 +318,8 @@ class Performance:
         pret = pret._append(new_row, ignore_index=True)
         pret = pret.sort_values(by='date')
 
+        pret.to_csv('data/grad_data.csv', index=False)
+
         # Plot the cumulative products
         plt.figure(figsize=(10, 6))
         plt.plot(pret['date'], pret['total_cumulative'], label='Total Return')

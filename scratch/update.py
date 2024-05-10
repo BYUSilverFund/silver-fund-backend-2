@@ -16,10 +16,10 @@ IBgrad.new_holdings.to_parquet('data/grad_holdings.parquet')
 IBgrad.new_dividends.to_parquet('data/grad_dividends.parquet')
 IBgrad.new_ttw.to_parquet('data/grad_ttw.parquet')
 IBgrad.new_mms.to_parquet('data/grad_mms.parquet')
-datebeg = pd.to_datetime('2023-11-10')
+datebeg = pd.to_datetime('2023-11-11')
 dateend = pd.to_datetime('2024-04-12')
 Pfgrad = pf.Performance(IBgrad, date1=datebeg, date2=dateend)
-#print(IBgrad.new_cash)
+print(IBgrad.new_cash)
 quit()
 
 
