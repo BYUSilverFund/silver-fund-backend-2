@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the files
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -20,16 +20,11 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-west-2
 
-      - name: CodeDeploy
-        uses: byu-oit/github-action-codedeploy@v2
-        with:
-          application-name: 47-Fund-EC2
-          deployment-group-name: 47-Fund
-          appspec-file: appspec.yml
-#      - name: Deploy to server
-#        uses: easingthemes/ssh-deploy@main
-#        env:
-#          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
-#          REMOTE_HOST: ${{ secrets.HOST_DNS }}
-#          REMOTE_USER: ${{ secrets.USERNAME }}
-#          TARGET: ${{ secrets.TARGET_DIR }}
+      - name: Create CodeDeploy Deployment
+        id: deploy
+        run: |
+          aws deploy create-deployment \
+            --application-name 47-Fund-EC2 \
+            --deployment-group-name 47-Fund-EC2-instances \
+            --deployment-config-name CodeDeployDefault.OneAtATime \
+            --github-location repository=${{ github.repository }},commitId=${{ github.sha }}
