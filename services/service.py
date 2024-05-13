@@ -47,32 +47,21 @@ class Service:
     return json.dumps(response)
 
   def holdings_returns():
-    # Fake data until database is up and running.
-    # This will normally be where the DB functions are called.
 
-    ####
-    stock_tickers = [
-      "AAPL", "MSFT", "AMZN", "GOOGL", "FB",
-      "TSLA", "NVDA", "INTC", "AMD", "NFLX",
-      "DIS", "CRM", "PYPL", "ADBE", "CSCO",
-      "JPM", "GS", "BAC", "WFC", "C",
-      "IBM", "ORCL", "TXN", "V", "MA"
-    ]
+    holdings = Database.get_holdings_returns('Grad','2023-06-01')
 
-    np.random.seed(42)
-    bmk_returns = np.random.rand(25)
-    epsilon = np.random.randn(25) * 0.5
-    stock_returns_arr = [x * bmk_returns + 1 + epsilon for x in range (25)]
-    ####
+    tickers = holdings['Tickers']
+
+    stock_returns_arr = [holdings[ticker] for ticker in tickers]
 
     total_returns = []
     for stock_returns in stock_returns_arr:
       stock_return = total_return(stock_returns)
       stock_return = round(stock_return,2)
       total_returns.append(stock_return)
-
+    
     response = {}
-    for i in range(25):
-      response[stock_tickers[i]] = total_returns[i]
+    for i in range(len(tickers)):
+      response[tickers[i]] = total_returns[i]
         
     return json.dumps(response)
