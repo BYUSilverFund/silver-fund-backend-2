@@ -18,6 +18,12 @@ source .venv/bin/activate
 pip install -r requirement.txt
 ```
 
+- How to deactivate virtual environment
+
+```
+deactivate
+```
+
 ### Update Virtual Environment Dependencies
 
 - In the event you pip install a new package onto the virtual environment
