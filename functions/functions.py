@@ -1,5 +1,6 @@
 import statsmodels.api as sm
 import numpy as np
+import pandas as pd
 
 TRADING_DAYS = 252
 
@@ -117,7 +118,9 @@ def total_return(returns: np.ndarray) -> float:
   - float: total return.
   """
 
-  log_returns = np.log(returns)
+
+  log_returns = np.log(1 + returns)
+
   total_return = log_returns.sum()
 
   return total_return
