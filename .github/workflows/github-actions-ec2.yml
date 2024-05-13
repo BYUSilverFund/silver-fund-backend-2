@@ -25,6 +25,6 @@ jobs:
         run: |
           aws deploy create-deployment \
             --application-name 47-Fund-EC2 \
-            --deployment-group-name 47-Fund-EC2-instances \
+            --deployment-group-name 47-Fund-EC2-Instances \
             --deployment-config-name CodeDeployDefault.OneAtATime \
             --github-location repository=${{ github.repository }},commitId=${{ github.sha }}
