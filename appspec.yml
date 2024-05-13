@@ -3,4 +3,3 @@ os: linux
 files:
   - source: .
     destination: /home/ubuntu/47-fund-web-app
-# yay this works
