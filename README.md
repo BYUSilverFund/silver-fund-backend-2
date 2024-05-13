@@ -15,7 +15,7 @@ source .venv/bin/activate
 - Install dependencies
 
 ```
-pip install -r requirement.txt
+pip install -r requirements.txt
 ```
 
 - How to deactivate virtual environment
