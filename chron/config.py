@@ -17,7 +17,7 @@ config = {
       "trades": 989567,
     }
   },
-  # "quant":{
+  # "brigham capital":{
   #   "token": 0,
   #   "queries":{
   #     "delta_nav":0,
