@@ -2,8 +2,10 @@ import pandas as pd
 
 class Transformer():
   
-  def transform(df: pd.DataFrame, query: str) -> pd.DataFrame:
+  def transform(df: pd.DataFrame, fund: str, query: str) -> pd.DataFrame:
+    df = df.copy()
     df = df[df['ClientAccountID'] != 'ClientAccountID'] # This transformation happens for all dataframes
+    df['fund'] = fund
     
     match query:
 
