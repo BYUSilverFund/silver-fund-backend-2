@@ -37,5 +37,10 @@ def parse_positions(df):
 
 def parse_dividends(df):
   df = df.copy()
+  df['date'] = pd.to_datetime(df['ExDate'], format='%Y%m%d') # Should this be PayDate instead?
+  return df
+
+def parse_trades(df):
+  df = df.copy()
   df['date'] = pd.to_datetime(df['ReportDate'], format='%Y%m%d')
   return df
