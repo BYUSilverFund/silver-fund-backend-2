@@ -6,7 +6,7 @@ from loader import Loader
 # Entry point for chron job
 
 def main():
-  funds = config.keys()
+  funds = config.keys() # To use in the future to loop through each account
 
   token = config['grad']['token']
   query_types = config['grad']['queries'].keys()
@@ -14,11 +14,14 @@ def main():
   for query_type in query_types: 
     query_id = config['grad']['queries'][query_type]
 
+    # Extract
     raw_data = Extractor.ibkr_query(token,query_id)
 
+    # Transform
     transformed_data = Transformer.transform(raw_data, query_type)
     print(transformed_data)
 
+    # Load
     Loader.load(transformed_data, query_type)
 
     

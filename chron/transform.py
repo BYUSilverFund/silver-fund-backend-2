@@ -2,8 +2,8 @@ import pandas as pd
 
 class Transformer():
   
-  def transform(df: pd.DataFrame, query: str):
-    df = df[df['ClientAccountID'] != 'ClientAccountID']
+  def transform(df: pd.DataFrame, query: str) -> pd.DataFrame:
+    df = df[df['ClientAccountID'] != 'ClientAccountID'] # This transformation happens for all dataframes
     
     match query:
 
@@ -21,7 +21,6 @@ class Transformer():
         
       case _:
         raise("Bad query key name")
-
 
     return df
 
