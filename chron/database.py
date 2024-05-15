@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 import psycopg2
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect
 import pandas as pd
 
 class Database():
@@ -59,15 +59,9 @@ class Database():
   def load_df(self, df: pd.DataFrame, table_name: str):
 
     try:
-      check_table_query = f"""
-        SELECT EXISTS (
-            SELECT 1
-            FROM information_schema.tables
-            WHERE table_name = '{table_name}'
-        )
-      """
-
-      table_exists = self.query(check_table_query)
+      # Use SQLAlchemy inspector to check if the table exists
+      inspector = inspect(self.engine)
+      table_exists = table_name in inspector.get_table_names()
 
       if table_exists:
         # Drop all duplicate rows

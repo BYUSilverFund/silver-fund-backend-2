@@ -12,7 +12,7 @@ def main():
     token = config[fund]['token']
     query_types = config[fund]['queries'].keys()
 
-    print(f"Begining {fund.capitalize()} Fund ETL")
+    print(f"Beginning {fund} fund ETL")
 
     for query_type in query_types: 
       query_id = config[fund]['queries'][query_type]
