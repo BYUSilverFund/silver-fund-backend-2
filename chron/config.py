@@ -9,12 +9,12 @@ config = {
     }
   },
   "undergrad":{
-    "token": 0,
+    "token": 155834512513051746551265,
     "queries":{
-      "delta_nav":0,
-      "dividends": 0,
-      "positions": 0,
-      "trades": 0,
+      "delta_nav":989561,
+      "positions": 989564,
+      "dividends": 989565,
+      "trades": 989567,
     }
   },
   "quant":{
