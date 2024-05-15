@@ -1,7 +1,7 @@
 from config import config
 from extractor import Extractor
 from transform import Transformer
-from loader import Loader
+from database import Database
 
 # Entry point for chron job
 
@@ -19,10 +19,10 @@ def main():
 
     # Transform
     transformed_data = Transformer.transform(raw_data, query_type)
-    print(transformed_data)
 
     # Load
-    Loader.load(transformed_data, query_type)
+    database = Database()
+    database.load(transformed_data, query_type)
 
     
 if __name__ == "__main__":
