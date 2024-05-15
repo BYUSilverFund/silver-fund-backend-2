@@ -2,38 +2,45 @@ import os
 from dotenv import load_dotenv
 import psycopg2
 
-# Load environment variables from .env file
-load_dotenv()
+class Database():
 
-# Fetch the RDS details from environment variables
-db_endpoint = os.getenv('DB_ENDPOINT')
-db_name = os.getenv('DB_NAME')
-db_user = os.getenv('DB_USER')
-db_password = os.getenv('DB_PASSWORD')
-db_port = os.getenv('DB_PORT', '5432')
+  def __init__(self):
+    # Load environment variables from .env file
+    load_dotenv()
 
-try:
-    # Establish the connection
-    conn = psycopg2.connect(
-        host=db_endpoint,
-        database=db_name,
-        user=db_user,
-        password=db_password,
-        port=db_port
-    )
+    # Fetch the RDS details from environment variables
+    db_endpoint = os.getenv('DB_ENDPOINT')
+    db_name = os.getenv('DB_NAME')
+    db_user = os.getenv('DB_USER')
+    db_password = os.getenv('DB_PASSWORD')
+    db_port = os.getenv('DB_PORT', '5432')
 
-    # Create a cursor object
-    cur = conn.cursor()
+    try:
+        # Establish the connection
+        self.connection = psycopg2.connect(
+            host=db_endpoint,
+            database=db_name,
+            user=db_user,
+            password=db_password,
+            port=db_port
+        )
 
+        # Create a cursor object
+        self.cursor = self.connection.cursor() 
+
+    except Exception as e:
+        print(f'Error: {e}')
+
+  def __del__(self):
+    # Close the cursor and connection
+    self.cursor.close()
+    self.connection.close()
+
+  def query(self, query_string):
     # Execute a sample query
-    cur.execute('SELECT version()')
+    self.cursor.execute(query_string)
 
     # Fetch the result
-    db_version = cur.fetchone()
-    print(f'PostgreSQL database version: {db_version}')
+    result =  self.cursor.fetchone()
 
-    # Close the cursor and connection
-    cur.close()
-    conn.close()
-except Exception as e:
-    print(f'Error: {e}')
+    return result 
