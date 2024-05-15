@@ -2,7 +2,7 @@ import pandas as pd
 
 class Loader():
 
-  def load(df: pd.DataFrame, query: str):    
+  def load(df: pd.DataFrame, query: str) -> pd.DataFrame:    
     match query:
 
       case 'delta_nav':
