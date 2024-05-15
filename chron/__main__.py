@@ -11,18 +11,22 @@ def main():
   token = config['grad']['token']
   query_types = config['grad']['queries'].keys()
 
+  print(f"Begining Grad Fund ETL")
+
   for query_type in query_types: 
     query_id = config['grad']['queries'][query_type]
 
     # Extract
+    print(f"Executing IBKR {query_type} query")
     raw_data = Extractor.ibkr_query(token,query_id)
 
     # Transform
+    print(f"Transforming the {query_type} data")
     transformed_data = Transformer.transform(raw_data, query_type)
 
     # Load
     database = Database()
-    database.load(transformed_data, query_type)
+    database.load_df(transformed_data, query_type)
 
     
 if __name__ == "__main__":

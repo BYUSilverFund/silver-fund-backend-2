@@ -30,6 +30,10 @@ class Database():
         # Create a cursor object
         self.cursor = self.connection.cursor() 
 
+        # Create the SQLAlchemy engine
+        db_url = f'postgresql+psycopg2://{self.db_user}:{self.db_password}@{self.db_endpoint}:{self.db_port}/{self.db_name}'
+        self.engine = create_engine(db_url)
+
     except Exception as e:
         print(f'Error: {e}')
 
@@ -37,6 +41,7 @@ class Database():
     # Close the cursor and connection
     self.cursor.close()
     self.connection.close()
+    self.engine.dispose()
 
   def query(self, query_string):
     # Execute a sample query
@@ -47,18 +52,35 @@ class Database():
 
     return result 
   
-  def load(self, df, table_name):
-    # Create the SQLAlchemy engine
-    db_url = f'postgresql+psycopg2://{self.db_user}:{self.db_password}@{self.db_endpoint}:{self.db_port}/{self.db_name}'
-    engine = create_engine(db_url)
+  def get_df(self,table_name: str) -> pd.DataFrame:
+    query = f"SELECT * FROM {table_name}"
+    df = pd.read_sql(query, self.engine)
+    return df
+  
+  def load_df(self, df: pd.DataFrame, table_name: str):
 
     try:
-        # Using the `to_sql` method to upload the DataFrame
-        df.to_sql(table_name, engine, if_exists='replace', index=False)
-        print(f"Table '{table_name}' created successfully and data inserted.")
+      check_table_query = f"""
+        SELECT EXISTS (
+            SELECT 1
+            FROM information_schema.tables
+            WHERE table_name = '{table_name}'
+        )
+      """
+
+      table_exists = self.query(check_table_query)
+
+      if table_exists:
+        # Drop all duplicate rows
+        original = self.get_df(table_name)
+        combined = pd.concat([original,df])
+        combined = combined.drop_duplicates()
+        df = combined
+
+      # Store the DataFrame in the table
+      df.to_sql(table_name, self.engine, if_exists='replace', index=False)
+
+      print(f"Data loaded into the {table_name} table in the database.")
 
     except Exception as e:
         print(f"Error: {e}")
-        
-    finally:
-        engine.dispose()
