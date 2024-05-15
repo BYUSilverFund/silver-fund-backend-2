@@ -27,7 +27,8 @@ def main():
     # Load
     database = Database()
     database.load_df(transformed_data, query_type)
+    print(f"Data loaded into the {query_type} table in the database.")
 
-    
+
 if __name__ == "__main__":
   main()
