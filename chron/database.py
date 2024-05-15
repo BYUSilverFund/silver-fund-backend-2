@@ -43,16 +43,15 @@ class Database():
     self.connection.close()
     self.engine.dispose()
 
-  def query(self, query_string):
-    # Execute a sample query
-    self.cursor.execute(query_string)
+  def query(self, query_string: str) -> str:
 
-    # Fetch the result
+    self.cursor.execute(query_string)
     result =  self.cursor.fetchone()
 
     return result 
   
   def get_df(self,table_name: str) -> pd.DataFrame:
+
     query = f"SELECT * FROM {table_name}"
     df = pd.read_sql(query, self.engine)
     return df
@@ -79,8 +78,6 @@ class Database():
 
       # Store the DataFrame in the table
       df.to_sql(table_name, self.engine, if_exists='replace', index=False)
-
-      print(f"Data loaded into the {table_name} table in the database.")
 
     except Exception as e:
         print(f"Error: {e}")
