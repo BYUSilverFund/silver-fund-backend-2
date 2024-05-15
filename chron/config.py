@@ -8,9 +8,9 @@ config = {
     "token": 819997527277769608738195,
     "queries":{
       "delta_nav":987356,
-      # "dividends": 987361,
       "positions": 987359,
-      # "trades": 987363,
+      "dividends": 987361,
+      "trades": 987363,
     }
   },
   "undergrad":{
