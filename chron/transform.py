@@ -9,6 +9,9 @@ class Transformer():
     
     match query:
 
+      case 'nav':
+        df = transform_nav(df)
+
       case 'delta_nav':
         df = transform_delta_nav(df)
 
@@ -25,6 +28,11 @@ class Transformer():
         raise("Bad query key name")
 
     return df
+  
+def transform_nav(df):
+  df = df.copy()
+  df['date'] = pd.to_datetime(df['ReportDate'], format='%Y%m%d')
+  return df
 
 def transform_delta_nav(df):
   df = df.copy()
