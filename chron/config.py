@@ -17,13 +17,13 @@ config = {
       "trades": 989567,
     }
   },
-  "quant":{
-    "token": 0,
-    "queries":{
-      "delta_nav":0,
-      "dividends": 0,
-      "positions": 0,
-      "trades": 0,
-    }
-  },
+  # "quant":{
+  #   "token": 0,
+  #   "queries":{
+  #     "delta_nav":0,
+  #     "dividends": 0,
+  #     "positions": 0,
+  #     "trades": 0,
+  #   }
+  # },
 }
