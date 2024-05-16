@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from config import config
 from extractor import ibkr_query
 from transformer import transform
@@ -5,7 +7,6 @@ from database import Database
 
 
 # Entry point for chron job
-
 def main():
     funds = config.keys()
 
