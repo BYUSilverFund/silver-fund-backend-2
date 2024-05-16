@@ -47,7 +47,7 @@ def transform_positions(df):
 
 def transform_dividends(df):
     df = df.copy()
-    df['date'] = pd.to_datetime(df['ExDate'], format='%Y%m%d')  # Should this be PayDate instead?
+    df['date'] = pd.to_datetime(df['ExDate'], format='%Y%m%d')
     return df
 
 
