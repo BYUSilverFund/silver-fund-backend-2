@@ -28,30 +28,30 @@ def transform(df: pd.DataFrame, fund: str, query: str) -> pd.DataFrame:
     return xf_df
 
 def transform_nav(df):
-    df = df.copy()
-    df['date'] = pd.to_datetime(df['ReportDate'], format='%Y%m%d')
-    return df
+    xf_df = df
+    xf_df['date'] = pd.to_datetime(xf_df['ReportDate'], format='%Y%m%d')
+    return xf_df
 
 
 def transform_delta_nav(df):
-    df = df.copy()
-    df['date'] = pd.to_datetime(df['FromDate'], format='%Y%m%d')
-    return df
+    xf_df = df
+    xf_df['date'] = pd.to_datetime(xf_df['FromDate'], format='%Y%m%d')
+    return xf_df
 
 
 def transform_positions(df):
-    df = df.copy()
-    df['date'] = pd.to_datetime(df['ReportDate'], format='%Y%m%d')
-    return df
+    xf_df = df
+    xf_df['date'] = pd.to_datetime(xf_df['ReportDate'], format='%Y%m%d')
+    return xf_df
 
 
 def transform_dividends(df):
-    df = df.copy()
-    df['date'] = pd.to_datetime(df['ExDate'], format='%Y%m%d')
-    return df
+    xf_df = df
+    xf_df['date'] = pd.to_datetime(xf_df['ExDate'], format='%Y%m%d')
+    return xf_df
 
 
 def transform_trades(df):
-    df = df.copy()
-    df['date'] = pd.to_datetime(df['ReportDate'], format='%Y%m%d')
-    return df
+    xf_df = df
+    xf_df['date'] = pd.to_datetime(xf_df['ReportDate'], format='%Y%m%d')
+    return xf_df

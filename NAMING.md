@@ -15,5 +15,4 @@
 | ir | Information Ratio |
 | cum | Cummulative |
 | ci | Confidence Interval |
-
-
+| xf | Transform |
