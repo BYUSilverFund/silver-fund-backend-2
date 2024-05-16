@@ -2,7 +2,7 @@ config = {
     "grad": {
         "token": 819997527277769608738195,
         "queries": {
-            "nav": 978420,
+            # "nav": 978420,
             "delta_nav": 987356,
             "positions": 987359,
             "dividends": 987361,
