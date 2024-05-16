@@ -67,6 +67,11 @@ class Database:
             if table_exists:
                 # Drop all duplicate rows
                 original = self.get_df(table_name)
+
+                # Check that the dataframes match
+                if original.columns != df.columns:
+                    raise ValueError("Dataframes do not match!")
+
                 combined = pd.concat([original, df])
                 combined = combined.drop_duplicates()
                 df = combined
