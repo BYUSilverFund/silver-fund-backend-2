@@ -21,7 +21,7 @@ def main():
 
             # Extract
             print(f"Executing IBKR {query_type} query")
-            raw_data = ibkr_query(token,query_id)
+            raw_data = ibkr_query(token, query_id)
 
             # Transform
             print(f"Transforming the {query_type} data")

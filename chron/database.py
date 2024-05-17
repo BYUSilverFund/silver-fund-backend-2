@@ -68,9 +68,11 @@ class Database:
                 # Drop all duplicate rows
                 original = self.get_df(table_name)
 
-                # Check that the dataframes match
-                if original.columns != df.columns:
-                    raise ValueError("Dataframes do not match!")
+                # Validate schema
+                original_columns = set(original.columns)
+                new_columns = set(df.columns)
+                if original_columns != new_columns:
+                    raise ValueError("Schema mismatch between existing table and DataFrame.")
 
                 combined = pd.concat([original, df])
                 combined = combined.drop_duplicates()
