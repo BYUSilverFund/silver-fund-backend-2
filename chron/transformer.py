@@ -27,6 +27,7 @@ def transform(df: pd.DataFrame, fund: str, query: str) -> pd.DataFrame:
 
     return xf_df
 
+
 def transform_nav(df):
     xf_df = df
     xf_df['date'] = pd.to_datetime(xf_df['ReportDate'], format='%Y%m%d')
