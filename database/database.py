@@ -1,8 +1,9 @@
 import os
 from dotenv import load_dotenv
 import psycopg2
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import create_engine
 import pandas as pd
+import requests
 
 
 class Database:
@@ -46,4 +47,14 @@ class Database:
 
     def execute_query(self, query_string: str) -> pd.DataFrame:
         df = pd.read_sql(query_string, self.engine)
+        return df
+
+    @staticmethod
+    def fred_risk_free() -> pd.DataFrame:
+        fred_key = '971fa55a70d1cee395102f9d52510052'
+        fred_series = 'DGS1MO'
+        url = f'https://api.stlouisfed.org/fred/series/observations?series_id={fred_series}&api_key={fred_key}&file_type=json'
+        response = requests.get(url)
+        data = response.json()
+        df = pd.DataFrame(data['observations'])
         return df

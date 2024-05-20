@@ -22,15 +22,9 @@ def alpha(xs_returns: np.ndarray, xs_bmk_returns: np.ndarray) -> float:
     model = sm.OLS(xs_bmk_returns, xs_returns)
     results = model.fit()
 
-    alpha = results.params[0]
+    intercept = results.params.iloc[0]
 
-    print(results.params)
-
-    confidence_interval = results.conf_int(alpha=0.05)  # 95% confidence interval
-    alpha_ci = confidence_interval[0]
-    print(alpha_ci)
-
-    return [alpha, alpha_ci[0], alpha_ci[1]]
+    return intercept
 
 
 def beta(xs_returns: np.ndarray, xs_bmk_returns: np.ndarray) -> float:
@@ -50,9 +44,9 @@ def beta(xs_returns: np.ndarray, xs_bmk_returns: np.ndarray) -> float:
     model = sm.OLS(xs_bmk_returns, xs_returns)
     results = model.fit()
 
-    beta = results.params[1]
+    slope = results.params[1]
 
-    return beta
+    return slope
 
 
 def volatility(returns: np.ndarray) -> float:
@@ -122,7 +116,7 @@ def total_return(starting_value: float, ending_value: float) -> float:
     return ending_value / starting_value - 1
 
 
-def returns_vector(starting_values: pd.Series, ending_values: pd.Series) -> pd.Series:
+def returns_vector(starting_values: pd.Series, ending_values: pd.Series) -> np.ndarray:
     """
   Calculate the daily returns vector of a security or portfolio.
 
@@ -134,4 +128,4 @@ def returns_vector(starting_values: pd.Series, ending_values: pd.Series) -> pd.S
   - np.ndarray: daily return vector
   """
     daily_returns = ending_values / starting_values - 1
-    return daily_returns
+    return daily_returns.values
