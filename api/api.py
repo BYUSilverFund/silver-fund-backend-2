@@ -1,31 +1,33 @@
 from flask import Flask
 from services.service import Service
 
-
 app = Flask(__name__)
+service = Service()
 
-@app.route("/example")
-def example():
-    data = Service.example()
-    return data
 
-@app.route("/portfolio_summary") # Alpha, confidence interval, beta, volatility, information ratio, active risk
-def portfolio_alpha():
-    response = Service.portfolio_summary()
+@app.route("/portfolio_total_return")
+def portfolio_total_return():
+    # Temp Variables
+    fund = "undergrad"
+    start_date = "2024-04-01"
+    end_date = "2024-05-20"
+
+    response = service.portfolio_total_return(fund, start_date, end_date)
+
     return response
 
-@app.route("/holdings_returns") # Vector of holding returns
-def holdings_returns():
-    response = Service.holdings_returns()
+
+@app.route("/portfolio_returns_vector")
+def portfolio_returns_vector():
+    # Temp Variables
+    fund = "undergrad"
+    start_date = "2024-04-01"
+    end_date = "2024-05-20"
+
+    response = service.portfolio_returns_vector(fund, start_date, end_date)
+
     return response
 
-@app.route("/holdings_alphas") # Vector of holding alpha contributions
-def holdings_alphas():
-    return ""
-
-@app.route("/holdings_active_risk") # Vector of holding contribution to active risk
-def holdings_active_risk():
-    return ""
 
 if __name__ == '__main__':
     app.run(debug=False)

@@ -4,8 +4,9 @@ import pandas as pd
 
 TRADING_DAYS = 252
 
+
 def alpha(xs_returns: np.ndarray, xs_bmk_returns: np.ndarray) -> float:
-  """
+    """
   Calculate the alpha of a security or portfolio.
 
   Parameters:
@@ -16,24 +17,24 @@ def alpha(xs_returns: np.ndarray, xs_bmk_returns: np.ndarray) -> float:
   - list: A list containing the alpha, lower bound of the 95% confidence interval, and upper bound of the 95% confidence interval.
   """
 
-  xs_returns = sm.add_constant(xs_returns)
+    xs_returns = sm.add_constant(xs_returns)
 
-  model = sm.OLS(xs_bmk_returns, xs_returns)
-  results = model.fit()
+    model = sm.OLS(xs_bmk_returns, xs_returns)
+    results = model.fit()
 
-  alpha = results.params[0]
+    alpha = results.params[0]
 
-  print(results.params)
+    print(results.params)
 
-  confidence_interval = results.conf_int(alpha=0.05) # 95% confidence interval
-  alpha_ci = confidence_interval[0]
-  print(alpha_ci)
+    confidence_interval = results.conf_int(alpha=0.05)  # 95% confidence interval
+    alpha_ci = confidence_interval[0]
+    print(alpha_ci)
 
-  return [alpha, alpha_ci[0], alpha_ci[1]]
+    return [alpha, alpha_ci[0], alpha_ci[1]]
 
 
 def beta(xs_returns: np.ndarray, xs_bmk_returns: np.ndarray) -> float:
-  """
+    """
   Calculate the beta of a security or portfolio to the benchmark.
 
   Parameters:
@@ -44,18 +45,18 @@ def beta(xs_returns: np.ndarray, xs_bmk_returns: np.ndarray) -> float:
   - float: beta.
   """
 
-  xs_returns = sm.add_constant(xs_returns)
+    xs_returns = sm.add_constant(xs_returns)
 
-  model = sm.OLS(xs_bmk_returns, xs_returns)
-  results = model.fit()
+    model = sm.OLS(xs_bmk_returns, xs_returns)
+    results = model.fit()
 
-  beta = results.params[1]
+    beta = results.params[1]
 
-  return beta
+    return beta
 
 
 def volatility(returns: np.ndarray) -> float:
-  """
+    """
   Calculate the volatility of a security or portfolio.
 
   Parameters:
@@ -65,13 +66,13 @@ def volatility(returns: np.ndarray) -> float:
   - float: volatility (annualized).
   """
 
-  standard_deviation = returns.std()
+    standard_deviation = returns.std()
 
-  return standard_deviation * np.sqrt(TRADING_DAYS)
+    return standard_deviation * np.sqrt(TRADING_DAYS)
 
 
 def portfolio_tracking_error(port_returns: np.ndarray, bmk_returns: np.ndarray) -> float:
-  """
+    """
   Calculate the tracking error of a portfolio to the benchmark.
 
   Parameters:
@@ -82,13 +83,13 @@ def portfolio_tracking_error(port_returns: np.ndarray, bmk_returns: np.ndarray) 
   - float: tracking error (annualized).
   """
 
-  difference = port_returns - bmk_returns
+    difference = port_returns - bmk_returns
 
-  return difference.std() * np.sqrt(TRADING_DAYS)
+    return difference.std() * np.sqrt(TRADING_DAYS)
 
 
 def portfolio_information_ratio(port_returns: np.ndarray, bmk_returns: np.ndarray) -> float:
-  """
+    """
   Calculate the information ratio of a portfolio to the benchmark.
 
   Parameters:
@@ -99,16 +100,16 @@ def portfolio_information_ratio(port_returns: np.ndarray, bmk_returns: np.ndarra
   - float: information ratio.
   """
 
-  cum_port_return = port_returns[-1] / port_returns[0] - 1
-  cum_bmk_return = bmk_returns[-1] / bmk_returns[0] - 1
+    cum_port_return = port_returns[-1] / port_returns[0] - 1
+    cum_bmk_return = bmk_returns[-1] / bmk_returns[0] - 1
 
-  tracking_error = portfolio_tracking_error(port_returns,bmk_returns)
-  
-  return (cum_port_return - cum_bmk_return) / tracking_error
+    tracking_error = portfolio_tracking_error(port_returns, bmk_returns)
+
+    return (cum_port_return - cum_bmk_return) / tracking_error
 
 
-def total_return(returns: np.ndarray) -> float:
-  """
+def total_return(starting_value: float, ending_value: float) -> float:
+    """
   Calculate the total return of a security or portfolio.
 
   Parameters:
@@ -118,9 +119,19 @@ def total_return(returns: np.ndarray) -> float:
   - float: total return.
   """
 
+    return ending_value / starting_value - 1
 
-  log_returns = np.log(1 + returns)
 
-  total_return = log_returns.sum()
+def returns_vector(starting_values: pd.Series, ending_values: pd.Series) -> pd.Series:
+    """
+  Calculate the daily returns vector of a security or portfolio.
 
-  return total_return
+  Parameters:
+  - starting_values: Starting values of the security or portfolio.
+  - ending_values: Ending values of the security or portfolio.
+
+  Returns:
+  - np.ndarray: daily return vector
+  """
+    daily_returns = ending_values / starting_values - 1
+    return daily_returns
