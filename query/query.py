@@ -37,7 +37,7 @@ class Query:
         query_string = f'''
             SELECT date,
                    "Symbol"    AS symbol,
-                   "MarkPrice"::DECIMAL AS end_price
+                   "MarkPrice"::DECIMAL AS ending_value
             FROM positions
             WHERE fund = 'undergrad'
               AND "Symbol" = 'IWV'
@@ -46,7 +46,7 @@ class Query:
         '''
 
         df = self.db.execute_query(query_string)
-        df['start_price'] = df['end_price'].shift(1)
+        df['starting_value'] = df['ending_value'].shift(1)
         df = df[(df['date'] >= start_date) & (df['date'] <= end_date)]
 
         return df

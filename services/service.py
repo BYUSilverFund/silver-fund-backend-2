@@ -35,7 +35,7 @@ class Service:
 
     def portfolio_alpha(self, fund: str, start_date: str, end_date: str) -> json:
         bmk_df = self.query.get_benchmark_df(start_date, end_date)
-        bmk_returns = returns_vector(bmk_df['start_price'], bmk_df['end_price'])
+        bmk_returns = returns_vector(bmk_df['starting_value'], bmk_df['ending_value'])
 
         port_df = self.query.get_portfolio_df(fund, start_date, end_date)
         port_returns = returns_vector(port_df['starting_value'], port_df['ending_value'])
