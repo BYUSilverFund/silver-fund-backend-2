@@ -51,3 +51,11 @@ jobs:
             --deployment-group-name 47-Fund-EC2-Instances \
             --deployment-config-name CodeDeployDefault.OneAtATime \
             --github-location repository=${{ github.repository }},commitId=${{ github.sha }}
+
+      - name: ssh into EC2 instance
+        run: |
+          ssh -i /.ssh/47FundEC2.pem ubuntu@ec2-100-20-103-98.us-west-2.compute.amazonaws.com && \
+          cd /home/ubuntu/47-fund-web-app && \
+          source .venv/bin/activate && \
+          pip install -r requirements.txt && \
+          deactivate
