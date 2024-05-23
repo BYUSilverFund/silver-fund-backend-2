@@ -1,7 +1,8 @@
 import os
 from dotenv import load_dotenv
 import psycopg2
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import create_engine, inspect, MetaData, Table
+from sqlalchemy.dialects.postgresql import insert
 import pandas as pd
 
 
