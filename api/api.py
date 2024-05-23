@@ -6,7 +6,7 @@ service = Service()
 
 @app.route("/")
 def home():
-    return "Welcome to the 47 Fund API version1.0!"
+    return "Welcome to the 47 Fund API v1.0!"
 
 
 @app.route("/portfolio_total_return")
