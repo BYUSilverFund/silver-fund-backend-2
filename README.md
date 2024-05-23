@@ -31,7 +31,7 @@ deactivate
 - In the event you pip install a new package onto the virtual environment
 
 ```
-pip freeze >> requirements.txt
+pip freeze > requirements.txt
 ```
 
 - This adds the new package dependency to the requirements
