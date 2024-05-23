@@ -12,9 +12,10 @@ class Query:
         SELECT date, fund, 
         "StartingValue"::DECIMAL AS starting_value, 
         "EndingValue"::DECIMAL AS ending_value,
-        (ending_value / starting_value - 1) AS pct_change
+        ("EndingValue"::DECIMAL / "StartingValue"::DECIMAL - 1) AS return
         FROM delta_nav 
         WHERE fund = '{fund}' 
+        AND "StartingValue"::DECIMAL <> 0
         AND date BETWEEN '{start_date}' AND '{end_date}'
         ORDER BY date
         '''
