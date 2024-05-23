@@ -71,7 +71,7 @@ def transform_rf(df: pd.DataFrame) -> pd.DataFrame:
     df['P1'] = 100 / (1 + df['yield'] * 29 / 360)
 
     df['return'] = df['P1'] / df['P0'] - 1
-    df['rf'] = df['yield'] / 360
+    df['yield'] = df['yield'] / 360
 
     df = df[['date', 'yield', 'return']]
 
