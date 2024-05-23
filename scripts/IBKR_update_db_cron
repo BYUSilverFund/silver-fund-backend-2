@@ -1,6 +1,6 @@
 #!/bin/bash
 
 cd /home/ubuntu/47-fund-web-app
-source .venv/bin/activate
+sudo source .venv/bin/activate
 ./chron/__main__.py 
-deactivate
+sudo deactivate
