@@ -10,5 +10,5 @@ hooks:
       runas: root
   ApplicationStart:
     - location: scripts/redeploy_api
-     timeout: 300
-     runas: root
+      timeout: 300
+      runas: root
