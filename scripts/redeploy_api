@@ -1,4 +1,5 @@
 #!/bin/bash
 
+sudo source /home/ubuntu/47-fund-web-app/.venv/bin/activate
 sudo python3 /home/ubuntu/47-fund-web-app/main.py
 sudo systemctl restart nginx
