@@ -3,3 +3,8 @@ os: linux
 files:
   - source: .
     destination: /home/ubuntu/47-fund-web-app
+hooks:
+  AfterInstall:
+    - location: scripts/install_app_dependencies
+      timeout: 300
+      runas: root
