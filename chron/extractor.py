@@ -1,8 +1,11 @@
+import os
 import requests
 import re
 import time
 from io import StringIO
 import pandas as pd
+from fredapi import Fred
+from dotenv import load_dotenv
 
 
 def ibkr_query(token, query):
@@ -22,7 +25,7 @@ def ibkr_query(token, query):
     reference_code = re.findall('(?<=<ReferenceCode>)\d*(?=<\/ReferenceCode>)', response.text)[0]
 
     # Request 2
-    time.sleep(2)
+    time.sleep(10)
     url = f'https://ndcdyn.interactivebrokers.com/AccountManagement/FlexWebService/GetStatement?t={token}&q={reference_code}&v=3'
     response = requests.get(url)
 
@@ -31,3 +34,18 @@ def ibkr_query(token, query):
     df = pd.read_csv(csv_string)
 
     return df
+
+
+def fred_query() -> pd.DataFrame:
+    load_dotenv()
+
+    series_id = 'DGS10'
+    api_key = os.getenv("FRED_API_KEY")
+
+    fred = Fred(api_key=api_key)
+    data = fred.get_series(series_id).rename("yield").to_frame()
+
+    data.reset_index(inplace=True)
+    data.rename(columns={'index': 'date'}, inplace=True)
+
+    return data

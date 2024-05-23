@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 
 from config import config
-from extractor import ibkr_query
-from transformer import transform
+from extractor import ibkr_query, fred_query
+from transformer import transform, transform_rf
 from database import Database
 
 
 # Entry point for chron job
 def main():
+    database = Database()
+
     funds = config.keys()
 
     for fund in funds:
@@ -28,9 +30,14 @@ def main():
             transformed_data = transform(raw_data, fund, query_type)
 
             # Load
-            database = Database()
             database.load_df(transformed_data, query_type)
             print(f"Data loaded into the {query_type} table in the database.")
+
+        print("Updating risk free rate")
+
+        raw_rf = fred_query()
+        transformed_rf = transform_rf(raw_rf)
+        database.load_df(transformed_rf, 'risk_free_rate')
 
 
 if __name__ == "__main__":

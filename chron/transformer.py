@@ -56,3 +56,21 @@ def transform_trades(df):
     xf_df = df
     xf_df['date'] = pd.to_datetime(xf_df['ReportDate'], format='%Y%m%d')
     return xf_df
+
+
+def transform_rf(df: pd.DataFrame) -> pd.DataFrame:
+    df.loc[:, 'yield'] = df['yield'] * .01
+
+    df['yield'] = df['yield'].fillna(df['yield'].shift(1))
+
+    df['yield_lag'] = df['yield'].shift(1)
+
+    df['P0'] = 100 / (1 + df['yield_lag'] * 30 / 360)
+    df['P1'] = 100 / (1 + df['yield'] * 29 / 360)
+
+    df['return'] = df['P1'] / df['P0'] - 1
+    df['rf'] = df['yield'] / 360
+
+    df = df[['date', 'yield', 'return']]
+
+    return df
