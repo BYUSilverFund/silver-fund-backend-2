@@ -1,5 +1,3 @@
 #!/bin/bash
 
-cd /home/ubuntu/47-fund-web-app
-sudo source .venv/bin/activate
-sudo python3 main.py
+sudo systemctl restart 47_fund_web_app
