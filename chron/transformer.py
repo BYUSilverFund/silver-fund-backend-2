@@ -59,6 +59,8 @@ def transform_trades(df):
 
 
 def transform_rf(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+
     df.loc[:, 'yield'] = df['yield'] * .01
 
     df['yield'] = df['yield'].fillna(df['yield'].shift(1))
@@ -74,3 +76,19 @@ def transform_rf(df: pd.DataFrame) -> pd.DataFrame:
     df = df[['date', 'yield', 'return']]
 
     return df
+
+
+def transform_bmk(df: pd.DataFrame) -> pd.DataFrame:
+    xf_df = df[df['ClientAccountID'] != 'ClientAccountID'].copy()
+    xf_df['date'] = pd.to_datetime(xf_df['ReportDate'], format='%Y%m%d')
+    xf_df['MarkPrice'] = pd.to_numeric(xf_df['MarkPrice'])
+
+    xf_df = xf_df[xf_df['Symbol'] == 'IWV']
+
+    xf_df['ending_value'] = xf_df['MarkPrice']
+    xf_df['starting_value'] = xf_df['ending_value'].shift(1)
+    xf_df['return'] = xf_df['ending_value'] / xf_df['starting_value'] - 1
+
+    xf_df = xf_df[['date', 'starting_value', 'ending_value', 'return']]
+
+    return xf_df

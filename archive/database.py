@@ -77,9 +77,11 @@ class Database:
 
                 combined = pd.concat([original, df])
                 combined = combined.drop_duplicates()
+
                 df = combined
 
-            # Store the DataFrame in the table
+            # Store the DataFrame in the table sorted from oldest(top) to newest (bottom)
+            df = df.sort_values(by='date', ascending=True)
             df.to_sql(table_name, self.engine, if_exists='replace', index=False)
 
         except Exception as e:
