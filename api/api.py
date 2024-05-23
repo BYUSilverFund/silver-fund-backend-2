@@ -4,6 +4,10 @@ from services.service import Service
 app = Flask(__name__)
 service = Service()
 
+@app.route("/")
+def home():
+    return "Welcome to the 47 Fund API!"
+
 
 @app.route("/portfolio_total_return")
 def portfolio_total_return():
