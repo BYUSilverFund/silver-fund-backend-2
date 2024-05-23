@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 import psycopg2
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect
 import pandas as pd
 import requests
 
@@ -45,16 +45,41 @@ class Database:
         self.connection.close()
         self.engine.dispose()
 
-    def execute_query(self, query_string: str) -> pd.DataFrame:
-        df = pd.read_sql(query_string, self.engine)
+    def get_df(self, table_name: str) -> pd.DataFrame:
+
+        query = f"SELECT * FROM {table_name}"
+        df = pd.read_sql(query, self.engine)
         return df
 
-    @staticmethod
-    def fred_risk_free() -> pd.DataFrame:
-        fred_key = '971fa55a70d1cee395102f9d52510052'
-        fred_series = 'DGS1MO'
-        url = f'https://api.stlouisfed.org/fred/series/observations?series_id={fred_series}&api_key={fred_key}&file_type=json'
-        response = requests.get(url)
-        data = response.json()
-        df = pd.DataFrame(data['observations'])
+    def load_df(self, df: pd.DataFrame, table_name: str):
+
+        try:
+            # Use SQLAlchemy inspector to check if the table exists
+            inspector = inspect(self.engine)
+            table_exists = table_name in inspector.get_table_names()
+
+            if table_exists:
+                # Drop all duplicate rows
+                original = self.get_df(table_name)
+
+                # Validate schema
+                original_columns = set(original.columns)
+                new_columns = set(df.columns)
+                if original_columns != new_columns:
+                    raise ValueError("Schema mismatch between existing table and DataFrame.")
+
+                combined = pd.concat([original, df])
+                combined = combined.drop_duplicates()
+
+                df = combined
+
+            # Store the DataFrame in the table sorted from oldest(top) to newest (bottom)
+            df = df.sort_values(by='date', ascending=True)
+            df.to_sql(table_name, self.engine, if_exists='replace', index=False)
+
+        except Exception as e:
+            print(f"Error: {e}")
+
+    def execute_query(self, query_string: str) -> pd.DataFrame:
+        df = pd.read_sql(query_string, self.engine)
         return df
