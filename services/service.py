@@ -8,23 +8,36 @@ class Service:
     def __init__(self):
         self.query = Query()
 
-    def portfolio_total_return(self, fund: str, start_date: str, end_date: str) -> json:
+    def portfolio_return(self, fund: str, start_date: str, end_date: str) -> json:
         df = self.query.get_portfolio_df(fund, start_date, end_date)
 
-        starting_values = df['starting_value']
-        ending_values = df['ending_value']
+        returns_vector = df['return']
 
-        port_return = total_return(starting_values, ending_values)
+        port_return = total_return(returns_vector)
 
         result = {
-            "total_return": port_return,
+            "fund": fund,
+            "start_date": start_date,
+            "end_date": end_date,
+            "return": port_return,
         }
 
         return json.dumps(result)
 
-    def portfolio_alpha(self, fund: str, start_date: str, end_date: str) -> json:
+    def holding_return(self, fund: str, ticker: str, start_date: str, end_date: str) -> json:
+        df = self.query.get_holding_df(fund, ticker, start_date, end_date)
+
+        returns_vector = df['return']
+
+        holding_return = total_return(returns_vector)
+
         result = {
-            "portfolio_alpha": "port_alpha"
+            "ticker": ticker,
+            "start_date": start_date,
+            "end_date": end_date,
+            "return": holding_return,
         }
 
         return json.dumps(result)
+
+
