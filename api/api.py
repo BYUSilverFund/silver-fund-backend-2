@@ -1,6 +1,7 @@
 import requests
 from flask import Flask, request
 from services.service import Service
+import json
 
 app = Flask(__name__)
 service = Service()
@@ -12,36 +13,21 @@ def home():
 @app.route("/test")
 def test():
     parameter = request.args.get("fund")
+    return json.dumps({"fund": parameter})
 
 
-@app.route("/portfolio_total_return", methods=["POST"])
+@app.route("/portfolio_total_return", methods=["GET"])
 def portfolio_total_return():
 
-    data = request.get_json()
-    fund = data["fund"]
-    start_date = data["start_date"]
-    end_date = data["end_date"]
-
-    # Temp Variables
-    # fund = "undergrad"
-    # start_date = "2024-04-01"
-    # end_date = "2024-05-20"
+    fund = request.args.get("fund")
+    start_date = request.args.get("start")
+    end_date = request.args.get("end")
 
     response = service.portfolio_total_return(fund, start_date, end_date)
 
     return response
 
 
-@app.route("/portfolio_returns_vector")
-def portfolio_returns_vector():
-    # Temp Variables
-    fund = "undergrad"
-    start_date = "2024-04-01"
-    end_date = "2024-05-20"
-
-    response = service.portfolio_returns_vector(fund, start_date, end_date)
-
-    return response
 
 
 if __name__ == '__main__':
