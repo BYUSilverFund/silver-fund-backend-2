@@ -1,17 +1,11 @@
-#!/usr/bin/env python3
-import sys
-from os import path
-
-sys.path.append(path.abspath(path.join(path.dirname(__file__), '..')))
-
-from config import config
-from extractor import ibkr_query, fred_query
-from transformer import transform, transform_rf, transform_bmk
+from .config import config
+from .extractor import ibkr_query, fred_query
+from .transformer import transform, transform_rf, transform_bmk
 from database.database import Database
 
 
 # Entry point for chron job
-def main():
+def run():
     database = Database()
 
     funds = config.keys()
