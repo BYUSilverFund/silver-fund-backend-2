@@ -102,7 +102,7 @@ def portfolio_information_ratio(port_returns: np.ndarray, bmk_returns: np.ndarra
     return (cum_port_return - cum_bmk_return) / tracking_error
 
 
-def total_return(starting_value: float, ending_value: float) -> float:
+def total_return(returns_vector: pd.Series) -> float:
     """
   Calculate the total return of a security or portfolio.
 
@@ -112,20 +112,20 @@ def total_return(starting_value: float, ending_value: float) -> float:
   Returns:
   - float: total return.
   """
+    compounded_return = (1 + returns_vector).prod() - 1
+    return compounded_return
 
-    return ending_value / starting_value - 1
 
-
-def returns_vector(starting_values: pd.Series, ending_values: pd.Series) -> np.ndarray:
-    """
-  Calculate the daily returns vector of a security or portfolio.
-
-  Parameters:
-  - starting_values: Starting values of the security or portfolio.
-  - ending_values: Ending values of the security or portfolio.
-
-  Returns:
-  - np.ndarray: daily return vector
-  """
-    daily_returns = ending_values / starting_values - 1
-    return daily_returns.values
+# def returns_vector(starting_values: pd.Series, ending_values: pd.Series) -> np.ndarray:
+#     """
+#   Calculate the daily returns vector of a security or portfolio.
+#
+#   Parameters:
+#   - starting_values: Starting values of the security or portfolio.
+#   - ending_values: Ending values of the security or portfolio.
+#
+#   Returns:
+#   - np.ndarray: daily return vector
+#   """
+#     daily_returns = ending_values / starting_values - 1
+#     return daily_returns.values

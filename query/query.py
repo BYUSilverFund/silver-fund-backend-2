@@ -16,6 +16,7 @@ class Query:
         FROM delta_nav 
         WHERE fund = '{fund}' 
         AND "StartingValue"::DECIMAL <> 0
+        AND ("EndingValue"::DECIMAL / "StartingValue"::DECIMAL - 1) <> 0
         AND date BETWEEN '{start_date}' AND '{end_date}'
         ORDER BY date
         '''
