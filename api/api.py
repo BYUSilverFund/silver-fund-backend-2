@@ -14,12 +14,18 @@ def test():
     parameter = request.args.get("fund")
 
 
-@app.route("/portfolio_total_return")
+@app.route("/portfolio_total_return", methods=["POST"])
 def portfolio_total_return():
+
+    data = request.get_json()
+    fund = data["fund"]
+    start_date = data["start_date"]
+    end_date = data["end_date"]
+
     # Temp Variables
-    fund = "undergrad"
-    start_date = "2024-04-01"
-    end_date = "2024-05-20"
+    # fund = "undergrad"
+    # start_date = "2024-04-01"
+    # end_date = "2024-05-20"
 
     response = service.portfolio_total_return(fund, start_date, end_date)
 
