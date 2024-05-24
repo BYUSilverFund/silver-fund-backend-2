@@ -6,9 +6,11 @@ import json
 app = Flask(__name__)
 service = Service()
 
+
 @app.route("/")
 def home():
     return "Welcome to the 47 Fund API v1.0"
+
 
 @app.route("/test")
 def test():
@@ -16,18 +18,27 @@ def test():
     return json.dumps({"fund": parameter})
 
 
-@app.route("/portfolio_total_return", methods=["GET"])
-def portfolio_total_return():
-
+@app.route("/portfolio_return", methods=["GET"])
+def portfolio_return():
     fund = request.args.get("fund")
     start_date = request.args.get("start")
     end_date = request.args.get("end")
 
-    response = service.portfolio_total_return(fund, start_date, end_date)
+    response = service.portfolio_return(fund, start_date, end_date)
 
     return response
 
 
+@app.route("/holding_return", methods=["GET"])
+def holding_return():
+    fund = request.args.get("fund")
+    ticker = request.args.get("ticker").upper()
+    start_date = request.args.get("start")
+    end_date = request.args.get("end")
+
+    response = service.holding_return(fund, ticker, start_date, end_date)
+
+    return response
 
 
 if __name__ == '__main__':
