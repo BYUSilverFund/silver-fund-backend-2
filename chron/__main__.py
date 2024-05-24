@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+import sys
+from os import path
+
+sys.path.append(path.abspath(path.join(path.dirname(__file__), '..')))
 
 from config import config
 from extractor import ibkr_query, fred_query
@@ -42,9 +46,9 @@ def main():
     bmk_token = config['undergrad']['token']
     bmk_query_id = config['undergrad']['queries']['positions']
 
-    raw_bmk = ibkr_query(bmk_token,bmk_query_id)
+    raw_bmk = ibkr_query(bmk_token, bmk_query_id)
     transformed_bmk = transform_bmk(raw_bmk)
-    database.load_df(transformed_bmk,'benchmark')
+    database.load_df(transformed_bmk, 'benchmark')
 
 
 if __name__ == "__main__":

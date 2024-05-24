@@ -1,4 +1,5 @@
-from flask import Flask
+import requests
+from flask import Flask, request
 from services.service import Service
 
 app = Flask(__name__)
@@ -7,6 +8,10 @@ service = Service()
 @app.route("/")
 def home():
     return "Welcome to the 47 Fund API version1.0"
+
+@app.route("/test")
+def test():
+    parameter = request.args.get("fund")
 
 
 @app.route("/portfolio_total_return")
