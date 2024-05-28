@@ -1,7 +1,7 @@
 from flask import Flask, request
+from flask_cors import CORS
 from services.service import Service
 import json
-from flask_cors import CORS
 import os
 import bcrypt
 
