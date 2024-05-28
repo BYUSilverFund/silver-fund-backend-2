@@ -3,5 +3,4 @@
 cd /home/ubuntu/47-fund-web-app
 source .venv/bin/activate
 sudo pip install -r requirements.txt
-deactivate
 sudo chmod +x ./chron.py
