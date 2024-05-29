@@ -1,0 +1,5 @@
+#!/bin/bash
+
+cd /home/ubuntu/47-fund-web-app
+source .venv/bin/activate
+sudo ./query_daily_positions.py
