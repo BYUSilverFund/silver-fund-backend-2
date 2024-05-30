@@ -1,5 +1,6 @@
 from flask import Flask, request
 from flask_cors import CORS
+from flask_talisman import Talisman
 from services.service import Service
 import json
 import os
@@ -8,19 +9,11 @@ import bcrypt
 app = Flask(__name__)
 service = Service()
 CORS(app)
-
-@app.after_request
-def after_request(response):
-
-    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
-    response.headers['Content-Security-Policy'] = "default-src 'self'"
-    response.headers['X-Content-Type-Options'] = 'nosniff'
-    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
-
-    return response
+Talisman(app)
 
 @app.before_request
 def before_request():
+
     if request.method != "OPTIONS" and request.endpoint != "home":
         if request.headers.get("x-api-key") is None:
             return json.dumps({"error": "No authorization token provided"}), 401
