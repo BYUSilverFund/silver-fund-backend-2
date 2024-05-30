@@ -14,10 +14,9 @@ Talisman(app)
 
 def check_user(username):
     cognito = boto3.client("cognito-idp", region_name="us-west-2", aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"), aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"))
-
     try:
         response = cognito.admin_get_user(
-            UserPoolId="us-west-2_BoFlcWaqw",
+            UserPoolId=os.getenv("AWS_USER_POOL_ID"),
             Username=username
         )
         return True
@@ -33,7 +32,7 @@ def before_request():
         
         valid_user = check_user(request.headers.get("username"))
         if not valid_user:
-            return json.dumps({"error": "Invalid authorization token"}), 401
+            return json.dumps({"error": "Invalid username provided"}), 401
 
         api_key = request.headers.get("x-api-key")
         if not bcrypt.checkpw(api_key.encode("utf-8"), os.getenv("HASHED_API_KEY").encode("utf-8")):
