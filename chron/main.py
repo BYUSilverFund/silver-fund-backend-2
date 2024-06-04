@@ -43,7 +43,3 @@ def run():
     raw_bmk = ibkr_query(bmk_token, bmk_query_id)
     transformed_bmk = transform_bmk(raw_bmk)
     database.load_df(transformed_bmk, 'benchmark')
-
-
-if __name__ == "__main__":
-    main()
