@@ -70,25 +70,39 @@ class Query:
                         AND "Symbol" = '{ticker}'
                     ORDER BY date
                 ),
-                join_table AS (
+                trades_query AS(
+                    SELECT
+                        date,
+                        fund,
+                        "Symbol" as ticker,
+                        SUM("Quantity"::DECIMAL) as shares_traded
+                    FROM trades
+                    WHERE fund = '{fund}'
+                        AND "Symbol" = '{ticker}'
+                    GROUP BY date, fund, "Symbol"
+                ),
+                join_table AS(
                     SELECT p.date,
                            p.fund,
                            p.ticker,
                            p.name,
                            p.shares_0,
-                           p.shares_1,
+                           (p.shares_1 - COALESCE(shares_traded,0)) AS shares_1, --Adjusts shares_1 for trades made on that day
+                           t.shares_traded,
                            p.price_0,
                            p.price_1,
                            p.value,
                            d.div_gross_rate,
                            d.div_gross_amount,
-                           (p.price_1 * p.shares_1 + COALESCE(d.div_gross_amount, 0)) / (p.price_0 * p.shares_0) - 1 AS return
+                           (p.price_1 * (p.shares_1 - COALESCE(shares_traded,0)) + COALESCE(d.div_gross_amount, 0)) / (p.price_0 * p.shares_0) - 1 AS return
                     FROM positions_xf p
+                    LEFT JOIN trades_query t ON p.date = t.date AND p.ticker = t.ticker AND p.fund = t.fund
                     LEFT JOIN dividends_query d ON p.date = d.date AND p.ticker = d.ticker AND p.fund = d.fund
-                    WHERE (p.price_1 * p.shares_1 + COALESCE(d.div_gross_amount, 0)) / (p.price_0 * p.shares_0) - 1 <> 0
+                    WHERE (p.price_1 * (p.shares_1 - COALESCE(shares_traded,0)) + COALESCE(d.div_gross_amount, 0)) / (p.price_0 * p.shares_0) - 1 <> 0
+                        AND (p.shares_1 - COALESCE(shares_traded,0)) <> 0
                         AND p.date BETWEEN '{start_date}' AND '{end_date}'
                 )
-                SELECT * FROM join_table
+            SELECT * FROM join_table
         '''
 
         df = self.db.execute_query(query_string)
