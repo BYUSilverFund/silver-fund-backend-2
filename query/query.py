@@ -1,3 +1,5 @@
+import numpy as np
+
 from database.database import Database
 import pandas as pd
 
@@ -54,6 +56,7 @@ class Query:
                 positions_xf AS (
                     SELECT
                         *,
+                        CASE WHEN shares_1 > 0 THEN 1 ELSE -1 END AS side,
                         LAG(shares_1) OVER (PARTITION BY ticker ORDER BY date) as shares_0,
                         LAG(price_1) OVER (PARTITION BY ticker ORDER BY date) as price_0
                     FROM positions_query
@@ -91,10 +94,11 @@ class Query:
                            t.shares_traded,
                            p.price_0,
                            p.price_1,
+                           p.side,
                            p.value,
                            d.div_gross_rate,
                            d.div_gross_amount,
-                           (p.price_1 * (p.shares_1 - COALESCE(shares_traded,0)) + COALESCE(d.div_gross_amount, 0)) / (p.price_0 * p.shares_0) - 1 AS return
+                           p.side * ((p.price_1 * (p.shares_1 - COALESCE(shares_traded,0)) + COALESCE(d.div_gross_amount, 0)) / (p.price_0 * p.shares_0) - 1) AS return
                     FROM positions_xf p
                     LEFT JOIN trades_query t ON p.date = t.date AND p.ticker = t.ticker AND p.fund = t.fund
                     LEFT JOIN dividends_query d ON p.date = d.date AND p.ticker = d.ticker AND p.fund = d.fund
@@ -108,3 +112,17 @@ class Query:
         df = self.db.execute_query(query_string)
 
         return df
+
+    def get_tickers(self, fund, start_date, end_date) -> np.ndarray:
+        query_string = f'''
+            SELECT DISTINCT("Symbol")
+            FROM positions
+            WHERE fund = '{fund}'
+                AND date BETWEEN '{start_date}' AND '{end_date}'
+        
+        '''
+
+        df = self.db.execute_query(query_string)
+
+        return df['Symbol'].tolist()
+
