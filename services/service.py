@@ -33,11 +33,18 @@ class Service:
 
         result = {
             "ticker": ticker,
-            "start_date": start_date,
-            "end_date": end_date,
-            "return": holding_return,
+            "return": round(holding_return*100,2),
         }
 
         return json.dumps(result)
 
+    def all_holding_returns(self, fund: str, start_date: str, end_date: str) -> json:
+        tickers = self.query.get_tickers(fund, start_date, end_date)
 
+        result = []
+        for ticker in tickers:
+            result.append(
+                self.holding_return(fund, ticker, start_date, end_date)
+            )
+
+        return json.dumps(result)

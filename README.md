@@ -54,3 +54,4 @@ pytest functions/tests.py
 - Selling half of a position
 - Stock splits
 - Doubling the size of a position
+- Short positions
