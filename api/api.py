@@ -72,6 +72,17 @@ def holding_return():
 
     return response
 
+@app.route("/all_holdings", methods=["GET"])
+def all_holding_returns():
+    fund = request.args.get("fund")
+    start_date = request.args.get("start")
+    end_date = request.args.get("end")
+
+    response = service.all_holding_returns(fund, start_date, end_date)
+
+    return response
+
+
 
 if __name__ == '__main__':
     app.run(debug=False)
