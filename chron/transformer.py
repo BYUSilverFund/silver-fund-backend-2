@@ -86,9 +86,7 @@ def transform_bmk(df: pd.DataFrame) -> pd.DataFrame:
     xf_df = xf_df[xf_df['Symbol'] == 'IWV']
 
     xf_df['ending_value'] = xf_df['MarkPrice']
-    xf_df['starting_value'] = xf_df['ending_value'].shift(1)
-    xf_df['return'] = xf_df['ending_value'] / xf_df['starting_value'] - 1
 
-    xf_df = xf_df[['date', 'starting_value', 'ending_value', 'return']]
+    xf_df = xf_df[['date', 'ending_value']]
 
     return xf_df
