@@ -24,6 +24,22 @@ class Service:
 
         return json.dumps(result)
 
+    def portfolio_summary(self, fund: str, start_date: str, end_date: str) -> json:
+        df = self.query.get_portfolio_df(fund, start_date, end_date)
+
+        port_return = total_return(df['return'])
+        port_alpha = alpha(df['xs_return'],df['xs_bmk_return'])
+        port_beta = beta(df['xs_return'],df['xs_bmk_return'])
+
+        result = {
+            "fund": fund,
+            "return": round(port_return * 100, 2),
+            "alpha": round(port_alpha * 100, 2),
+            "beta": round(port_beta, 2)
+        }
+
+        return json.dumps(result)
+
     def holding_summary(self, fund: str, ticker: str, start_date: str, end_date: str) -> json:
         df = self.query.get_holding_df(fund, ticker, start_date, end_date)
 
