@@ -17,7 +17,7 @@ class Query:
                          date,
                          fund,
                          "StartingValue"::DECIMAL AS starting_value,
-                         "EndingValue"::DECIMAL AS ending_value
+                         "EndingValue"::DECIMAL - "DepositsWithdrawals"::DECIMAL AS ending_value
                     FROM delta_nav
                     WHERE fund = '{fund}'
                 ),

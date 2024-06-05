@@ -55,3 +55,5 @@ pytest functions/tests.py
 - Stock splits
 - Doubling the size of a position
 - Short positions
+- Account withdrawals and deposits
+- Cash returns
