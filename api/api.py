@@ -61,24 +61,24 @@ def portfolio_return():
     return response
 
 
-@app.route("/holding_return", methods=["GET"])
+@app.route("/holding_summary", methods=["GET"])
 def holding_return():
     fund = request.args.get("fund")
     ticker = request.args.get("ticker").upper()
     start_date = request.args.get("start")
     end_date = request.args.get("end")
 
-    response = service.holding_return(fund, ticker, start_date, end_date)
+    response = service.holding_summary(fund, ticker, start_date, end_date)
 
     return response
 
-@app.route("/all_holdings", methods=["GET"])
-def all_holding_returns():
+@app.route("/all_holdings_summary", methods=["GET"])
+def all_holdings_summary():
     fund = request.args.get("fund")
     start_date = request.args.get("start")
     end_date = request.args.get("end")
 
-    response = service.all_holding_returns(fund, start_date, end_date)
+    response = service.all_holdings_summary(fund, start_date, end_date)
 
     return response
 

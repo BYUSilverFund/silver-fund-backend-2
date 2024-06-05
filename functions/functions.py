@@ -5,7 +5,21 @@ import pandas as pd
 TRADING_DAYS = 252
 
 
-def alpha(xs_returns: np.ndarray, xs_bmk_returns: np.ndarray) -> float:
+def total_return(returns_vector: pd.Series) -> float:
+    """
+  Calculate the total return of a security or portfolio.
+
+  Parameters:
+  - returns: Daily returns of the security or portfolio.
+
+  Returns:
+  - float: total return.
+  """
+    compounded_return = (1 + returns_vector).prod() - 1
+    return compounded_return
+
+
+def alpha(xs_returns: pd.Series, xs_bmk_returns: pd.Series) -> float:
     """
   Calculate the alpha of a security or portfolio.
 
@@ -16,18 +30,18 @@ def alpha(xs_returns: np.ndarray, xs_bmk_returns: np.ndarray) -> float:
   Returns:
   - list: A list containing the alpha, lower bound of the 95% confidence interval, and upper bound of the 95% confidence interval.
   """
+    X = xs_bmk_returns
+    Y = xs_returns
 
-    xs_returns = sm.add_constant(xs_returns)
+    X = sm.add_constant(X)
+    model = sm.OLS(Y, X).fit()
 
-    model = sm.OLS(xs_bmk_returns, xs_returns)
-    results = model.fit()
-
-    intercept = results.params.iloc[0]
+    intercept, slope = model.params
 
     return intercept
 
 
-def beta(xs_returns: np.ndarray, xs_bmk_returns: np.ndarray) -> float:
+def beta(xs_returns: pd.Series, xs_bmk_returns: pd.Series) -> float:
     """
   Calculate the beta of a security or portfolio to the benchmark.
 
@@ -38,13 +52,13 @@ def beta(xs_returns: np.ndarray, xs_bmk_returns: np.ndarray) -> float:
   Returns:
   - float: beta.
   """
+    X = xs_bmk_returns
+    Y = xs_returns
 
-    xs_returns = sm.add_constant(xs_returns)
+    X = sm.add_constant(X)
+    model = sm.OLS(Y, X).fit()
 
-    model = sm.OLS(xs_bmk_returns, xs_returns)
-    results = model.fit()
-
-    slope = results.params[1]
+    intercept, slope = model.params
 
     return slope
 
@@ -100,32 +114,3 @@ def portfolio_information_ratio(port_returns: np.ndarray, bmk_returns: np.ndarra
     tracking_error = portfolio_tracking_error(port_returns, bmk_returns)
 
     return (cum_port_return - cum_bmk_return) / tracking_error
-
-
-def total_return(returns_vector: pd.Series) -> float:
-    """
-  Calculate the total return of a security or portfolio.
-
-  Parameters:
-  - returns: Daily returns of the security or portfolio.
-
-  Returns:
-  - float: total return.
-  """
-    compounded_return = (1 + returns_vector).prod() - 1
-    return compounded_return
-
-
-# def returns_vector(starting_values: pd.Series, ending_values: pd.Series) -> np.ndarray:
-#     """
-#   Calculate the daily returns vector of a security or portfolio.
-#
-#   Parameters:
-#   - starting_values: Starting values of the security or portfolio.
-#   - ending_values: Ending values of the security or portfolio.
-#
-#   Returns:
-#   - np.ndarray: daily return vector
-#   """
-#     daily_returns = ending_values / starting_values - 1
-#     return daily_returns.values

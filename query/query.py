@@ -84,7 +84,7 @@ class Query:
                         AND "Symbol" = '{ticker}'
                     GROUP BY date, fund, "Symbol"
                 ),
-                join_table AS(
+                join_table_1 AS(
                     SELECT p.date,
                            p.fund,
                            p.ticker,
@@ -102,11 +102,42 @@ class Query:
                     FROM positions_xf p
                     LEFT JOIN trades_query t ON p.date = t.date AND p.ticker = t.ticker AND p.fund = t.fund
                     LEFT JOIN dividends_query d ON p.date = d.date AND p.ticker = d.ticker AND p.fund = d.fund
-                    WHERE (p.price_1 * (p.shares_1 - COALESCE(shares_traded,0)) + COALESCE(d.div_gross_amount, 0)) / (p.price_0 * p.shares_0) - 1 <> 0
-                        AND (p.shares_1 - COALESCE(shares_traded,0)) <> 0
-                        AND p.date BETWEEN '{start_date}' AND '{end_date}'
+                ),
+                bmk_query AS(
+                    SELECT date,
+                        LAG(ending_value) OVER (ORDER BY date) AS starting_value,
+                        ending_value
+                    FROM benchmark
+                ),
+                bmk_xf AS(
+                    SELECT
+                        date,
+                        ending_value / starting_value - 1 as return
+                    FROM bmk_query
+                ),
+                join_table_2 AS(
+                    SELECT
+                       a.date,
+                       a.fund,
+                       a.ticker,
+                       a.name,
+                       a.shares_1 AS shares,
+                       a.price_1 AS price,
+                       a.value,
+                       a.side,
+                       a.return AS return,
+                       b.return AS bmk_return,
+                       c.return AS rf_return,
+                       a.return - c.return AS xs_return,
+                       b.return - c.return AS xs_bmk_return
+                    FROM join_table_1 a
+                    INNER JOIN bmk_xf b ON a.date = b.date
+                    INNER JOIN risk_free_rate c ON a.date = c.date
+                    WHERE a.return <> 0
+                        AND a.shares_1 <> 0
+                        AND a.date BETWEEN '2023-01-01' AND '2025-01-01'
                 )
-            SELECT * FROM join_table
+            SELECT * FROM join_table_2
         '''
 
         df = self.db.execute_query(query_string)
