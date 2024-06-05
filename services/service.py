@@ -8,12 +8,26 @@ class Service:
     def __init__(self):
         self.query = Query()
 
+    def fund_summary(self, start_date: str, end_date: str) -> json:
+        df = self.query.get_fund_df(start_date, end_date)
+
+        fund_return = total_return(df['return'])
+        fund_alpha = alpha(df['xs_return'],df['xs_bmk_return'])
+        fund_beta = beta(df['xs_return'],df['xs_bmk_return'])
+
+        result = {
+            "return": round(fund_return * 100, 2),
+            "alpha": round(fund_alpha * 100, 2),
+            "beta": round(fund_beta, 2)
+        }
+
+        return json.dumps(result)
+
+
     def portfolio_return(self, fund: str, start_date: str, end_date: str) -> json:
         df = self.query.get_portfolio_df(fund, start_date, end_date)
 
-        returns_vector = df['return']
-
-        port_return = total_return(returns_vector)
+        port_return = total_return(df['return'])
 
         result = {
             "fund": fund,
@@ -28,8 +42,8 @@ class Service:
         df = self.query.get_portfolio_df(fund, start_date, end_date)
 
         port_return = total_return(df['return'])
-        port_alpha = alpha(df['xs_return'],df['xs_bmk_return'])
-        port_beta = beta(df['xs_return'],df['xs_bmk_return'])
+        port_alpha = alpha(df['xs_return'], df['xs_bmk_return'])
+        port_beta = beta(df['xs_return'], df['xs_bmk_return'])
 
         result = {
             "fund": fund,

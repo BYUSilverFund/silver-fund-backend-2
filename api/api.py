@@ -52,6 +52,15 @@ def test():
     return json.dumps({"fund": parameter})
 
 
+@app.route("/fund_summary", methods=["GET"])
+def fund_summary():
+    start_date = request.args.get("start")
+    end_date = request.args.get("end")
+
+    response = service.fund_summary(start_date, end_date)
+    return response
+
+
 @app.route("/portfolio_return", methods=["GET"])
 def portfolio_return():
     fund = request.args.get("fund")
