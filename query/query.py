@@ -12,24 +12,72 @@ class Query:
     def get_portfolio_df(self, fund: str, start_date: str, end_date: str) -> pd.DataFrame:
         query_string = f'''
             WITH
-            query_table AS
-                (SELECT date,
-                     fund,
-                     "StartingValue"::DECIMAL AS starting_value,
-                     "EndingValue"::DECIMAL AS ending_value
-                FROM delta_nav
-                WHERE fund = '{fund}'
-                    AND date BETWEEN '{start_date}' AND '{end_date}'
-                ORDER BY date),
-            xf_table as
-                (SELECT *,
-                     ending_value / starting_value - 1 AS return
-                FROM query_table
-                WHERE fund = 'undergrad'
-                    AND starting_value <> 0
-                    AND ending_value / starting_value - 1 <> 0
-                ORDER BY date)
-            SELECT * FROM xf_table
+                port_query AS(
+                    SELECT 
+                         date,
+                         fund,
+                         "StartingValue"::DECIMAL AS starting_value,
+                         "EndingValue"::DECIMAL AS ending_value
+                    FROM delta_nav
+                    WHERE fund = '{fund}'
+                ),
+                dividends_query AS (
+                    SELECT
+                        date,
+                        fund,
+                        "Symbol" AS ticker,
+                        AVG("GrossRate"::DECIMAL) AS div_gross_rate,
+                        AVG("GrossAmount"::DECIMAL) AS div_gross_amount
+                    FROM dividends
+                    WHERE fund = '{fund}'
+                        AND "Symbol" = 'IWV'
+                    GROUP BY date, fund, "Symbol"
+                    ORDER BY date
+                ),
+                bmk_query AS(
+                    SELECT 
+                        b.date,
+                        LAG(b.ending_value) OVER (ORDER BY b.date) AS starting_value,
+                        b.ending_value,
+                        d.div_gross_rate,
+                        d.div_gross_amount
+                    FROM benchmark b
+                    LEFT JOIN dividends_query d ON b.date = d.date AND d.ticker = 'IWV' AND d.fund = 'undergrad'
+                ),
+                bmk_xf AS(
+                    SELECT
+                        date,
+                        (ending_value + COALESCE(div_gross_rate, 0)) / starting_value - 1 AS return
+                    FROM bmk_query
+                ),
+                port_xf AS(
+                    SELECT
+                        date,
+                        fund,
+                        starting_value,
+                        ending_value,
+                        ending_value / starting_value - 1 AS return
+                    FROM port_query
+                ),
+                join_table AS (
+                    SELECT 
+                         p.date,
+                         p.fund,
+                         p.starting_value,
+                         p.ending_value,
+                         p.return,
+                         b.return as bmk_return,
+                         r.return AS rf_return,
+                         p.return - r.return AS xs_return,
+                         b.return - r.return AS xs_bmk_return
+                    FROM port_xf p
+                    INNER JOIN bmk_xf b ON p.date = b.date
+                    INNER JOIN risk_free_rate r ON p.date = r.date
+                    WHERE starting_value <> 0
+                        AND ending_value / starting_value - 1 <> 0
+                        AND p.date BETWEEN '{start_date}' AND '{end_date}'
+                )
+            SELECT * FROM join_table
         '''
 
         df = self.db.execute_query(query_string)
@@ -66,12 +114,11 @@ class Query:
                         date,
                         fund,
                         "Symbol" AS ticker,
-                        "GrossRate"::DECIMAL AS div_gross_rate,
-                        "GrossAmount"::DECIMAL AS div_gross_amount
+                        AVG("GrossRate"::DECIMAL) AS div_gross_rate,
+                        AVG("GrossAmount"::DECIMAL) AS div_gross_amount
                     FROM dividends
                     WHERE fund = '{fund}'
-                        AND "Symbol" = '{ticker}'
-                    ORDER BY date
+                    GROUP BY date, fund, "Symbol"
                 ),
                 trades_query AS(
                     SELECT
@@ -104,15 +151,19 @@ class Query:
                     LEFT JOIN dividends_query d ON p.date = d.date AND p.ticker = d.ticker AND p.fund = d.fund
                 ),
                 bmk_query AS(
-                    SELECT date,
-                        LAG(ending_value) OVER (ORDER BY date) AS starting_value,
-                        ending_value
-                    FROM benchmark
+                    SELECT 
+                        b.date,
+                        LAG(b.ending_value) OVER (ORDER BY b.date) AS starting_value,
+                        b.ending_value,
+                        d.div_gross_rate,
+                        d.div_gross_amount
+                    FROM benchmark b
+                    LEFT JOIN dividends_query d ON b.date = d.date AND d.ticker = 'IWV'
                 ),
                 bmk_xf AS(
                     SELECT
                         date,
-                        ending_value / starting_value - 1 as return
+                        (ending_value + COALESCE(div_gross_rate, 0)) / starting_value - 1 AS return
                     FROM bmk_query
                 ),
                 join_table_2 AS(
@@ -135,7 +186,7 @@ class Query:
                     INNER JOIN risk_free_rate c ON a.date = c.date
                     WHERE a.return <> 0
                         AND a.shares_1 <> 0
-                        AND a.date BETWEEN '2023-01-01' AND '2025-01-01'
+                        AND a.date BETWEEN '{start_date}' AND '{end_date}'
                 )
             SELECT * FROM join_table_2
         '''
