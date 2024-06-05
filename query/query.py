@@ -49,6 +49,7 @@ class Query:
                         date,
                         (ending_value + COALESCE(div_gross_rate, 0)) / starting_value - 1 AS return
                     FROM bmk_query
+                    WHERE starting_value <> 0
                 ),
                 port_xf AS(
                     SELECT
