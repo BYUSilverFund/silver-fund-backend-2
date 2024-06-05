@@ -9,6 +9,80 @@ class Query:
     def __init__(self):
         self.db = Database()
 
+    def get_fund_df(self, start_date: str, end_date: str) -> pd.DataFrame:
+        query_string = f'''
+            WITH
+                fund_query AS(
+                    SELECT
+                        date,
+                        SUM("StartingValue"::DECIMAL) as starting_value,
+                        SUM("EndingValue"::DECIMAL) as ending_value
+                    FROM delta_nav
+                    WHERE "StartingValue"::DECIMAL <> 0
+                    GROUP BY date
+                    ORDER BY date
+                ),
+                dividends_query AS (
+                    SELECT
+                        date,
+                        fund,
+                        "Symbol" AS ticker,
+                        AVG("GrossRate"::DECIMAL) AS div_gross_rate,
+                        AVG("GrossAmount"::DECIMAL) AS div_gross_amount
+                    FROM dividends
+                    WHERE fund = 'undergrad'
+                        AND "Symbol" = 'IWV'
+                    GROUP BY date, fund, "Symbol"
+                    ORDER BY date
+                ),
+                bmk_query AS(
+                    SELECT
+                        b.date,
+                        LAG(b.ending_value) OVER (ORDER BY b.date) AS starting_value,
+                        b.ending_value,
+                        d.div_gross_rate,
+                        d.div_gross_amount
+                    FROM benchmark b
+                    LEFT JOIN dividends_query d ON b.date = d.date AND d.ticker = 'IWV' AND d.fund = 'undergrad'
+                ),
+                bmk_xf AS(
+                    SELECT
+                        date,
+                        (ending_value + COALESCE(div_gross_rate, 0)) / starting_value - 1 AS return
+                    FROM bmk_query
+                    WHERE starting_value <> 0
+                ),
+                fund_xf AS(
+                    SELECT
+                        date,
+                        starting_value,
+                        ending_value,
+                        ending_value / starting_value - 1 AS return
+                    FROM fund_query
+                ),
+                join_table AS(
+                    SELECT
+                        f.date,
+                        f.starting_value,
+                        f.ending_value,
+                        f.return,
+                        b.return AS bmk_return,
+                        r.return AS rf_return,
+                        f.return - r.return AS xs_return,
+                        b.return - r.return AS xs_bmk_return
+                    FROM fund_xf f
+                    INNER JOIN bmk_xf b ON b.date = f.date
+                    INNER JOIN risk_free_rate r ON f.date = r.date
+                    WHERE f.date BETWEEN '{start_date}' AND '{end_date}'
+
+                )
+            SELECT * FROM join_table;
+        '''
+
+        df = self.db.execute_query(query_string)
+
+        return df
+
     def get_portfolio_df(self, fund: str, start_date: str, end_date: str) -> pd.DataFrame:
         query_string = f'''
             WITH
