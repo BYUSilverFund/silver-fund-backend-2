@@ -72,7 +72,7 @@ def portfolio_return():
 
 
 @app.route("/portfolio_summary", methods=["GET"])
-def portfolio_return():
+def portfolio_summary():
     fund = request.args.get("fund")
     start_date = request.args.get("start")
     end_date = request.args.get("end")
