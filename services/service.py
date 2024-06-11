@@ -31,20 +31,6 @@ class Service:
 
         return json.dumps(result)
 
-    def portfolio_return(self, fund: str, start_date: str, end_date: str) -> json:
-        df = self.query.get_portfolio_df(fund, start_date, end_date)
-
-        port_return = total_return(df['return'])
-
-        result = {
-            "fund": fund,
-            "start_date": start_date,
-            "end_date": end_date,
-            "return": port_return,
-        }
-
-        return json.dumps(result)
-
     def portfolio_summary(self, fund: str, start_date: str, end_date: str) -> json:
         df = self.query.get_portfolio_df(fund, start_date, end_date)
 
