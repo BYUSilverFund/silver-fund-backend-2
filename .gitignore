@@ -1,5 +1,5 @@
 # Andrew's test files
-showcase.ipynb
+*.ipynb
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
