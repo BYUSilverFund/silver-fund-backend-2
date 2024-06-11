@@ -5,7 +5,7 @@ import pandas as pd
 TRADING_DAYS = 252
 
 
-def total_return(returns_vector: pd.Series) -> float:
+def total_return(returns: pd.Series, annualized: bool = True) -> float:
     """
   Calculate the total return of a security or portfolio.
 
@@ -15,11 +15,36 @@ def total_return(returns_vector: pd.Series) -> float:
   Returns:
   - float: total return.
   """
-    compounded_return = (1 + returns_vector).prod() - 1
-    return compounded_return
+    compounded_return = (1 + returns).prod() - 1
+
+    if annualized:
+        periods = len(returns)
+
+        annualized_return = (1 + compounded_return) ** (TRADING_DAYS / periods) - 1
+
+        return annualized_return
+
+    else:
+        return compounded_return
 
 
-def alpha(xs_returns: pd.Series, xs_bmk_returns: pd.Series) -> float:
+def volatility(returns: pd.Series, annualized: bool = True) -> float:
+    """
+  Calculate the volatility of a security or portfolio.
+
+  Parameters:
+  - returns: Daily returns of the security or portfolio.
+
+  Returns:
+  - float: volatility (annualized).
+  """
+
+    standard_deviation = returns.std()
+
+    return standard_deviation * np.sqrt(TRADING_DAYS) if annualized else standard_deviation
+
+
+def alpha(xs_returns: pd.Series, xs_bmk_returns: pd.Series, annualized: bool = True) -> float:
     """
   Calculate the alpha of a security or portfolio.
 
@@ -38,7 +63,7 @@ def alpha(xs_returns: pd.Series, xs_bmk_returns: pd.Series) -> float:
 
     intercept, slope = model.params
 
-    return intercept
+    return intercept * TRADING_DAYS if annualized else intercept
 
 
 def beta(xs_returns: pd.Series, xs_bmk_returns: pd.Series) -> float:
@@ -63,54 +88,66 @@ def beta(xs_returns: pd.Series, xs_bmk_returns: pd.Series) -> float:
     return slope
 
 
-def volatility(returns: np.ndarray) -> float:
+def sharpe_ratio(returns: pd.Series, rf_returns: pd.Series, annualized: bool = True) -> float:
     """
-  Calculate the volatility of a security or portfolio.
+  Calculate the Sharpe Ratio of a portfolio.
 
   Parameters:
-  - returns: Daily returns of the security or portfolio.
+  - xs_returns: Excess daily returns of the portfolio.
 
   Returns:
-  - float: volatility (annualized).
+  - float: Sharpe Ratio.
   """
+    numerator = (returns - rf_returns).mean()
+    denominator = returns.std()
 
-    standard_deviation = returns.std()
+    ratio = numerator / denominator
 
-    return standard_deviation * np.sqrt(TRADING_DAYS)
+    annual_factor = TRADING_DAYS / np.sqrt(TRADING_DAYS)
+
+    return ratio * annual_factor if annualized else ratio
 
 
-def portfolio_tracking_error(port_returns: np.ndarray, bmk_returns: np.ndarray) -> float:
+def tracking_error(returns: pd.Series, bmk_returns: pd.Series, annualized: bool = True) -> float:
     """
-  Calculate the tracking error of a portfolio to the benchmark.
+  Calculate the tracking_error/active_risk of a portfolio.
 
   Parameters:
-  - port_returns: Daily returns of the portfolio.
+  - returns: Daily returns of the portfolio.
   - bmk_returns: Daily returns of the benchmark.
+
 
   Returns:
-  - float: tracking error (annualized).
+  - float: tracking_error/active_risk.
   """
+    port_tracking_error = np.sqrt((returns - bmk_returns).std())
+    annual_factor = np.sqrt(TRADING_DAYS)
 
-    difference = port_returns - bmk_returns
-
-    return difference.std() * np.sqrt(TRADING_DAYS)
+    return port_tracking_error * annual_factor if annualized else port_tracking_error
 
 
-def portfolio_information_ratio(port_returns: np.ndarray, bmk_returns: np.ndarray) -> float:
+def information_ratio(returns: pd.Series, bmk_returns: pd.Series, rf_returns: pd.Series, annualized: bool = True) -> float:
     """
-  Calculate the information ratio of a portfolio to the benchmark.
+  Calculate the Information Ratio of a portfolio.
 
   Parameters:
-  - port_returns: Daily returns of the portfolio.
+  - returns: Daily returns of the portfolio.
   - bmk_returns: Daily returns of the benchmark.
+  - rf_returns: Daily returns of the risk-free rate.
+
+
 
   Returns:
   - float: information ratio.
   """
+    xs_returns = returns - rf_returns
+    xs_bmk_returns = bmk_returns - rf_returns
 
-    cum_port_return = port_returns[-1] / port_returns[0] - 1
-    cum_bmk_return = bmk_returns[-1] / bmk_returns[0] - 1
+    port_alpha = alpha(xs_returns, xs_bmk_returns)
+    port_tracking_error = tracking_error(returns, bmk_returns)
 
-    tracking_error = portfolio_tracking_error(port_returns, bmk_returns)
+    ratio = port_alpha / port_tracking_error
 
-    return (cum_port_return - cum_bmk_return) / tracking_error
+    annual_factor = TRADING_DAYS / np.sqrt(TRADING_DAYS)
+
+    return ratio * annual_factor if annualized else ratio
