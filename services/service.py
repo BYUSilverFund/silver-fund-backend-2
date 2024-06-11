@@ -11,18 +11,25 @@ class Service:
     def fund_summary(self, start_date: str, end_date: str) -> json:
         df = self.query.get_fund_df(start_date, end_date)
 
-        fund_return = total_return(df['return'])
-        fund_alpha = alpha(df['xs_return'],df['xs_bmk_return'])
-        fund_beta = beta(df['xs_return'],df['xs_bmk_return'])
+        fund_return = total_return(df['return'], annualized=False)
+        fund_volatility = volatility((df['return']))
+        fund_alpha = alpha(df['xs_return'], df['xs_bmk_return'])
+        fund_beta = beta(df['xs_return'], df['xs_bmk_return'])
+        fund_sharpe_ratio = sharpe_ratio(df['return'], df['rf_return'])
+        fund_information_ratio = information_ratio(df['return'], df['bmk_return'], df['rf_return'])
+        fund_tracking_error = tracking_error(df['return'], df['bmk_return'])
 
         result = {
             "return": round(fund_return * 100, 2),
+            "volatility": round(fund_volatility * 100, 2),
             "alpha": round(fund_alpha * 100, 2),
-            "beta": round(fund_beta, 2)
+            "beta": round(fund_beta, 2),
+            "sharpe_ratio": round(fund_sharpe_ratio, 2),
+            "information_ratio": round(fund_information_ratio, 2),
+            "tracking_error": round(fund_tracking_error, 2),
         }
 
         return json.dumps(result)
-
 
     def portfolio_return(self, fund: str, start_date: str, end_date: str) -> json:
         df = self.query.get_portfolio_df(fund, start_date, end_date)
@@ -41,15 +48,23 @@ class Service:
     def portfolio_summary(self, fund: str, start_date: str, end_date: str) -> json:
         df = self.query.get_portfolio_df(fund, start_date, end_date)
 
-        port_return = total_return(df['return'])
+        port_return = total_return(df['return'], annualized=False)
+        port_volatility = volatility((df['return']))
         port_alpha = alpha(df['xs_return'], df['xs_bmk_return'])
         port_beta = beta(df['xs_return'], df['xs_bmk_return'])
+        port_sharpe_ratio = sharpe_ratio(df['return'], df['rf_return'])
+        port_information_ratio = information_ratio(df['return'], df['bmk_return'], df['rf_return'])
+        port_tracking_error = tracking_error(df['return'], df['bmk_return'])
 
         result = {
             "fund": fund,
             "return": round(port_return * 100, 2),
+            "volatility": round(port_volatility * 100, 2),
             "alpha": round(port_alpha * 100, 2),
-            "beta": round(port_beta, 2)
+            "beta": round(port_beta, 2),
+            "sharpe_ratio": round(port_sharpe_ratio, 2),
+            "information_ratio": round(port_information_ratio, 2),
+            "tracking_error": round(port_tracking_error, 2),
         }
 
         return json.dumps(result)
