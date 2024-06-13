@@ -58,12 +58,16 @@ class Service:
     def holding_summary(self, fund: str, ticker: str, start_date: str, end_date: str) -> json:
         df = self.query.get_holding_df(fund, ticker, start_date, end_date)
 
+        shares = df['shares'].iloc[-1]
+        price = df['price'].iloc[-1]
         holding_return = total_return(df['return'])
         holding_alpha = alpha(df['xs_return'], df['xs_bmk_return'])
         holding_beta = beta(df['xs_return'], df['xs_bmk_return'])
 
         result = {
             "ticker": ticker,
+            "shares": shares,
+            "price": price,
             "return": round(holding_return * 100, 2),
             "alpha": round(holding_alpha * 100, 2),
             "beta": round(holding_beta, 2)
