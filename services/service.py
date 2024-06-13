@@ -69,7 +69,7 @@ class Service:
             "beta": round(holding_beta, 2)
         }
 
-        return result
+        return json.dumps(result)
 
     def all_holdings_summary(self, fund: str, start_date: str, end_date: str) -> json:
         tickers = self.query.get_tickers(fund, start_date, end_date)
