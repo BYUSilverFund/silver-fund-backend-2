@@ -20,7 +20,7 @@ class Service:
         fund_tracking_error = tracking_error(df['return'], df['bmk_return'])
 
         result = {
-            "return": round(fund_return * 100, 2),
+            "total_return": round(fund_return * 100, 2),
             "volatility": round(fund_volatility * 100, 2),
             "alpha": round(fund_alpha * 100, 2),
             "beta": round(fund_beta, 2),
@@ -34,6 +34,8 @@ class Service:
     def portfolio_summary(self, fund: str, start_date: str, end_date: str) -> json:
         df = self.query.get_portfolio_df(fund, start_date, end_date)
 
+        value = df['ending_value'].iloc[-1]
+
         port_return = total_return(df['return'], annualized=False)
         port_volatility = volatility((df['return']))
         port_alpha = alpha(df['xs_return'], df['xs_bmk_return'])
@@ -44,7 +46,8 @@ class Service:
 
         result = {
             "fund": fund,
-            "return": round(port_return * 100, 2),
+            "value": round(value, 2),
+            "total_return": round(port_return * 100, 2),
             "volatility": round(port_volatility * 100, 2),
             "alpha": round(port_alpha * 100, 2),
             "beta": round(port_beta, 2),
@@ -52,6 +55,17 @@ class Service:
             "information_ratio": round(port_information_ratio, 2),
             "tracking_error": round(port_tracking_error, 2),
         }
+
+        return json.dumps(result)
+
+    def all_portfolios_summary(self, start_date: str, end_date: str) -> json:
+        funds = ['undergrad', 'grad', 'brigham_capital']
+
+        result = []
+        for fund in funds:
+            result.append(
+                self.portfolio_summary(fund, start_date, end_date)
+            )
 
         return json.dumps(result)
 
@@ -68,7 +82,7 @@ class Service:
             "ticker": ticker,
             "shares": shares,
             "price": price,
-            "return": round(holding_return * 100, 2),
+            "total_return": round(holding_return * 100, 2),
             "alpha": round(holding_alpha * 100, 2),
             "beta": round(holding_beta, 2)
         }
@@ -83,5 +97,17 @@ class Service:
             result.append(
                 self.holding_summary(fund, ticker, start_date, end_date)
             )
+
+    def fund_chart_data(self, start_date: str, end_date: str) -> json:
+        df = self.query.get_fund_df(start_date, end_date)
+
+        xf = df[['date', 'ending_value', 'return']].copy()
+        xf['log_return'] = np.log(1 + xf['return'])
+        xf['cumulative_return'] = xf['log_return'].cumsum()
+        xf['date'] = xf['date'].dt.strftime('%Y-%m-%d')
+        xf = xf.drop(columns=['return', 'log_return'])
+        xf['cumulative_return'] = round(xf['cumulative_return'] * 100, 2)
+
+        result = xf.to_dict(orient='records')
 
         return json.dumps(result)

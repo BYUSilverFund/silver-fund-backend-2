@@ -61,6 +61,15 @@ def fund_summary():
     return response
 
 
+@app.route("/fund_chart", methods=["GET"])
+def fund_chart():
+    start_date = request.args.get("start")
+    end_date = request.args.get("end")
+
+    response = service.fund_chart_data(start_date, end_date)
+    return response
+
+
 @app.route("/portfolio_summary", methods=["GET"])
 def portfolio_summary():
     fund = request.args.get("fund")
@@ -68,6 +77,16 @@ def portfolio_summary():
     end_date = request.args.get("end")
 
     response = service.portfolio_summary(fund, start_date, end_date)
+    return response
+
+
+@app.route("/all_portfolios_summary", methods=["GET"])
+def all_portfolios_summary():
+    start_date = request.args.get("start")
+    end_date = request.args.get("end")
+
+    response = service.all_portfolios_summary(start_date, end_date)
+
     return response
 
 
