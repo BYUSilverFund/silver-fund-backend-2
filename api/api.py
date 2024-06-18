@@ -80,6 +80,27 @@ def portfolio_summary():
     return response
 
 
+@app.route("/portfolio_chart", methods=["GET"])
+def portfolio_chart():
+    fund = request.args.get("fund")
+    start_date = request.args.get("start")
+    end_date = request.args.get("end")
+
+    response = service.portfolio_chart_data(fund, start_date, end_date)
+    return response
+
+
+@app.route("/holding_chart", methods=["GET"])
+def holding_chart():
+    fund = request.args.get("fund")
+    ticker = request.args.get("ticker").upper()
+    start_date = request.args.get("start")
+    end_date = request.args.get("end")
+
+    response = service.holding_chart_data(fund, ticker, start_date, end_date)
+    return response
+
+
 @app.route("/all_portfolios_summary", methods=["GET"])
 def all_portfolios_summary():
     start_date = request.args.get("start")
