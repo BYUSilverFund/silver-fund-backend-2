@@ -48,7 +48,7 @@ class Query:
                 bmk_xf AS(
                     SELECT
                         date,
-                        (ending_value + COALESCE(div_gross_rate, 0)) / starting_value - 1 AS return
+                        (ending_value ) / starting_value - 1 AS return -- + COALESCE(div_gross_rate, 0)
                     FROM bmk_query
                     WHERE starting_value <> 0
                 ),
@@ -121,7 +121,7 @@ class Query:
                 bmk_xf AS(
                     SELECT
                         date,
-                        (ending_value + COALESCE(div_gross_rate, 0)) / starting_value - 1 AS return
+                        (ending_value) / starting_value - 1 AS return --  + COALESCE(div_gross_rate, 0)
                     FROM bmk_query
                     WHERE starting_value <> 0
                 ),
@@ -220,7 +220,7 @@ class Query:
                            p.value,
                            d.div_gross_rate,
                            d.div_gross_amount,
-                           p.side * ((p.price_1 * (p.shares_1 - COALESCE(shares_traded,0)) + COALESCE(d.div_gross_amount, 0)) / (p.price_0 * p.shares_0) - 1) AS return
+                           p.side * ((p.price_1 * (p.shares_1 - COALESCE(shares_traded,0)) ) / (p.price_0 * p.shares_0) - 1) AS return -- + COALESCE(d.div_gross_amount, 0)
                     FROM positions_xf p
                     LEFT JOIN trades_query t ON p.date = t.date AND p.ticker = t.ticker AND p.fund = t.fund
                     LEFT JOIN dividends_query d ON p.date = d.date AND p.ticker = d.ticker AND p.fund = d.fund
@@ -238,7 +238,7 @@ class Query:
                 bmk_xf AS(
                     SELECT
                         date,
-                        (ending_value + COALESCE(div_gross_rate, 0)) / starting_value - 1 AS return
+                        (ending_value ) / starting_value - 1 AS return -- + COALESCE(div_gross_rate, 0)
                     FROM bmk_query
                 ),
                 join_table_2 AS(
