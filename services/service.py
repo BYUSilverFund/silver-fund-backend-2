@@ -98,6 +98,8 @@ class Service:
                 self.holding_summary(fund, ticker, start_date, end_date)
             )
 
+        return json.dumps(result)
+
     def fund_chart_data(self, start_date: str, end_date: str) -> json:
         df = self.query.get_fund_df(start_date, end_date)
 
