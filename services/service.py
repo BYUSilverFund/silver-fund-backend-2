@@ -13,7 +13,7 @@ class Service:
 
         fund_return = total_return(df['return'], annualized=False)
         fund_volatility = volatility((df['return']))
-        fund_alpha = alpha(df['xs_return'], df['xs_bmk_return'])
+        fund_alpha = alpha(df['xs_return'], df['xs_bmk_return'], annualized=False)
         fund_beta = beta(df['xs_return'], df['xs_bmk_return'])
         fund_sharpe_ratio = sharpe_ratio(df['return'], df['rf_return'])
         fund_information_ratio = information_ratio(df['return'], df['bmk_return'], df['rf_return'])
@@ -38,7 +38,7 @@ class Service:
 
         port_return = total_return(df['return'], annualized=False)
         port_volatility = volatility((df['return']))
-        port_alpha = alpha(df['xs_return'], df['xs_bmk_return'])
+        port_alpha = alpha(df['xs_return'], df['xs_bmk_return'], annualized=False)
         port_beta = beta(df['xs_return'], df['xs_bmk_return'])
         port_sharpe_ratio = sharpe_ratio(df['return'], df['rf_return'])
         port_information_ratio = information_ratio(df['return'], df['bmk_return'], df['rf_return'])
@@ -74,8 +74,8 @@ class Service:
 
         shares = df['shares'].iloc[-1]
         price = df['price'].iloc[-1]
-        holding_return = total_return(df['return'])
-        holding_alpha = alpha(df['xs_return'], df['xs_bmk_return'])
+        holding_return = total_return(df['return'], annualized=False)
+        holding_alpha = alpha(df['xs_return'], df['xs_bmk_return'], annualized=False)
         holding_beta = beta(df['xs_return'], df['xs_bmk_return'])
 
         result = {
