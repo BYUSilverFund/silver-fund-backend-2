@@ -123,7 +123,7 @@ def all_holdings_summary():
 
 
 @app.route("/holding_summary", methods=["GET"])
-def holding_return():
+def holding_summary():
     fund = request.args.get("fund")
     ticker = request.args.get("ticker").upper()
     start_date = request.args.get("start")

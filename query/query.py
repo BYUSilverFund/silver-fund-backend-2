@@ -283,3 +283,17 @@ class Query:
 
         return df['Symbol'].tolist()
 
+    def get_current_tickers(self, fund):
+        query_string = f'''
+        SELECT date, fund, "Symbol"
+        FROM positions
+        WHERE fund = '{fund}'
+          AND date = (SELECT MAX(date) FROM positions);
+        '''
+
+        df = self.db.execute_query(query_string)
+
+        return df['Symbol'].tolist()
+
+
+
