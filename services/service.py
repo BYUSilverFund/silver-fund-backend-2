@@ -71,6 +71,7 @@ class Service:
 
     def holding_summary(self, fund: str, ticker: str, start_date: str, end_date: str) -> json:
         df = self.query.get_holding_df(fund, ticker, start_date, end_date)
+        current_tickers = self.query.get_current_tickers(fund)
 
         shares = df['shares'].iloc[-1]
         price = df['price'].iloc[-1]
@@ -80,6 +81,7 @@ class Service:
 
         result = {
             "ticker": ticker,
+            "active": ticker in current_tickers,
             "shares": shares,
             "price": price,
             "total_return": round(holding_return * 100, 2),
