@@ -105,41 +105,20 @@ class Service:
     def fund_chart_data(self, start_date: str, end_date: str) -> json:
         df = self.query.get_fund_df(start_date, end_date)
 
-        xf = df[['date', 'ending_value', 'return']].copy()
-        xf['log_return'] = np.log(1 + xf['return'])
-        xf['cumulative_return'] = xf['log_return'].cumsum()
-        xf['date'] = xf['date'].dt.strftime('%Y-%m-%d')
-        xf = xf.drop(columns=['return', 'log_return'])
-        xf['cumulative_return'] = round(xf['cumulative_return'] * 100, 2)
-
-        result = xf.to_dict(orient='records')
+        result = cumulative_return_vector(df, 'date', 'ending_value', 'return')
 
         return json.dumps(result)
 
     def portfolio_chart_data(self, fund: str, start_date: str, end_date: str) -> json:
         df = self.query.get_portfolio_df(fund, start_date, end_date)
 
-        xf = df[['date', 'ending_value', 'return']].copy()
-        xf['log_return'] = np.log(1 + xf['return'])
-        xf['cumulative_return'] = xf['log_return'].cumsum()
-        xf['date'] = xf['date'].dt.strftime('%Y-%m-%d')
-        xf = xf.drop(columns=['return', 'log_return'])
-        xf['cumulative_return'] = round(xf['cumulative_return'] * 100, 2)
-
-        result = xf.to_dict(orient='records')
+        result = cumulative_return_vector(df, 'date', 'ending_value', 'return')
 
         return json.dumps(result)
 
     def holding_chart_data(self, fund: str, ticker: str, start_date: str, end_date: str) -> json:
         df = self.query.get_holding_df(fund, ticker, start_date, end_date)
 
-        xf = df[['date', 'price', 'value', 'return']].copy()
-        xf['log_return'] = np.log(1 + xf['return'])
-        xf['cumulative_return'] = xf['log_return'].cumsum()
-        xf['date'] = xf['date'].dt.strftime('%Y-%m-%d')
-        xf = xf.drop(columns=['return', 'log_return'])
-        xf['cumulative_return'] = round(xf['cumulative_return'] * 100, 2)
-
-        result = xf.to_dict(orient='records')
+        result = cumulative_return_vector(df, 'date', 'value', 'return')
 
         return json.dumps(result)

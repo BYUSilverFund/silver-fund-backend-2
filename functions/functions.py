@@ -28,6 +28,22 @@ def total_return(returns: pd.Series, annualized: bool = True) -> float:
         return compounded_return
 
 
+def cumulative_return_vector(df: pd.DataFrame, date_col: str, value_col: str, return_col: str) -> list:
+    xf = df[[date_col, value_col, return_col]].copy()
+
+    xf['cumulative_return'] = (1 + xf[return_col]).cumprod() - 1
+
+    xf[date_col] = xf[date_col].dt.strftime('%Y-%m-%d')
+
+    xf = xf.drop(columns=[return_col])
+
+    xf['cumulative_return'] = round(xf['cumulative_return'] * 100, 2)
+
+    result = xf.to_dict(orient='records')
+
+    return result
+
+
 def volatility(returns: pd.Series, annualized: bool = True) -> float:
     """
   Calculate the volatility of a security or portfolio.
@@ -126,7 +142,8 @@ def tracking_error(returns: pd.Series, bmk_returns: pd.Series, annualized: bool 
     return port_tracking_error * annual_factor if annualized else port_tracking_error
 
 
-def information_ratio(returns: pd.Series, bmk_returns: pd.Series, rf_returns: pd.Series, annualized: bool = True) -> float:
+def information_ratio(returns: pd.Series, bmk_returns: pd.Series, rf_returns: pd.Series,
+                      annualized: bool = True) -> float:
     """
   Calculate the Information Ratio of a portfolio.
 
