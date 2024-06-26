@@ -386,12 +386,13 @@ class Query:
 
     def get_tickers(self, fund, start_date, end_date) -> np.ndarray:
         query_string = f'''
-            SELECT DISTINCT("Symbol")
+            SELECT "Symbol"
             FROM positions
             WHERE fund = '{fund}'
                 AND "AssetClass" != 'OPT'
                 AND date BETWEEN '{start_date}' AND '{end_date}'
-        
+            GROUP BY "Symbol"
+            HAVING COUNT(*) > 1; -- Only include tickers with more than 1 day of data
         '''
 
         df = self.db.execute_query(query_string)
@@ -400,11 +401,12 @@ class Query:
 
     def get_current_tickers(self, fund):
         query_string = f'''
-        SELECT date, fund, "Symbol"
+        SELECT "Symbol"
         FROM positions
         WHERE fund = '{fund}'
             AND "AssetClass" != 'OPT'
-            AND date = (SELECT MAX(date) FROM positions);
+            AND date = (SELECT MAX(date) FROM positions)
+        ;
         '''
 
         df = self.db.execute_query(query_string)
