@@ -20,7 +20,7 @@ def total_return(returns: pd.Series, annualized: bool = True) -> float:
     if annualized:
         periods = len(returns)
 
-        annualized_return = (1 + compounded_return) ** (TRADING_DAYS / periods) - 1
+        annualized_return = (1 + compounded_return) * (TRADING_DAYS / periods) - 1
 
         return annualized_return
 
