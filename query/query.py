@@ -170,7 +170,8 @@ class Query:
                         "Description" AS name,
                         "Quantity"::DECIMAL AS shares_1,
                         "MarkPrice"::DECIMAL AS price_1,
-                        "PositionValue"::DECIMAL AS value
+                        "PositionValue"::DECIMAL AS value,
+                        "FXRateToBase":: DECIMAL AS fx_rate_1
                     FROM positions
                     WHERE fund = '{fund}' AND "AssetClass" != 'OPT'
                     ORDER BY date
@@ -181,6 +182,7 @@ class Query:
                         CASE WHEN shares_1 > 0 THEN 1 ELSE -1 END AS side,
                         LAG(shares_1) OVER (PARTITION BY ticker ORDER BY date) as shares_0,
                         LAG(price_1) OVER (PARTITION BY ticker ORDER BY date) as price_0
+                        LAG(fx_rate_1) OVER (PARTITION BY ticker ORDER BY date) as fx_rate_0
                     FROM positions_query
                 ),
                 dividends_query AS (
@@ -218,7 +220,7 @@ class Query:
                            p.value,
                            d.div_gross_rate,
                            d.div_gross_amount,
-                           p.side * ((p.price_1 * (p.shares_1 - COALESCE(shares_traded,0)) ) / (p.price_0 * p.shares_0) - 1) AS return -- + COALESCE(d.div_gross_amount, 0)
+                           p.side * ((p.price_1 * (p.shares_1 - COALESCE(shares_traded,0)) * fx_rate_1) / (p.price_0 * p.shares_0 * fx_rate_0) - 1) AS return -- + COALESCE(d.div_gross_amount, 0)
                     FROM positions_xf p
                     LEFT JOIN trades_query t ON p.date = t.date AND p.ticker = t.ticker AND p.fund = t.fund
                     LEFT JOIN dividends_query d ON p.date = d.date AND p.ticker = d.ticker AND p.fund = d.fund
@@ -279,7 +281,8 @@ class Query:
                         "Description" AS name,
                         "Quantity"::DECIMAL AS shares_1,
                         "MarkPrice"::DECIMAL AS price_1,
-                        "PositionValue"::DECIMAL AS value
+                        "PositionValue"::DECIMAL AS value,
+                        "FXRateToBase":: DECIMAL AS fx_rate_1
                     FROM positions
                     WHERE fund = '{fund}'
                         AND "Symbol" = '{ticker}' 
@@ -291,7 +294,8 @@ class Query:
                         *,
                         CASE WHEN shares_1 > 0 THEN 1 ELSE -1 END AS side,
                         LAG(shares_1) OVER (PARTITION BY ticker ORDER BY date) as shares_0,
-                        LAG(price_1) OVER (PARTITION BY ticker ORDER BY date) as price_0
+                        LAG(price_1) OVER (PARTITION BY ticker ORDER BY date) as price_0,
+                        LAG(fx_rate_1) OVER (PARTITION BY ticker ORDER BY date) as fx_rate_0
                     FROM positions_query
                 ),
                 dividends_query AS (
@@ -330,7 +334,7 @@ class Query:
                            p.value,
                            d.div_gross_rate,
                            d.div_gross_amount,
-                           p.side * ((p.price_1 * (p.shares_1 - COALESCE(shares_traded,0)) ) / (p.price_0 * p.shares_0) - 1) AS return -- + COALESCE(d.div_gross_amount, 0)
+                           p.side * ((p.price_1 * (p.shares_1 - COALESCE(shares_traded,0)) * fx_rate_1 ) / (p.price_0 * p.shares_0 * fx_rate_0) - 1) AS return -- + COALESCE(d.div_gross_amount, 0)
                     FROM positions_xf p
                     LEFT JOIN trades_query t ON p.date = t.date AND p.ticker = t.ticker AND p.fund = t.fund
                     LEFT JOIN dividends_query d ON p.date = d.date AND p.ticker = d.ticker AND p.fund = d.fund
