@@ -406,8 +406,7 @@ class Query:
         WHERE fund = '{fund}'
             AND "AssetClass" != 'OPT'
             AND date = (SELECT MAX(date) FROM positions)
-        GROUP BY "Symbol"
-        HAVING COUNT(*) > 1; -- Only include tickers with more than 1 day of data
+        ;
         '''
 
         df = self.db.execute_query(query_string)
