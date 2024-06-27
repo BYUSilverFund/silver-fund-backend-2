@@ -320,11 +320,21 @@ class Query:
                         AND "Symbol" = '{ticker}'
                     GROUP BY date, fund, "Symbol"
                 ),
+                nav_query AS(
+                    SELECT
+                        date,
+                        fund,
+                        "Stock"::DECIMAL AS total_stock
+                    FROM nav
+                    WHERE fund = '{fund}'
+                ),
                 join_table_1 AS(
                     SELECT p.date,
                            p.fund,
                            p.ticker,
                            p.name,
+                           LAG(p.value / n.total_stock) OVER (PARTITION BY p.ticker ORDER BY p.date) AS weight_open,
+                           p.value / n.total_stock AS weight_close,
                            p.shares_0,
                            (p.shares_1 - COALESCE(shares_traded,0)) AS shares_1, --Adjusts shares_1 for trades made on that day
                            t.shares_traded,
@@ -338,6 +348,7 @@ class Query:
                     FROM positions_xf p
                     LEFT JOIN trades_query t ON p.date = t.date AND p.ticker = t.ticker AND p.fund = t.fund
                     LEFT JOIN dividends_query d ON p.date = d.date AND p.ticker = d.ticker AND p.fund = d.fund
+                    LEFT JOIN nav_query n ON p.date = n.date AND p.fund = n.fund
                 ),
                 bmk_query AS(
                     SELECT 
@@ -361,6 +372,8 @@ class Query:
                        a.fund,
                        a.ticker,
                        a.name,
+                       a.weight_open,
+                       a.weight_close,
                        a.shares_1 AS shares,
                        a.price_1 AS price,
                        a.value,
