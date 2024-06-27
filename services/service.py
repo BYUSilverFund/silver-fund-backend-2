@@ -75,6 +75,8 @@ class Service:
 
         shares = df['shares'].iloc[-1]
         price = df['price'].iloc[-1]
+        initial_weight = df['weight_open'].iloc[0]
+        current_weight = df['weight_close'].iloc[-1]
         holding_return = total_return(df['return'], annualized=False)
         holding_alpha = alpha(df['xs_return'], df['xs_bmk_return'], annualized=False)
         holding_beta = beta(df['xs_return'], df['xs_bmk_return'])
@@ -83,6 +85,8 @@ class Service:
             "ticker": ticker,
             "active": ticker in current_tickers,
             "shares": shares,
+            "initial_weight": round(initial_weight, 4),
+            "current_weight": round(current_weight, 4),
             "price": price,
             "total_return": round(holding_return * 100, 2),
             "alpha": round(holding_alpha * 100, 2),
