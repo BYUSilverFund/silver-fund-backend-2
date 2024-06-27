@@ -392,7 +392,7 @@ class Query:
                 AND "AssetClass" != 'OPT'
                 AND date BETWEEN '{start_date}' AND '{end_date}'
             GROUP BY "Symbol"
-            HAVING COUNT(*) > 1; -- Only include tickers with more than 1 day of data
+            HAVING COUNT(*) > 2; -- Only include tickers with more than 2 days of data
         '''
 
         df = self.db.execute_query(query_string)
