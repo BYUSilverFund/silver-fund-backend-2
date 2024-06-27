@@ -119,6 +119,6 @@ class Service:
     def holding_chart_data(self, fund: str, ticker: str, start_date: str, end_date: str) -> json:
         df = self.query.get_holding_df(fund, ticker, start_date, end_date)
 
-        result = cumulative_return_vector(df, 'date', 'value', 'return')
+        result = cumulative_return_vector(df, 'date', 'price', 'return')
 
         return json.dumps(result)
