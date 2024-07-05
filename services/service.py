@@ -75,7 +75,7 @@ class Service:
 
         shares = df['shares'].iloc[-1]
         price = df['price'].iloc[-1]
-        initial_weight = df['weight_open'].iloc[0]
+        initial_weight = df['weight_close'].iloc[0]
         current_weight = df['weight_close'].iloc[-1] if (ticker in current_tickers) else 0
         holding_return = total_return(df['return'], annualized=False)
         holding_alpha = alpha(df['xs_return'], df['xs_bmk_return'], annualized=False)
