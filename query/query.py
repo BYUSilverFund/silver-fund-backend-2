@@ -304,7 +304,7 @@ class Query:
                         fund,
                         "Symbol" AS ticker,
                         AVG("GrossRate"::DECIMAL) AS div_gross_rate,
-                        AVG("GrossAmount"::DECIMAL) AS div_gross_amount
+                        COALESCE(SUM("GrossAmount"::DECIMAL),0) AS div_gross_amount
                     FROM dividends
                     WHERE fund = '{fund}'
                     GROUP BY date, fund, "Symbol"
@@ -343,8 +343,9 @@ class Query:
                            p.side,
                            p.value,
                            d.div_gross_rate,
-                           d.div_gross_amount,
-                           p.side * ((p.price_1 * (p.shares_1 - COALESCE(shares_traded,0)) * fx_rate_1 ) / (p.price_0 * p.shares_0 * fx_rate_0) - 1) AS return -- + COALESCE(d.div_gross_amount, 0)
+                           COALESCE(d.div_gross_amount, 0) AS dividends,
+                           p.side * ((p.price_1 * (p.shares_1 - COALESCE(shares_traded,0)) * fx_rate_1 ) / (p.price_0 * p.shares_0 * fx_rate_0) - 1) AS return, -- + COALESCE(d.div_gross_amount, 0)
+                           p.side * (((p.price_1 * (p.shares_1 - COALESCE(shares_traded,0)) + COALESCE(d.div_gross_amount, 0)) * fx_rate_1) / (p.price_0 * p.shares_0 * fx_rate_0) - 1) AS div_return 
                     FROM positions_xf p
                     LEFT JOIN trades_query t ON p.date = t.date AND p.ticker = t.ticker AND p.fund = t.fund
                     LEFT JOIN dividends_query d ON p.date = d.date AND p.ticker = d.ticker AND p.fund = d.fund
@@ -378,7 +379,9 @@ class Query:
                        a.price_1 AS price,
                        a.value,
                        a.side,
+                       a.dividends,
                        a.return AS return,
+                       a.div_return AS div_return,                       
                        b.return AS bmk_return,
                        c.return AS rf_return,
                        a.return - c.return AS xs_return,
