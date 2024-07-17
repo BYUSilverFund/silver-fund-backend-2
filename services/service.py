@@ -73,11 +73,13 @@ class Service:
         df = self.query.get_holding_df(fund, ticker, start_date, end_date)
         current_tickers = self.query.get_current_tickers(fund)
 
-        shares = df['shares'].iloc[-1]
+        shares = df['shares'].iloc[-1] if (ticker in current_tickers) else 0
         price = df['price'].iloc[-1]
         initial_weight = df['weight_close'].iloc[0]
         current_weight = df['weight_close'].iloc[-1] if (ticker in current_tickers) else 0
         holding_return = total_return(df['return'], annualized=False)
+        holding_div_return = total_return(df['div_return'], annualized=False)
+        holding_hpr = holding_period_return(df['value'], df['dividends'], annualized=False)
         holding_alpha = alpha(df['xs_return'], df['xs_bmk_return'], annualized=False)
         holding_beta = beta(df['xs_return'], df['xs_bmk_return'])
 
@@ -89,6 +91,8 @@ class Service:
             "current_weight": round(current_weight, 4),
             "price": price,
             "total_return": round(holding_return * 100, 2),
+            "total_div_return": round(holding_div_return * 100, 2),
+            "holding_period_return": round(holding_hpr * 100, 2),
             "alpha": round(holding_alpha * 100, 2),
             "beta": round(holding_beta, 2)
         }

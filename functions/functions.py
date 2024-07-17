@@ -28,6 +28,24 @@ def total_return(returns: pd.Series, annualized: bool = True) -> float:
         return compounded_return
 
 
+def holding_period_return(values: pd.Series, dividends: pd.Series, annualized: bool = True) -> float:
+    starting_value = values.iloc[0]
+    ending_value = values.iloc[-1]
+
+    dividends_sum = dividends.sum()
+
+    result = (ending_value + dividends_sum) / starting_value - 1
+
+    if annualized:
+        periods = len(values)
+
+        annualized_return = (1 + result) * (TRADING_DAYS / periods) - 1
+
+        return annualized_return
+
+    else:
+        return result
+
 def cumulative_return_vector(df: pd.DataFrame, date_col: str, value_col: str, return_col: str) -> list:
     xf = df[[date_col, value_col, return_col]].copy()
 
