@@ -421,7 +421,7 @@ class Query:
         FROM positions
         WHERE fund = '{fund}'
             AND "AssetClass" != 'OPT'
-            AND date = (SELECT MAX(date) FROM positions)
+            AND date = (SELECT MAX(date) FROM positions WHERE fund = '{fund}')
         ;
         '''
 
