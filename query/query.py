@@ -100,39 +100,38 @@ class Query:
                         date,
                         fund,
                         "Symbol" AS ticker,
-                        AVG("GrossRate"::DECIMAL) AS div_gross_rate,
-                        AVG("GrossAmount"::DECIMAL) AS div_gross_amount
+                        SUM("GrossAmount"::DECIMAL) AS dividends
                     FROM dividends
-                    WHERE fund = '{fund}'
-                        AND "Symbol" = 'IWV'
                     GROUP BY date, fund, "Symbol"
-                    ORDER BY date
                 ),
                 bmk_query AS(
                     SELECT 
                         b.date,
                         LAG(b.ending_value) OVER (ORDER BY b.date) AS starting_value,
                         b.ending_value,
-                        d.div_gross_rate,
-                        d.div_gross_amount
+                        d.dividends
                     FROM benchmark b
                     LEFT JOIN dividends_query d ON b.date = d.date AND d.ticker = 'IWV' AND d.fund = 'undergrad'
                 ),
                 bmk_xf AS(
                     SELECT
                         date,
-                        (ending_value) / starting_value - 1 AS return --  + COALESCE(div_gross_rate, 0)
-                    FROM bmk_query
+                        (ending_value) / starting_value - 1 AS return,
+                        (ending_value + COALESCE(dividends, 0)) / starting_value - 1 AS div_return 
+                    FROM bmk_query b
                     WHERE starting_value <> 0
                 ),
                 port_xf AS(
                     SELECT
-                        date,
-                        fund,
+                        p.date,
+                        p.fund,
                         starting_value,
                         ending_value,
-                        ending_value / starting_value - 1 AS return
-                    FROM port_query
+                        d.dividends,
+                        ending_value / starting_value - 1 AS return,
+                        (ending_value + COALESCE(d.dividends, 0)) / starting_value - 1 AS div_return
+                    FROM port_query p
+                    LEFT JOIN dividends_query d ON d.date = p.date AND d.fund = p.fund
                 ),
                 join_table AS (
                     SELECT 
@@ -141,10 +140,12 @@ class Query:
                          p.starting_value,
                          p.ending_value,
                          p.return,
-                         b.return as bmk_return,
+                         p.dividends,
+                         p.div_return,
+                         b.div_return as bmk_return,
                          r.return AS rf_return,
-                         p.return - r.return AS xs_return,
-                         b.return - r.return AS xs_bmk_return
+                         p.div_return - r.return AS xs_return,
+                         b.div_return - r.return AS xs_bmk_return
                     FROM port_xf p
                     INNER JOIN bmk_xf b ON p.date = b.date
                     INNER JOIN risk_free_rate r ON p.date = r.date
@@ -153,117 +154,6 @@ class Query:
                         AND p.date BETWEEN '{start_date}' AND '{end_date}'
                 )
             SELECT * FROM join_table
-        '''
-
-        df = self.db.execute_query(query_string)
-
-        return df
-
-    def get_all_holdings_df(self, fund: str, start_date: str, end_date: str) -> pd.DataFrame:
-        query_string = f'''
-            WITH
-                positions_query AS (
-                    SELECT
-                        date,
-                        fund,
-                        "Symbol" AS ticker,
-                        "Description" AS name,
-                        "Quantity"::DECIMAL AS shares_1,
-                        "MarkPrice"::DECIMAL AS price_1,
-                        "PositionValue"::DECIMAL AS value,
-                        "FXRateToBase":: DECIMAL AS fx_rate_1
-                    FROM positions
-                    WHERE fund = '{fund}' AND "AssetClass" != 'OPT'
-                    ORDER BY date
-                ),
-                positions_xf AS (
-                    SELECT
-                        *,
-                        CASE WHEN shares_1 > 0 THEN 1 ELSE -1 END AS side,
-                        LAG(shares_1) OVER (PARTITION BY ticker ORDER BY date) as shares_0,
-                        LAG(price_1) OVER (PARTITION BY ticker ORDER BY date) as price_0
-                        LAG(fx_rate_1) OVER (PARTITION BY ticker ORDER BY date) as fx_rate_0
-                    FROM positions_query
-                ),
-                dividends_query AS (
-                    SELECT
-                        date,
-                        fund,
-                        "Symbol" AS ticker,
-                        AVG("GrossRate"::DECIMAL) AS div_gross_rate,
-                        AVG("GrossAmount"::DECIMAL) AS div_gross_amount
-                    FROM dividends
-                    WHERE fund = '{fund}'
-                    GROUP BY date, fund, "Symbol"
-                ),
-                trades_query AS(
-                    SELECT
-                        date,
-                        fund,
-                        "Symbol" as ticker,
-                        SUM("Quantity"::DECIMAL) as shares_traded
-                    FROM trades
-                    WHERE fund = '{fund}'
-                    GROUP BY date, fund, "Symbol"
-                ),
-                join_table_1 AS(
-                    SELECT p.date,
-                           p.fund,
-                           p.ticker,
-                           p.name,
-                           p.shares_0,
-                           (p.shares_1 - COALESCE(shares_traded,0)) AS shares_1, --Adjusts shares_1 for trades made on that day
-                           t.shares_traded,
-                           p.price_0,
-                           p.price_1,
-                           p.side,
-                           p.value,
-                           d.div_gross_rate,
-                           d.div_gross_amount,
-                           p.side * ((p.price_1 * (p.shares_1 - COALESCE(shares_traded,0)) * fx_rate_1) / (p.price_0 * p.shares_0 * fx_rate_0) - 1) AS return -- + COALESCE(d.div_gross_amount, 0)
-                    FROM positions_xf p
-                    LEFT JOIN trades_query t ON p.date = t.date AND p.ticker = t.ticker AND p.fund = t.fund
-                    LEFT JOIN dividends_query d ON p.date = d.date AND p.ticker = d.ticker AND p.fund = d.fund
-                ),
-                bmk_query AS(
-                    SELECT 
-                        b.date,
-                        LAG(b.ending_value) OVER (ORDER BY b.date) AS starting_value,
-                        b.ending_value,
-                        d.div_gross_rate,
-                        d.div_gross_amount
-                    FROM benchmark b
-                    LEFT JOIN dividends_query d ON b.date = d.date AND d.ticker = 'IWV'
-                ),
-                bmk_xf AS(
-                    SELECT
-                        date,
-                        (ending_value ) / starting_value - 1 AS return -- + COALESCE(div_gross_rate, 0)
-                    FROM bmk_query
-                ),
-                join_table_2 AS(
-                    SELECT
-                       a.date,
-                       a.fund,
-                       a.ticker,
-                       a.name,
-                       a.shares_1 AS shares,
-                       a.price_1 AS price,
-                       a.value,
-                       a.side,
-                       a.return AS return,
-                       b.return AS bmk_return,
-                       c.return AS rf_return,
-                       a.return - c.return AS xs_return,
-                       b.return - c.return AS xs_bmk_return
-                    FROM join_table_1 a
-                    INNER JOIN bmk_xf b ON a.date = b.date
-                    INNER JOIN risk_free_rate c ON a.date = c.date
-                    WHERE a.return <> 0
-                        AND a.shares_1 <> 0
-                        AND a.date BETWEEN '{start_date}' AND '{end_date}'
-                )
-            SELECT * FROM join_table_2
         '''
 
         df = self.db.execute_query(query_string)
@@ -342,7 +232,6 @@ class Query:
                            p.price_1,
                            p.side,
                            p.value,
-                           d.div_gross_rate AS dividend_payout_ratio,
                            COALESCE(d.div_gross_amount, 0) AS dividends,
                            p.side * ((p.price_1 * (p.shares_1 - COALESCE(shares_traded,0)) * fx_rate_1 ) / (p.price_0 * p.shares_0 * fx_rate_0) - 1) AS return,
                            p.side * (((p.price_1 * (p.shares_1 - COALESCE(shares_traded,0)) + COALESCE(d.div_gross_amount, 0)) * fx_rate_1) / (p.price_0 * p.shares_0 * fx_rate_0) - 1) AS div_return 
@@ -364,7 +253,7 @@ class Query:
                 bmk_xf AS(
                     SELECT
                         date,
-                        (ending_value ) / starting_value - 1 AS return -- + COALESCE(div_gross_rate, 0)
+                        (ending_value + COALESCE(div_gross_rate, 0)) / starting_value - 1 AS div_return 
                     FROM bmk_query
                 ),
                 join_table_2 AS(
@@ -379,14 +268,13 @@ class Query:
                        a.price_1 AS price,
                        a.value,
                        a.side,
-                       a.dividend_payout_ratio,
                        a.dividends,
-                       a.return AS return,
-                       a.div_return AS div_return,                       
-                       b.return AS bmk_return,
+                       a.return,
+                       a.div_return,                       
+                       b.div_return AS bmk_return,
                        c.return AS rf_return,
-                       a.return - c.return AS xs_return,
-                       b.return - c.return AS xs_bmk_return
+                       a.div_return - c.return AS xs_return,
+                       b.div_return - c.return AS xs_bmk_return
                     FROM join_table_1 a
                     INNER JOIN bmk_xf b ON a.date = b.date
                     INNER JOIN risk_free_rate c ON a.date = c.date

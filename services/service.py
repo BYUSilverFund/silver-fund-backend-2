@@ -37,6 +37,8 @@ class Service:
         value = df['ending_value'].iloc[-1]
 
         port_return = total_return(df['return'], annualized=False)
+        port_div_return = total_return(df['div_return'], annualized=False)
+        dividends = df['dividends'].sum()
         port_volatility = volatility((df['return']))
         port_alpha = alpha(df['xs_return'], df['xs_bmk_return'], annualized=False)
         port_beta = beta(df['xs_return'], df['xs_bmk_return'])
@@ -48,6 +50,8 @@ class Service:
             "fund": fund,
             "value": round(value, 2),
             "total_return": round(port_return * 100, 2),
+            "total_div_return": round(port_div_return * 100, 2),
+            "dividends": round(dividends, 2),
             "volatility": round(port_volatility * 100, 2),
             "alpha": round(port_alpha * 100, 2),
             "beta": round(port_beta, 2),
@@ -79,7 +83,6 @@ class Service:
         current_weight = df['weight_close'].iloc[-1] if (ticker in current_tickers) else 0
         holding_return = total_return(df['return'], annualized=False)
         holding_div_return = total_return(df['div_return'], annualized=False)
-        dividend_payout_ratio = df['dividend_payout_ratio'].mean()
         dividends = df['dividends'].sum()
         holding_alpha = alpha(df['xs_return'], df['xs_bmk_return'], annualized=False)
         holding_alpha_contribution = alpha_contribution(df['xs_return'], df['xs_bmk_return'], df['weight_open'], False)
@@ -94,7 +97,6 @@ class Service:
             "price": price,
             "total_return": round(holding_return * 100, 2),
             "total_div_return": round(holding_div_return * 100, 2),
-            "dividend_payout_ratio": round(dividend_payout_ratio * 100, 2),
             "dividends": round(dividends, 2),
             "alpha": round(holding_alpha * 100, 2),
             "alpha_contribution": round(holding_alpha_contribution * 100, 2),
