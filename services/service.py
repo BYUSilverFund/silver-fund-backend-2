@@ -79,9 +79,10 @@ class Service:
         current_weight = df['weight_close'].iloc[-1] if (ticker in current_tickers) else 0
         holding_return = total_return(df['return'], annualized=False)
         holding_div_return = total_return(df['div_return'], annualized=False)
-        holding_hpr = holding_period_return(df['value'], df['dividends'], annualized=False)
+        dividend_payout_ratio = df['dividend_payout_ratio'].mean()
         dividends = df['dividends'].sum()
         holding_alpha = alpha(df['xs_return'], df['xs_bmk_return'], annualized=False)
+        holding_alpha_contribution = alpha_contribution(df['xs_return'], df['xs_bmk_return'], df['weight_open'], False)
         holding_beta = beta(df['xs_return'], df['xs_bmk_return'])
 
         result = {
@@ -93,9 +94,10 @@ class Service:
             "price": price,
             "total_return": round(holding_return * 100, 2),
             "total_div_return": round(holding_div_return * 100, 2),
-            "holding_period_return": round(holding_hpr * 100, 2),
+            "dividend_payout_ratio": round(dividend_payout_ratio * 100, 2),
             "dividends": round(dividends, 2),
             "alpha": round(holding_alpha * 100, 2),
+            "alpha_contribution": round(holding_alpha_contribution * 100, 2),
             "beta": round(holding_beta, 2)
         }
 

@@ -46,6 +46,7 @@ def holding_period_return(values: pd.Series, dividends: pd.Series, annualized: b
     else:
         return result
 
+
 def cumulative_return_vector(df: pd.DataFrame, date_col: str, value_col: str, return_col: str) -> list:
     xf = df[[date_col, value_col, return_col]].copy()
 
@@ -186,3 +187,27 @@ def information_ratio(returns: pd.Series, bmk_returns: pd.Series, rf_returns: pd
     annual_factor = TRADING_DAYS / np.sqrt(TRADING_DAYS)
 
     return ratio * annual_factor if annualized else ratio
+
+
+def alpha_contribution(xs_returns: pd.Series, xs_bmk_returns: pd.Series, weights: pd.Series,
+                       annualized: bool = True) -> float:
+    """
+  Calculate the contribution to alpha of a security.
+
+  Parameters:
+  - xs_returns: Excess daily returns of the security or portfolio.
+  - xs_bmk_returns: Excess daily returns of the benchmark.
+  - weights: Weights at the open of each trading day for a particular holding in a portfolio
+
+  Returns:
+  - list: A list containing the alpha, lower bound of the 95% confidence interval, and upper bound of the 95% confidence interval.
+  """
+    X = xs_bmk_returns * weights
+    Y = xs_returns
+
+    X = sm.add_constant(X)
+    model = sm.OLS(Y, X).fit()
+
+    intercept, slope = model.params
+
+    return intercept * TRADING_DAYS if annualized else intercept
