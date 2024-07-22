@@ -342,9 +342,9 @@ class Query:
                            p.price_1,
                            p.side,
                            p.value,
-                           d.div_gross_rate,
+                           d.div_gross_rate AS dividend_payout_ratio,
                            COALESCE(d.div_gross_amount, 0) AS dividends,
-                           p.side * ((p.price_1 * (p.shares_1 - COALESCE(shares_traded,0)) * fx_rate_1 ) / (p.price_0 * p.shares_0 * fx_rate_0) - 1) AS return, -- + COALESCE(d.div_gross_amount, 0)
+                           p.side * ((p.price_1 * (p.shares_1 - COALESCE(shares_traded,0)) * fx_rate_1 ) / (p.price_0 * p.shares_0 * fx_rate_0) - 1) AS return,
                            p.side * (((p.price_1 * (p.shares_1 - COALESCE(shares_traded,0)) + COALESCE(d.div_gross_amount, 0)) * fx_rate_1) / (p.price_0 * p.shares_0 * fx_rate_0) - 1) AS div_return 
                     FROM positions_xf p
                     LEFT JOIN trades_query t ON p.date = t.date AND p.ticker = t.ticker AND p.fund = t.fund
@@ -379,6 +379,7 @@ class Query:
                        a.price_1 AS price,
                        a.value,
                        a.side,
+                       a.dividend_payout_ratio,
                        a.dividends,
                        a.return AS return,
                        a.div_return AS div_return,                       
