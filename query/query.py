@@ -277,6 +277,7 @@ class Query:
                     INNER JOIN risk_free_rate c ON a.date = c.date
                     WHERE a.return <> 0
                         AND a.shares_1 <> 0
+                        AND weight_open <> 0
                         AND a.date BETWEEN '{start_date}' AND '{end_date}'
                 )
             SELECT * FROM join_table_2
@@ -285,6 +286,57 @@ class Query:
         df = self.db.execute_query(query_string)
 
         return df
+
+    def get_benchmark(self):
+        query_string = f"""
+            WITH
+            bmk_query AS(
+                SELECT
+                    date,
+                    LAG(ending_value) OVER (ORDER BY date) AS starting_value,
+                    ending_value
+                FROM benchmark
+            ),
+            dividend_query AS(
+                SELECT
+                    date,
+                    AVG("GrossRate"::DECIMAL) AS div_gross_rate
+                FROM dividends
+                WHERE fund = 'undergrad' AND "Symbol" = 'IWV'
+                GROUP BY date
+            ),
+            bmk_xf AS(
+                SELECT
+                    b.date,
+                    b.starting_value,
+                    b.ending_value,
+                    COALESCE(d.div_gross_rate,0) AS dividends,
+                    b.ending_value / b.starting_value - 1 AS return,
+                    (b.ending_value + COALESCE(d.div_gross_rate,0)) / b.starting_value - 1 AS div_return
+                FROM bmk_query b
+                LEFT JOIN dividend_query d ON d.date = b.date
+            ),
+            join_table AS(
+                SELECT
+                    b.date,
+                    b.starting_value,
+                    b.ending_value,
+                    b.dividends,
+                    b.return,
+                    b.div_return,
+                    b.return - r.return AS xs_return,
+                    b.div_return - r.return AS xs_div_return
+                FROM bmk_xf b
+                LEFT JOIN risk_free_rate r ON r.date = b.date
+                WHERE b.ending_value / b.starting_value <> 1
+                    AND date BETWEEN '{start}' AND '{end}'
+            )
+            SELECT * FROM join_table;
+        """
+
+        df = self.db.execute_query(query_string)
+
+        return df['Symbol'].tolist()
 
     def get_tickers(self, fund, start_date, end_date) -> np.ndarray:
         query_string = f'''
@@ -314,6 +366,5 @@ class Query:
         df = self.db.execute_query(query_string)
 
         return df['Symbol'].tolist()
-
 
 
