@@ -37,8 +37,6 @@ class Service:
         value = df['ending_value'].iloc[-1]
 
         port_return = total_return(df['return'], annualized=False)
-        port_div_return = total_return(df['div_return'], annualized=False)
-        dividends = df['dividends'].sum()
         port_volatility = volatility((df['return']))
         port_alpha = alpha(df['xs_return'], df['xs_bmk_return'], annualized=False)
         port_beta = beta(df['xs_return'], df['xs_bmk_return'])
@@ -50,8 +48,6 @@ class Service:
             "fund": fund,
             "value": round(value, 2),
             "total_return": round(port_return * 100, 2),
-            "total_div_return": round(port_div_return * 100, 2),
-            "dividends": round(dividends, 2),
             "volatility": round(port_volatility * 100, 2),
             "alpha": round(port_alpha * 100, 2),
             "beta": round(port_beta, 2),
