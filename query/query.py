@@ -22,17 +22,14 @@ class Query:
                     GROUP BY date
                     ORDER BY date
                 ),
-                dividends_query AS (
+                bmk_dividends AS (
                     SELECT
                         date,
-                        fund,
-                        "Symbol" AS ticker,
-                        AVG("GrossRate"::DECIMAL) AS div_gross_rate,
-                        AVG("GrossAmount"::DECIMAL) AS div_gross_amount
+                        AVG("GrossRate"::DECIMAL) AS div_gross_rate
                     FROM dividends
                     WHERE fund = 'undergrad'
                         AND "Symbol" = 'IWV'
-                    GROUP BY date, fund, "Symbol"
+                    GROUP BY date
                     ORDER BY date
                 ),
                 bmk_query AS(
@@ -40,15 +37,15 @@ class Query:
                         b.date,
                         LAG(b.ending_value) OVER (ORDER BY b.date) AS starting_value,
                         b.ending_value,
-                        d.div_gross_rate,
-                        d.div_gross_amount
+                        d.div_gross_rate
                     FROM benchmark b
-                    LEFT JOIN dividends_query d ON b.date = d.date AND d.ticker = 'IWV' AND d.fund = 'undergrad'
+                    LEFT JOIN bmk_dividends d ON b.date = d.date
                 ),
                 bmk_xf AS(
                     SELECT
                         date,
-                        (ending_value ) / starting_value - 1 AS return -- + COALESCE(div_gross_rate, 0)
+                        (ending_value / starting_value) - 1 AS return,
+                        (ending_value + COALESCE(div_gross_rate, 0)) / starting_value - 1 AS div_return
                     FROM bmk_query
                     WHERE starting_value <> 0
                 ),
@@ -95,29 +92,28 @@ class Query:
                     FROM delta_nav
                     WHERE fund = '{fund}'
                 ),
-                dividends_query AS (
+                bmk_dividends AS (
                     SELECT
                         date,
-                        fund,
-                        "Symbol" AS ticker,
-                        SUM("GrossAmount"::DECIMAL) AS dividends
+                        AVG("GrossRate"::DECIMAL) AS div_gross_rate
                     FROM dividends
-                    GROUP BY date, fund, "Symbol"
+                    WHERE fund = 'undergrad' AND "Symbol" = 'IWV'
+                    GROUP BY date
                 ),
                 bmk_query AS(
                     SELECT 
                         b.date,
                         LAG(b.ending_value) OVER (ORDER BY b.date) AS starting_value,
                         b.ending_value,
-                        d.dividends
+                        d.div_gross_rate
                     FROM benchmark b
-                    LEFT JOIN dividends_query d ON b.date = d.date AND d.ticker = 'IWV' AND d.fund = 'undergrad'
+                    LEFT JOIN bmk_dividends d ON b.date = d.date
                 ),
                 bmk_xf AS(
                     SELECT
                         date,
                         (ending_value) / starting_value - 1 AS return,
-                        (ending_value + COALESCE(dividends, 0)) / starting_value - 1 AS div_return 
+                        (ending_value + COALESCE(div_gross_rate, 0)) / starting_value - 1 AS div_return 
                     FROM bmk_query b
                     WHERE starting_value <> 0
                 ),
@@ -127,11 +123,8 @@ class Query:
                         p.fund,
                         starting_value,
                         ending_value,
-                        d.dividends,
-                        ending_value / starting_value - 1 AS return,
-                        (ending_value + COALESCE(d.dividends, 0)) / starting_value - 1 AS div_return
+                        ending_value / starting_value - 1 AS return
                     FROM port_query p
-                    LEFT JOIN dividends_query d ON d.date = p.date AND d.fund = p.fund
                 ),
                 join_table AS (
                     SELECT 
@@ -140,11 +133,9 @@ class Query:
                          p.starting_value,
                          p.ending_value,
                          p.return,
-                         p.dividends,
-                         p.div_return,
                          b.div_return as bmk_return,
                          r.return AS rf_return,
-                         p.div_return - r.return AS xs_return,
+                         p.return - r.return AS xs_return,
                          b.div_return - r.return AS xs_bmk_return
                     FROM port_xf p
                     INNER JOIN bmk_xf b ON p.date = b.date
@@ -193,7 +184,7 @@ class Query:
                         date,
                         fund,
                         "Symbol" AS ticker,
-                        SUM("GrossAmount"::DECIMAL) AS div_gross_amount
+                        AVG("GrossAmount"::DECIMAL) AS div_gross_amount -- Sometimes dividends get double counted
                     FROM dividends
                     WHERE fund = '{fund}'
                     GROUP BY date, fund, "Symbol"
