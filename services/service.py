@@ -81,7 +81,7 @@ class Service:
         holding_div_return = total_return(df['div_return'], annualized=False)
         dividends = df['dividends'].sum()
         holding_alpha = alpha(df['xs_return'], df['xs_bmk_return'], annualized=False)
-        holding_alpha_contribution = alpha_contribution(df['xs_return'], df['xs_bmk_return'], df['weight_open'], False)
+        # holding_alpha_contribution = alpha_contribution(df['xs_return'], df['xs_bmk_return'], df['weight_open'], False)
         holding_beta = beta(df['xs_return'], df['xs_bmk_return'])
 
         result = {
@@ -95,7 +95,7 @@ class Service:
             "total_div_return": round(holding_div_return * 100, 2),
             "dividends": round(dividends, 2),
             "alpha": round(holding_alpha * 100, 2),
-            "alpha_contribution": round(holding_alpha_contribution * 100, 2),
+            # "alpha_contribution": round(holding_alpha_contribution * 100, 2),
             "beta": round(holding_beta, 2)
         }
 
