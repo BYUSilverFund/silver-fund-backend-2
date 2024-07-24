@@ -189,14 +189,6 @@ class Query:
                     WHERE fund = '{fund}'
                     GROUP BY date, fund, "Symbol"
                 ),
-                bmk_dividends AS (
-                    SELECT
-                        date,
-                        AVG("GrossRate"::DECIMAL) AS div_gross_rate
-                    FROM dividends
-                    WHERE fund = 'undergrad' AND "Symbol" = 'IWV'
-                    GROUP BY date
-                ),
                 trades_query AS(
                     SELECT
                         date,
@@ -238,21 +230,6 @@ class Query:
                     LEFT JOIN holding_dividends d ON p.date = d.date AND p.ticker = d.ticker AND p.fund = d.fund
                     LEFT JOIN nav_query n ON p.date = n.date AND p.fund = n.fund
                 ),
-                bmk_query AS(
-                    SELECT 
-                        b.date,
-                        LAG(b.ending_value) OVER (ORDER BY b.date) AS starting_value,
-                        b.ending_value,
-                        d.div_gross_rate
-                    FROM benchmark b
-                    LEFT JOIN bmk_dividends d ON b.date = d.date
-                ),
-                bmk_xf AS(
-                    SELECT
-                        date,
-                        (ending_value + COALESCE(div_gross_rate, 0)) / starting_value - 1 AS div_return 
-                    FROM bmk_query
-                ),
                 join_table_2 AS(
                     SELECT
                        a.date,
@@ -268,12 +245,10 @@ class Query:
                        a.dividends,
                        a.return,
                        a.div_return,                       
-                       b.div_return AS bmk_return,
                        c.return AS rf_return,
-                       a.div_return - c.return AS xs_return,
-                       b.div_return - c.return AS xs_bmk_return
+                       a.return = c.return AS xs_return,
+                       a.div_return - c.return AS xs_div_return
                     FROM join_table_1 a
-                    INNER JOIN bmk_xf b ON a.date = b.date
                     INNER JOIN risk_free_rate c ON a.date = c.date
                     WHERE a.return <> 0
                         AND a.shares_1 <> 0
@@ -287,7 +262,7 @@ class Query:
 
         return df
 
-    def get_benchmark(self):
+    def get_benchmark_df(self, start: str, end: str):
         query_string = f"""
             WITH
             bmk_query AS(
@@ -329,14 +304,14 @@ class Query:
                 FROM bmk_xf b
                 LEFT JOIN risk_free_rate r ON r.date = b.date
                 WHERE b.ending_value / b.starting_value <> 1
-                    AND date BETWEEN '{start}' AND '{end}'
+                    AND b.date BETWEEN '{start}' AND '{end}'
             )
             SELECT * FROM join_table;
         """
 
         df = self.db.execute_query(query_string)
 
-        return df['Symbol'].tolist()
+        return df
 
     def get_tickers(self, fund, start_date, end_date) -> np.ndarray:
         query_string = f'''

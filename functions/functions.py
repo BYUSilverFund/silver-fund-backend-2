@@ -90,6 +90,7 @@ def alpha(xs_returns: pd.Series, xs_bmk_returns: pd.Series, annualized: bool = T
   Returns:
   - list: A list containing the alpha, lower bound of the 95% confidence interval, and upper bound of the 95% confidence interval.
   """
+
     X = xs_bmk_returns
     Y = xs_returns
 
