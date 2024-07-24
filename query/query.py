@@ -30,18 +30,35 @@ class Query:
                         ending_value / starting_value - 1 AS return
                     FROM fund_query
                 ),
+                dividends_query AS(
+                    SELECT
+                        date,
+                        fund,
+                        "Symbol" AS ticker,
+                        AVG("GrossAmount"::DECIMAL) AS div_gross_amount
+                    FROM dividends
+                    GROUP BY date, fund, "Symbol"
+                ),
+                dividends_xf AS(
+                    SELECT
+                        date,
+                        SUM(div_gross_amount) AS dividends
+                    FROM dividends_query
+                    GROUP BY date
+                ),
                 join_table AS(
                     SELECT
                         f.date,
                         f.starting_value,
                         f.ending_value,
+                        COALESCE(d.dividends, 0) AS dividends,
                         f.return,
                         r.return AS rf_return,
                         f.return - r.return AS xs_return
                     FROM fund_xf f
                     INNER JOIN risk_free_rate r ON f.date = r.date
+                    LEFT JOIN dividends_xf d ON f.date = d.date
                     WHERE f.date BETWEEN '{start_date}' AND '{end_date}'
-
                 )
             SELECT * FROM join_table;
         '''
@@ -71,17 +88,37 @@ class Query:
                         ending_value / starting_value - 1 AS return
                     FROM port_query p
                 ),
+                dividends_query AS(
+                    SELECT
+                        date,
+                        fund,
+                        "Symbol" AS ticker,
+                        AVG("GrossAmount"::DECIMAL) AS div_gross_amount
+                    FROM dividends
+                    WHERE fund = '{fund}'
+                    GROUP BY date, fund, "Symbol"
+                ),
+                dividends_xf AS(
+                    SELECT
+                        date,
+                        fund,
+                        SUM(div_gross_amount) AS dividends
+                    FROM dividends_query
+                    GROUP BY date, fund
+                ),
                 join_table AS (
                     SELECT 
                          p.date,
                          p.fund,
                          p.starting_value,
                          p.ending_value,
+                         COALESCE(d.dividends, 0) AS dividends,
                          p.return,
                          r.return AS rf_return,
                          p.return - r.return AS xs_return
                     FROM port_xf p
                     INNER JOIN risk_free_rate r ON p.date = r.date
+                    LEFT JOIN dividends_xf d ON p.date = d.date
                     WHERE starting_value <> 0
                         AND ending_value / starting_value - 1 <> 0
                         AND p.date BETWEEN '{start_date}' AND '{end_date}'
@@ -121,7 +158,7 @@ class Query:
                         LAG(fx_rate_1) OVER (PARTITION BY ticker ORDER BY date) as fx_rate_0
                     FROM positions_query
                 ),
-                holding_dividends AS (
+                dividends_query AS (
                     SELECT
                         date,
                         fund,
@@ -169,7 +206,7 @@ class Query:
                            p.side * (((p.price_1 * (p.shares_1 - COALESCE(shares_traded,0)) + COALESCE(d.div_gross_amount, 0)) * fx_rate_1) / (p.price_0 * p.shares_0 * fx_rate_0) - 1) AS div_return 
                     FROM positions_xf p
                     LEFT JOIN trades_query t ON p.date = t.date AND p.ticker = t.ticker AND p.fund = t.fund
-                    LEFT JOIN holding_dividends d ON p.date = d.date AND p.ticker = d.ticker AND p.fund = d.fund
+                    LEFT JOIN dividends_query d ON p.date = d.date AND p.ticker = d.ticker AND p.fund = d.fund
                     LEFT JOIN nav_query n ON p.date = n.date AND p.fund = n.fund
                 ),
                 join_table_2 AS(
