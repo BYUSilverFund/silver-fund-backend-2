@@ -22,7 +22,7 @@ class Service:
 
         fund_alpha = alpha(left['xs_return_port'], left['xs_div_return'], annualized=False)
         fund_beta = beta(left['xs_return_port'], left['xs_div_return'])
-        fund_information_ratio = information_ratio(left['return_port'], left['div_return'], left['rf_return'])
+        fund_information_ratio = information_ratio(left['return_port'], left['div_return'], left['rf_return_port'])
         fund_tracking_error = tracking_error(left['return_port'], left['div_return'])
 
         result = {
@@ -51,7 +51,7 @@ class Service:
 
         port_alpha = alpha(left['xs_return_port'], left['xs_div_return'], annualized=False)
         port_beta = beta(left['xs_return_port'], left['xs_div_return'])
-        port_information_ratio = information_ratio(left['return_port'], left['div_return'], left['rf_return'])
+        port_information_ratio = information_ratio(left['return_port'], left['div_return'], left['rf_return_port'])
         port_tracking_error = tracking_error(left['return_port'], left['div_return'])
 
         result = {
@@ -81,10 +81,10 @@ class Service:
 
     def holding_summary(self, fund: str, ticker: str, start_date: str, end_date: str) -> json:
         df = self.query.get_holding_df(fund, ticker, start_date, end_date)
-        bmk = self.query.get_benchmark_df(start_date,end_date)
+        bmk = self.query.get_benchmark_df(start_date, end_date)
         current_tickers = self.query.get_current_tickers(fund)
 
-        left = pd.merge(left=df, right=bmk, how='left', on='date',suffixes=('_port', '_bmk')).fillna(0)
+        left = pd.merge(left=df, right=bmk, how='left', on='date', suffixes=('_port', '_bmk')).fillna(0)
         outer = pd.merge(left=df, right=bmk, how='outer', on='date', suffixes=('_port', '_bmk')).fillna(0)
 
         shares = df['shares'].iloc[-1] if (ticker in current_tickers) else 0
@@ -92,6 +92,7 @@ class Service:
         initial_weight = df['weight_close'].iloc[0]
         current_weight = df['weight_close'].iloc[-1] if (ticker in current_tickers) else 0
 
+        holding_volatility = volatility((df['return']))
         holding_return = total_return(df['return'], annualized=False)
         holding_div_return = total_return(df['div_return'], annualized=False)
         dividends = df['dividends'].sum()
@@ -99,7 +100,7 @@ class Service:
         holding_alpha = alpha(left['xs_div_return_port'], left['xs_div_return_bmk'], annualized=False)
         holding_beta = beta(left['xs_div_return_port'], left['xs_div_return_bmk'])
 
-        holding_alpha_contribution = alpha_contribution(outer['xs_div_return_port'], outer['xs_div_return_bmk'], outer['weight_open'], False)
+        holding_alpha_contribution = alpha_contribution(outer['xs_div_return_port'], outer['xs_div_return_bmk'], outer['weight_open'], annualized=False)
 
         result = {
             "ticker": ticker,
@@ -108,6 +109,7 @@ class Service:
             "initial_weight": round(initial_weight, 4),
             "current_weight": round(current_weight, 4),
             "price": price,
+            "volatility": round(holding_volatility * 100, 2),
             "total_return": round(holding_return * 100, 2),
             "total_div_return": round(holding_div_return * 100, 2),
             "dividends": round(dividends, 2),
@@ -123,10 +125,38 @@ class Service:
 
         result = []
         for ticker in tickers:
-            print(ticker)
             result.append(
                 self.holding_summary(fund, ticker, start_date, end_date)
             )
+
+        return json.dumps(result)
+
+    def benchmark_summary(self, start_date, end_date) -> json:
+        df = self.query.get_benchmark_df(start_date, end_date)
+        bmk = self.query.get_benchmark_df(start_date, end_date)
+
+        left = pd.merge(left=df, right=bmk, how='left', on='date', suffixes=('_port', '_bmk')).fillna(0)
+
+        bmk_volatility = volatility((df['return']))
+        bmk_return = total_return(df['return'], annualized=False)
+        bmk_div_return = total_return(df['div_return'], annualized=False)
+        bmk_dividends = df['dividends'].sum()
+        bmk_sharpe_ratio = sharpe_ratio(df['return'], df['rf_return'])
+
+        bmk_alpha = alpha(left['xs_div_return_port'], left['xs_div_return_bmk'], annualized=False)
+        bmk_beta = beta(left['xs_div_return_port'], left['xs_div_return_bmk'])
+        bmk_tracking_error = tracking_error(left['div_return_port'], left['div_return_bmk'])
+
+        result = {
+            "volatility": round(bmk_volatility * 100, 2),
+            "total_return": round(bmk_return * 100, 2),
+            "total_div_return": round(bmk_div_return * 100, 2),
+            "dividends": round(bmk_dividends, 2),
+            "alpha": round(bmk_alpha * 100, 2),
+            "beta": round(bmk_beta, 2),
+            "sharpe_ratio": round(bmk_sharpe_ratio, 2),
+            "tracking_error": round(bmk_tracking_error, 2),
+        }
 
         return json.dumps(result)
 
@@ -148,5 +178,12 @@ class Service:
         df = self.query.get_holding_df(fund, ticker, start_date, end_date)
 
         result = cumulative_return_vector(df, 'date', 'price', 'return')
+
+        return json.dumps(result)
+
+    def benchmark_chart_data(self, start_date: str, end_date: str) -> json:
+        df = self.query.get_benchmark_df(start_date, end_date)
+
+        result = cumulative_return_vector(df, 'date', 'ending_value', 'return')
 
         return json.dumps(result)
