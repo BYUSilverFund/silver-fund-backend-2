@@ -19,6 +19,7 @@ class Service:
         fund_return = total_return(df['return'], annualized=False)
         fund_volatility = volatility((df['return']))
         fund_sharpe_ratio = sharpe_ratio(df['return'], df['rf_return'])
+        fund_dividends = df['dividends'].sum()
 
         fund_alpha = alpha(left['xs_return_port'], left['xs_div_return'], annualized=False)
         fund_beta = beta(left['xs_return_port'], left['xs_div_return'])
@@ -28,6 +29,7 @@ class Service:
         result = {
             "value": round(fund_value, 2),
             "total_return": round(fund_return * 100, 2),
+            "dividends": round(fund_dividends, 2),
             "volatility": round(fund_volatility * 100, 2),
             "sharpe_ratio": round(fund_sharpe_ratio, 2),
             "alpha": round(fund_alpha * 100, 2),
@@ -48,6 +50,7 @@ class Service:
         port_return = total_return(df['return'], annualized=False)
         port_volatility = volatility((df['return']))
         port_sharpe_ratio = sharpe_ratio(df['return'], df['rf_return'])
+        port_dividends = df['dividends'].sum()
 
         port_alpha = alpha(left['xs_return_port'], left['xs_div_return'], annualized=False)
         port_beta = beta(left['xs_return_port'], left['xs_div_return'])
@@ -58,6 +61,7 @@ class Service:
             "fund": fund,
             "value": round(port_value, 2),
             "total_return": round(port_return * 100, 2),
+            "dividends": round(port_dividends, 2),
             "volatility": round(port_volatility * 100, 2),
             "alpha": round(port_alpha * 100, 2),
             "beta": round(port_beta, 2),
@@ -95,7 +99,7 @@ class Service:
         holding_volatility = volatility((df['return']))
         holding_return = total_return(df['return'], annualized=False)
         holding_div_return = total_return(df['div_return'], annualized=False)
-        dividends = df['dividends'].sum()
+        holdings_dividends = df['dividends'].sum()
 
         holding_alpha = alpha(left['xs_div_return_port'], left['xs_div_return_bmk'], annualized=False)
         holding_beta = beta(left['xs_div_return_port'], left['xs_div_return_bmk'])
@@ -112,7 +116,7 @@ class Service:
             "volatility": round(holding_volatility * 100, 2),
             "total_return": round(holding_return * 100, 2),
             "total_div_return": round(holding_div_return * 100, 2),
-            "dividends": round(dividends, 2),
+            "dividends": round(holdings_dividends, 2),
             "alpha": round(holding_alpha * 100, 2),
             "alpha_contribution": round(holding_alpha_contribution * 100, 2),
             "beta": round(holding_beta, 2)
