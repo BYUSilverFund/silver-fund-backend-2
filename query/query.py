@@ -241,6 +241,7 @@ class Query:
                     b.dividends,
                     b.return,
                     b.div_return,
+                    r.return AS rf_return,
                     b.return - r.return AS xs_return,
                     b.div_return - r.return AS xs_div_return
                 FROM bmk_xf b

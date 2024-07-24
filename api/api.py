@@ -134,5 +134,15 @@ def holding_summary():
     return response
 
 
+@app.route("/benchmark_summary", methods=["GET"])
+def benchmark_summary():
+    start_date = request.args.get("start")
+    end_date = request.args.get("end")
+
+    response = service.benchmark_summary(start_date, end_date)
+
+    return response
+
+
 if __name__ == '__main__':
     app.run(debug=False)
