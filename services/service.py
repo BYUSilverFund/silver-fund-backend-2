@@ -1,4 +1,5 @@
 import json
+import pandas as pd
 from query.query import Query
 from functions.functions import *
 
@@ -13,6 +14,7 @@ class Service:
 
         fund_return = total_return(df['return'], annualized=False)
         fund_volatility = volatility((df['return']))
+
         fund_alpha = alpha(df['xs_return'], df['xs_bmk_return'], annualized=False)
         fund_beta = beta(df['xs_return'], df['xs_bmk_return'])
         fund_sharpe_ratio = sharpe_ratio(df['return'], df['rf_return'])
@@ -71,18 +73,25 @@ class Service:
 
     def holding_summary(self, fund: str, ticker: str, start_date: str, end_date: str) -> json:
         df = self.query.get_holding_df(fund, ticker, start_date, end_date)
+        bmk = self.query.get_benchmark_df(start_date,end_date)
         current_tickers = self.query.get_current_tickers(fund)
+
+        left = pd.merge(left=df, right=bmk, how='left', on='date',suffixes=('_port', '_bmk')).fillna(0)
+        outer = pd.merge(left=df, right=bmk, how='outer', on='date', suffixes=('_port', '_bmk')).fillna(0)
 
         shares = df['shares'].iloc[-1] if (ticker in current_tickers) else 0
         price = df['price'].iloc[-1]
         initial_weight = df['weight_close'].iloc[0]
         current_weight = df['weight_close'].iloc[-1] if (ticker in current_tickers) else 0
+
         holding_return = total_return(df['return'], annualized=False)
         holding_div_return = total_return(df['div_return'], annualized=False)
         dividends = df['dividends'].sum()
-        holding_alpha = alpha(df['xs_return'], df['xs_bmk_return'], annualized=False)
-        # holding_alpha_contribution = alpha_contribution(df['xs_return'], df['xs_bmk_return'], df['weight_open'], False)
-        holding_beta = beta(df['xs_return'], df['xs_bmk_return'])
+
+        holding_alpha = alpha(left['xs_div_return_port'], left['xs_div_return_bmk'], annualized=False)
+        holding_beta = beta(left['xs_div_return_port'], left['xs_div_return_bmk'])
+
+        holding_alpha_contribution = alpha_contribution(outer['xs_div_return_port'], outer['xs_div_return_bmk'], outer['weight_open'], False)
 
         result = {
             "ticker": ticker,
@@ -95,7 +104,7 @@ class Service:
             "total_div_return": round(holding_div_return * 100, 2),
             "dividends": round(dividends, 2),
             "alpha": round(holding_alpha * 100, 2),
-            # "alpha_contribution": round(holding_alpha_contribution * 100, 2),
+            "alpha_contribution": round(holding_alpha_contribution * 100, 2),
             "beta": round(holding_beta, 2)
         }
 
@@ -106,6 +115,7 @@ class Service:
 
         result = []
         for ticker in tickers:
+            print(ticker)
             result.append(
                 self.holding_summary(fund, ticker, start_date, end_date)
             )
