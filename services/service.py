@@ -11,22 +11,27 @@ class Service:
 
     def fund_summary(self, start_date: str, end_date: str) -> json:
         df = self.query.get_fund_df(start_date, end_date)
+        bmk = self.query.get_benchmark_df(start_date, end_date)
 
+        left = pd.merge(left=df, right=bmk, how='left', on='date', suffixes=('_port', '_bmk')).fillna(0)
+
+        fund_value = df['ending_value'].iloc[-1]
         fund_return = total_return(df['return'], annualized=False)
         fund_volatility = volatility((df['return']))
-
-        fund_alpha = alpha(df['xs_return'], df['xs_bmk_return'], annualized=False)
-        fund_beta = beta(df['xs_return'], df['xs_bmk_return'])
         fund_sharpe_ratio = sharpe_ratio(df['return'], df['rf_return'])
-        fund_information_ratio = information_ratio(df['return'], df['bmk_return'], df['rf_return'])
-        fund_tracking_error = tracking_error(df['return'], df['bmk_return'])
+
+        fund_alpha = alpha(left['xs_return_port'], left['xs_div_return'], annualized=False)
+        fund_beta = beta(left['xs_return_port'], left['xs_div_return'])
+        fund_information_ratio = information_ratio(left['return_port'], left['div_return'], left['rf_return'])
+        fund_tracking_error = tracking_error(left['return_port'], left['div_return'])
 
         result = {
+            "value": round(fund_value, 2),
             "total_return": round(fund_return * 100, 2),
             "volatility": round(fund_volatility * 100, 2),
+            "sharpe_ratio": round(fund_sharpe_ratio, 2),
             "alpha": round(fund_alpha * 100, 2),
             "beta": round(fund_beta, 2),
-            "sharpe_ratio": round(fund_sharpe_ratio, 2),
             "information_ratio": round(fund_information_ratio, 2),
             "tracking_error": round(fund_tracking_error, 2),
         }
@@ -35,20 +40,23 @@ class Service:
 
     def portfolio_summary(self, fund: str, start_date: str, end_date: str) -> json:
         df = self.query.get_portfolio_df(fund, start_date, end_date)
+        bmk = self.query.get_benchmark_df(start_date, end_date)
 
-        value = df['ending_value'].iloc[-1]
+        left = pd.merge(left=df, right=bmk, how='left', on='date', suffixes=('_port', '_bmk')).fillna(0)
 
+        port_value = df['ending_value'].iloc[-1]
         port_return = total_return(df['return'], annualized=False)
         port_volatility = volatility((df['return']))
-        port_alpha = alpha(df['xs_return'], df['xs_bmk_return'], annualized=False)
-        port_beta = beta(df['xs_return'], df['xs_bmk_return'])
         port_sharpe_ratio = sharpe_ratio(df['return'], df['rf_return'])
-        port_information_ratio = information_ratio(df['return'], df['bmk_return'], df['rf_return'])
-        port_tracking_error = tracking_error(df['return'], df['bmk_return'])
+
+        port_alpha = alpha(left['xs_return_port'], left['xs_div_return'], annualized=False)
+        port_beta = beta(left['xs_return_port'], left['xs_div_return'])
+        port_information_ratio = information_ratio(left['return_port'], left['div_return'], left['rf_return'])
+        port_tracking_error = tracking_error(left['return_port'], left['div_return'])
 
         result = {
             "fund": fund,
-            "value": round(value, 2),
+            "value": round(port_value, 2),
             "total_return": round(port_return * 100, 2),
             "volatility": round(port_volatility * 100, 2),
             "alpha": round(port_alpha * 100, 2),
