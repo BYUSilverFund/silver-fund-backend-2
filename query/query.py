@@ -22,33 +22,6 @@ class Query:
                     GROUP BY date
                     ORDER BY date
                 ),
-                bmk_dividends AS (
-                    SELECT
-                        date,
-                        AVG("GrossRate"::DECIMAL) AS div_gross_rate
-                    FROM dividends
-                    WHERE fund = 'undergrad'
-                        AND "Symbol" = 'IWV'
-                    GROUP BY date
-                    ORDER BY date
-                ),
-                bmk_query AS(
-                    SELECT
-                        b.date,
-                        LAG(b.ending_value) OVER (ORDER BY b.date) AS starting_value,
-                        b.ending_value,
-                        d.div_gross_rate
-                    FROM benchmark b
-                    LEFT JOIN bmk_dividends d ON b.date = d.date
-                ),
-                bmk_xf AS(
-                    SELECT
-                        date,
-                        (ending_value / starting_value) - 1 AS return,
-                        (ending_value + COALESCE(div_gross_rate, 0)) / starting_value - 1 AS div_return
-                    FROM bmk_query
-                    WHERE starting_value <> 0
-                ),
                 fund_xf AS(
                     SELECT
                         date,
@@ -63,12 +36,9 @@ class Query:
                         f.starting_value,
                         f.ending_value,
                         f.return,
-                        b.return AS bmk_return,
                         r.return AS rf_return,
-                        f.return - r.return AS xs_return,
-                        b.return - r.return AS xs_bmk_return
+                        f.return - r.return AS xs_return
                     FROM fund_xf f
-                    INNER JOIN bmk_xf b ON b.date = f.date
                     INNER JOIN risk_free_rate r ON f.date = r.date
                     WHERE f.date BETWEEN '{start_date}' AND '{end_date}'
 
@@ -92,31 +62,6 @@ class Query:
                     FROM delta_nav
                     WHERE fund = '{fund}'
                 ),
-                bmk_dividends AS (
-                    SELECT
-                        date,
-                        AVG("GrossRate"::DECIMAL) AS div_gross_rate
-                    FROM dividends
-                    WHERE fund = 'undergrad' AND "Symbol" = 'IWV'
-                    GROUP BY date
-                ),
-                bmk_query AS(
-                    SELECT 
-                        b.date,
-                        LAG(b.ending_value) OVER (ORDER BY b.date) AS starting_value,
-                        b.ending_value,
-                        d.div_gross_rate
-                    FROM benchmark b
-                    LEFT JOIN bmk_dividends d ON b.date = d.date
-                ),
-                bmk_xf AS(
-                    SELECT
-                        date,
-                        (ending_value) / starting_value - 1 AS return,
-                        (ending_value + COALESCE(div_gross_rate, 0)) / starting_value - 1 AS div_return 
-                    FROM bmk_query b
-                    WHERE starting_value <> 0
-                ),
                 port_xf AS(
                     SELECT
                         p.date,
@@ -133,12 +78,9 @@ class Query:
                          p.starting_value,
                          p.ending_value,
                          p.return,
-                         b.div_return as bmk_return,
                          r.return AS rf_return,
-                         p.return - r.return AS xs_return,
-                         b.div_return - r.return AS xs_bmk_return
+                         p.return - r.return AS xs_return
                     FROM port_xf p
-                    INNER JOIN bmk_xf b ON p.date = b.date
                     INNER JOIN risk_free_rate r ON p.date = r.date
                     WHERE starting_value <> 0
                         AND ending_value / starting_value - 1 <> 0
