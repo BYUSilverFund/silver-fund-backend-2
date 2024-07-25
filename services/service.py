@@ -103,7 +103,7 @@ class Service:
         holding_return = total_return(df['return'], annualized=False)
         holding_div_return = total_return(df['div_return'], annualized=False)
         holdings_dividends = df['dividends'].sum()
-        # holdings_dividend_yield = 0 if df['dividend_yield'].isna().all() else df['dividend_yield'].mean()
+        holdings_dividend_yield = 0 if df['dividend_yield'].isna().all() else df['dividend_yield'].mean()
 
         holding_alpha = alpha(left['xs_div_return_port'], left['xs_div_return_bmk'], annualized=False)
         holding_beta = beta(left['xs_div_return_port'], left['xs_div_return_bmk'])
@@ -121,7 +121,7 @@ class Service:
             "total_return": round(holding_return * 100, 2),
             "total_div_return": round(holding_div_return * 100, 2),
             "dividends": round(holdings_dividends, 2),
-            # "dividend_yield": round(holdings_dividend_yield * 100, 2),
+            "dividend_yield": round(holdings_dividend_yield * 100, 2),
             "alpha": round(holding_alpha * 100, 2),
             "alpha_contribution": round(holding_alpha_contribution * 100, 2),
             "beta": round(holding_beta, 2)
