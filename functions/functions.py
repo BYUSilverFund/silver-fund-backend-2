@@ -47,20 +47,24 @@ def holding_period_return(values: pd.Series, dividends: pd.Series, annualized: b
         return result
 
 
-def cumulative_return_vector(df: pd.DataFrame, date_col: str, value_col: str, return_col: str) -> list:
-    xf = df[[date_col, value_col, return_col]].copy()
-
-    xf['cumulative_return'] = (1 + xf[return_col]).cumprod() - 1
+def cumulative_return_vector(df: pd.DataFrame, date_col: str, value_col: str, return_col: str, bmk_col: str) -> pd.DataFrame:
+    xf = df[[date_col, value_col, return_col, bmk_col]].copy()
 
     xf[date_col] = xf[date_col].dt.strftime('%Y-%m-%d')
 
-    xf = xf.drop(columns=[return_col])
+    # Portfolio
+    xf['cumulative_return_port'] = (1 + xf[return_col]).cumprod() - 1
 
-    xf['cumulative_return'] = round(xf['cumulative_return'] * 100, 2)
+    xf['cumulative_return_port'] = round(xf['cumulative_return_port'] * 100, 2)
 
-    result = xf.to_dict(orient='records')
+    # Benchmark
+    xf['cumulative_return_bmk'] = (1 + xf[bmk_col]).cumprod() - 1
 
-    return result
+    xf['cumulative_return_bmk'] = round(xf['cumulative_return_bmk'] * 100, 2)
+
+    xf = xf.drop(columns=[return_col, bmk_col])
+
+    return xf
 
 
 def volatility(returns: pd.Series, annualized: bool = True) -> float:
