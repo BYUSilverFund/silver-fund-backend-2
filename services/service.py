@@ -194,8 +194,15 @@ class Service:
         return json.dumps(result)
 
     def holding_chart_data(self, fund: str, ticker: str, start_date: str, end_date: str) -> json:
-        df = self.query.get_holding_df(fund, ticker, start_date, end_date)
 
-        result = cumulative_return_vector(df, 'date', 'price', 'return')
+        df = self.query.get_holding_df(fund, ticker, start_date, end_date)
+        bmk = self.query.get_benchmark_df(start_date, end_date)
+
+        with pd.option_context('future.no_silent_downcasting', True):  # This just prevents a future warning from printing
+            left = pd.merge(left=df, right=bmk, how='left', on='date', suffixes=('_port', '_bmk')).fillna(0)
+
+        result = cumulative_return_vector(left, 'date', 'price', 'return_port', 'div_return_bmk')
+
+        result = result.to_dict(orient='records')
 
         return json.dumps(result)
