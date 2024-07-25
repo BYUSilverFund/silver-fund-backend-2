@@ -101,7 +101,7 @@ def holding_chart():
     return response
 
 @app.route("/benchmark_chart", methods=["GET"])
-def holding_chart():
+def benchmark_chart():
     start_date = request.args.get("start")
     end_date = request.args.get("end")
 
