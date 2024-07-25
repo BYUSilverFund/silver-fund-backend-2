@@ -154,7 +154,6 @@ class Service:
 
         bmk_alpha = alpha(left['xs_div_return_port'], left['xs_div_return_bmk'], annualized=False)
         bmk_beta = beta(left['xs_div_return_port'], left['xs_div_return_bmk'])
-        bmk_tracking_error = tracking_error(left['div_return_port'], left['div_return_bmk'])
 
         result = {
             "volatility": round(bmk_volatility * 100, 2),
@@ -164,7 +163,6 @@ class Service:
             "alpha": round(bmk_alpha * 100, 2),
             "beta": round(bmk_beta, 2),
             "sharpe_ratio": round(bmk_sharpe_ratio, 2),
-            "tracking_error": round(bmk_tracking_error, 2),
         }
 
         return json.dumps(result)
