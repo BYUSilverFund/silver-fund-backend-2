@@ -13,7 +13,8 @@ class Service:
         df = self.query.get_fund_df(start_date, end_date)
         bmk = self.query.get_benchmark_df(start_date, end_date)
 
-        left = pd.merge(left=df, right=bmk, how='left', on='date', suffixes=('_port', '_bmk')).fillna(0)
+        with pd.option_context('future.no_silent_downcasting', True):  # This just prevents a future warning from printing
+            left = pd.merge(left=df, right=bmk, how='left', on='date', suffixes=('_port', '_bmk')).fillna(0)
 
         fund_value = df['ending_value'].iloc[-1]
         fund_return = total_return(df['return'], annualized=False)
@@ -44,7 +45,8 @@ class Service:
         df = self.query.get_portfolio_df(fund, start_date, end_date)
         bmk = self.query.get_benchmark_df(start_date, end_date)
 
-        left = pd.merge(left=df, right=bmk, how='left', on='date', suffixes=('_port', '_bmk')).fillna(0)
+        with pd.option_context('future.no_silent_downcasting', True):  # This just prevents a future warning from printing
+            left = pd.merge(left=df, right=bmk, how='left', on='date', suffixes=('_port', '_bmk')).fillna(0)
 
         port_value = df['ending_value'].iloc[-1]
         port_return = total_return(df['return'], annualized=False)
@@ -88,8 +90,9 @@ class Service:
         bmk = self.query.get_benchmark_df(start_date, end_date)
         current_tickers = self.query.get_current_tickers(fund)
 
-        left = pd.merge(left=df, right=bmk, how='left', on='date', suffixes=('_port', '_bmk')).fillna(0)
-        outer = pd.merge(left=df, right=bmk, how='outer', on='date', suffixes=('_port', '_bmk')).fillna(0)
+        with pd.option_context('future.no_silent_downcasting', True):  # This just prevents a future warning from printing
+            left = pd.merge(left=df, right=bmk, how='left', on='date', suffixes=('_port', '_bmk')).fillna(0)
+            outer = pd.merge(left=df, right=bmk, how='outer', on='date', suffixes=('_port', '_bmk')).fillna(0)
 
         shares = df['shares'].iloc[-1] if (ticker in current_tickers) else 0
         price = df['price'].iloc[-1]
@@ -100,6 +103,7 @@ class Service:
         holding_return = total_return(df['return'], annualized=False)
         holding_div_return = total_return(df['div_return'], annualized=False)
         holdings_dividends = df['dividends'].sum()
+        # holdings_dividend_yield = 0 if df['dividend_yield'].isna().all() else df['dividend_yield'].mean()
 
         holding_alpha = alpha(left['xs_div_return_port'], left['xs_div_return_bmk'], annualized=False)
         holding_beta = beta(left['xs_div_return_port'], left['xs_div_return_bmk'])
@@ -117,6 +121,7 @@ class Service:
             "total_return": round(holding_return * 100, 2),
             "total_div_return": round(holding_div_return * 100, 2),
             "dividends": round(holdings_dividends, 2),
+            # "dividend_yield": round(holdings_dividend_yield * 100, 2),
             "alpha": round(holding_alpha * 100, 2),
             "alpha_contribution": round(holding_alpha_contribution * 100, 2),
             "beta": round(holding_beta, 2)

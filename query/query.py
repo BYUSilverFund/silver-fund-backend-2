@@ -163,7 +163,8 @@ class Query:
                         date,
                         fund,
                         "Symbol" AS ticker,
-                        AVG("GrossAmount"::DECIMAL) AS div_gross_amount -- Sometimes dividends get double counted
+                        AVG("GrossRate"::DECIMAL) AS div_gross_rate,
+                        AVG("GrossAmount"::DECIMAL) AS div_gross_amount -- Sometimes dividends gets double counted
                     FROM dividends
                     WHERE fund = '{fund}'
                     GROUP BY date, fund, "Symbol"
@@ -201,7 +202,8 @@ class Query:
                            p.price_1,
                            p.side,
                            p.value,
-                           COALESCE(d.div_gross_amount, 0) AS dividends,
+                           d.div_gross_rate,
+                           d.div_gross_amount AS dividends,
                            p.side * ((p.price_1 * (p.shares_1 - COALESCE(shares_traded,0)) * fx_rate_1 ) / (p.price_0 * p.shares_0 * fx_rate_0) - 1) AS return,
                            p.side * (((p.price_1 * (p.shares_1 - COALESCE(shares_traded,0)) + COALESCE(d.div_gross_amount, 0)) * fx_rate_1) / (p.price_0 * p.shares_0 * fx_rate_0) - 1) AS div_return 
                     FROM positions_xf p
@@ -221,6 +223,7 @@ class Query:
                        a.price_1 AS price,
                        a.value,
                        a.side,
+                       a.div_gross_rate / a.price_1 AS dividend_yield,
                        a.dividends,
                        a.return,
                        a.div_return,                       
