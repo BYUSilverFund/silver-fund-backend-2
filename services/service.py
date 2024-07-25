@@ -169,15 +169,27 @@ class Service:
 
     def fund_chart_data(self, start_date: str, end_date: str) -> json:
         df = self.query.get_fund_df(start_date, end_date)
+        bmk = self.query.get_benchmark_df(start_date, end_date)
 
-        result = cumulative_return_vector(df, 'date', 'ending_value', 'return')
+        with pd.option_context('future.no_silent_downcasting', True):  # This just prevents a future warning from printing
+            left = pd.merge(left=df, right=bmk, how='left', on='date', suffixes=('_port', '_bmk')).fillna(0)
+
+        result = cumulative_return_vector(left, 'date', 'ending_value_port', 'return_port', 'div_return')
+
+        result = result.to_dict(orient='records')
 
         return json.dumps(result)
 
     def portfolio_chart_data(self, fund: str, start_date: str, end_date: str) -> json:
         df = self.query.get_portfolio_df(fund, start_date, end_date)
+        bmk = self.query.get_benchmark_df(start_date, end_date)
 
-        result = cumulative_return_vector(df, 'date', 'ending_value', 'return')
+        with pd.option_context('future.no_silent_downcasting', True):  # This just prevents a future warning from printing
+            left = pd.merge(left=df, right=bmk, how='left', on='date', suffixes=('_port', '_bmk')).fillna(0)
+
+        result = cumulative_return_vector(left, 'date', 'ending_value_port', 'return_port', 'div_return')
+
+        result = result.to_dict(orient='records')
 
         return json.dumps(result)
 
@@ -185,12 +197,5 @@ class Service:
         df = self.query.get_holding_df(fund, ticker, start_date, end_date)
 
         result = cumulative_return_vector(df, 'date', 'price', 'return')
-
-        return json.dumps(result)
-
-    def benchmark_chart_data(self, start_date: str, end_date: str) -> json:
-        df = self.query.get_benchmark_df(start_date, end_date)
-
-        result = cumulative_return_vector(df, 'date', 'ending_value', 'return')
 
         return json.dumps(result)
