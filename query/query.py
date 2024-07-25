@@ -267,7 +267,8 @@ class Query:
                     b.date,
                     b.starting_value,
                     b.ending_value,
-                    COALESCE(d.div_gross_rate,0) AS dividends,
+                    d.div_gross_rate AS dividends,
+                    d.div_gross_rate / b.ending_value AS dividend_yield,
                     b.ending_value / b.starting_value - 1 AS return,
                     (b.ending_value + COALESCE(d.div_gross_rate,0)) / b.starting_value - 1 AS div_return
                 FROM bmk_query b
@@ -279,6 +280,7 @@ class Query:
                     b.starting_value,
                     b.ending_value,
                     b.dividends,
+                    b.dividend_yield,
                     b.return,
                     b.div_return,
                     r.return AS rf_return,

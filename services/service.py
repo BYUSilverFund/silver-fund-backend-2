@@ -151,6 +151,7 @@ class Service:
         bmk_div_return = total_return(df['div_return'], annualized=False)
         bmk_dividends = df['dividends'].sum()
         bmk_sharpe_ratio = sharpe_ratio(df['return'], df['rf_return'])
+        bmk_dividend_yield = 0 if df['dividend_yield'].isna().all() else df['dividend_yield'].mean()
 
         bmk_alpha = alpha(left['xs_div_return_port'], left['xs_div_return_bmk'], annualized=False)
         bmk_beta = beta(left['xs_div_return_port'], left['xs_div_return_bmk'])
@@ -160,6 +161,7 @@ class Service:
             "total_return": round(bmk_return * 100, 2),
             "total_div_return": round(bmk_div_return * 100, 2),
             "dividends": round(bmk_dividends, 2),
+            "dividend_yield": round(bmk_dividend_yield * 100, 2),
             "alpha": round(bmk_alpha * 100, 2),
             "beta": round(bmk_beta, 2),
             "sharpe_ratio": round(bmk_sharpe_ratio, 2),
