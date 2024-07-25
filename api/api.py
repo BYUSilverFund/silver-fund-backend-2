@@ -93,7 +93,7 @@ def portfolio_chart():
 @app.route("/holding_chart", methods=["GET"])
 def holding_chart():
     fund = request.args.get("fund")
-    ticker = request.args.get("ticker").upper()
+    ticker = request.args.get("ticker")
     start_date = request.args.get("start")
     end_date = request.args.get("end")
 
@@ -133,7 +133,7 @@ def all_holdings_summary():
 @app.route("/holding_summary", methods=["GET"])
 def holding_summary():
     fund = request.args.get("fund")
-    ticker = request.args.get("ticker").upper()
+    ticker = request.args.get("ticker")
     start_date = request.args.get("start")
     end_date = request.args.get("end")
 
