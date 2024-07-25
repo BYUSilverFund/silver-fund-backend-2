@@ -285,7 +285,7 @@ class Query:
                     b.return - r.return AS xs_return,
                     b.div_return - r.return AS xs_div_return
                 FROM bmk_xf b
-                LEFT JOIN risk_free_rate r ON r.date = b.date
+                INNER JOIN risk_free_rate r ON r.date = b.date
                 WHERE b.ending_value / b.starting_value <> 1
                     AND b.date BETWEEN '{start}' AND '{end}'
             )
