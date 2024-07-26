@@ -36,7 +36,7 @@ class Service:
             "alpha": round(fund_alpha * 100, 2),
             "beta": round(fund_beta, 2),
             "information_ratio": round(fund_information_ratio, 2),
-            "tracking_error": round(fund_tracking_error, 2),
+            "tracking_error": round(fund_tracking_error * 100, 2),
         }
 
         return json.dumps(result)
@@ -69,7 +69,7 @@ class Service:
             "beta": round(port_beta, 2),
             "sharpe_ratio": round(port_sharpe_ratio, 2),
             "information_ratio": round(port_information_ratio, 2),
-            "tracking_error": round(port_tracking_error, 2),
+            "tracking_error": round(port_tracking_error * 100, 2),
         }
 
         return json.dumps(result)

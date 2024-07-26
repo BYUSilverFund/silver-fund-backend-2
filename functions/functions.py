@@ -160,7 +160,7 @@ def tracking_error(returns: pd.Series, bmk_returns: pd.Series, annualized: bool 
   Returns:
   - float: tracking_error/active_risk.
   """
-    port_tracking_error = np.sqrt((returns - bmk_returns).std())
+    port_tracking_error = (returns - bmk_returns).std()
     annual_factor = np.sqrt(TRADING_DAYS)
 
     return port_tracking_error * annual_factor if annualized else port_tracking_error
