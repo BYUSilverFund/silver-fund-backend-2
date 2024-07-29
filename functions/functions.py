@@ -95,6 +95,8 @@ def alpha(xs_returns: pd.Series, xs_bmk_returns: pd.Series, annualized: bool = T
   - list: A list containing the alpha, lower bound of the 95% confidence interval, and upper bound of the 95% confidence interval.
   """
 
+    num_days = xs_returns.count()
+
     X = xs_bmk_returns
     Y = xs_returns
 
@@ -103,7 +105,7 @@ def alpha(xs_returns: pd.Series, xs_bmk_returns: pd.Series, annualized: bool = T
 
     intercept, slope = model.params
 
-    return intercept * TRADING_DAYS if annualized else intercept
+    return intercept * TRADING_DAYS if annualized else intercept * num_days
 
 
 def beta(xs_returns: pd.Series, xs_bmk_returns: pd.Series) -> float:
