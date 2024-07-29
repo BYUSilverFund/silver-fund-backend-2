@@ -105,7 +105,7 @@ def alpha(xs_returns: pd.Series, xs_bmk_returns: pd.Series, annualized: bool = T
 
     intercept, slope = model.params
 
-    return intercept * TRADING_DAYS if annualized else intercept * num_days
+    return intercept * TRADING_DAYS if annualized else (1 + intercept) ** num_days - 1
 
 
 def beta(xs_returns: pd.Series, xs_bmk_returns: pd.Series) -> float:
