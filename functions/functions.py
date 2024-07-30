@@ -186,10 +186,8 @@ def information_ratio(returns: pd.Series, bmk_returns: pd.Series, rf_returns: pd
     xs_returns = returns - rf_returns
     xs_bmk_returns = bmk_returns - rf_returns
 
-    num_days = returns.count()
-
-    port_alpha = alpha(xs_returns, xs_bmk_returns) / num_days
-    port_tracking_error = tracking_error(returns, bmk_returns)
+    port_alpha = alpha(xs_returns, xs_bmk_returns, annualized=True) / TRADING_DAYS
+    port_tracking_error = tracking_error(returns, bmk_returns, annualized=False)
 
     ratio = port_alpha / port_tracking_error
 
