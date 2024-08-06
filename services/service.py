@@ -213,13 +213,17 @@ class Service:
 
         df = self.query.get_dividends(fund, ticker, start_date, end_date)
 
+        df['date'] = pd.to_datetime(df['date']).dt.strftime("%Y-%m-%d")
+
         result = df.to_dict(orient='records')
 
-        return json.dumps(result)
+        return result # json.dumps(result)
 
     def holding_trades(self, fund: str, ticker: str, start_date: str, end_date: str):
 
         df = self.query.get_trades(fund, ticker, start_date, end_date)
+
+        df['date'] = pd.to_datetime(df['date']).dt.strftime("%Y-%m-%d")
 
         result = df.to_dict(orient='records')
 
