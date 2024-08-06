@@ -327,4 +327,48 @@ class Query:
 
         return df['Symbol'].tolist()
 
+    def get_dividends(self, fund, ticker, start, end):
+        query_string = f'''
+        SELECT
+            fund,
+            date,
+            "Symbol" AS ticker,
+            AVG("GrossRate"::DECIMAL) AS gross_rate,
+            AVG("GrossAmount"::DECIMAL) AS gross_amount
+        FROM dividends
+        WHERE "Symbol" = '{ticker}'
+            AND fund = '{fund}'
+            AND date BETWEEN '{start}' AND '{end}'
+        GROUP BY fund, date, "Symbol"
+        ;
+        '''
+
+        df = self.db.execute_query(query_string)
+
+        return df
+
+    def get_trades(self, fund, ticker, start, end):
+        query_string = f'''
+        SELECT
+            date,
+            fund,
+            "Symbol" AS ticker,
+            "SettleDateTarget" AS settlement_date,
+            "Exchange" As exchange,
+            "Quantity" AS shares,
+            "TradePrice" AS price,
+            "TradeMoney" AS value,
+            "Buy/Sell" AS side
+        FROM trades
+        WHERE fund = '{fund}'
+            AND "Symbol" = '{ticker}'
+            AND date BETWEEN '{start}' AND '{end}'
+        ;
+        '''
+
+        df = self.db.execute_query(query_string)
+
+        return df
+
+
 

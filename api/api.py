@@ -100,6 +100,7 @@ def holding_chart():
     response = service.holding_chart_data(fund, ticker, start_date, end_date)
     return response
 
+
 @app.route("/benchmark_chart", methods=["GET"])
 def benchmark_chart():
     start_date = request.args.get("start")
@@ -138,6 +139,30 @@ def holding_summary():
     end_date = request.args.get("end")
 
     response = service.holding_summary(fund, ticker, start_date, end_date)
+
+    return response
+
+
+@app.route("/holding_dividends", methods=["GET"])
+def holding_dividends():
+    fund = request.args.get("fund")
+    ticker = request.args.get("ticker")
+    start_date = request.args.get("start")
+    end_date = request.args.get("end")
+
+    response = service.holding_dividends(fund, ticker, start_date, end_date)
+
+    return response
+
+
+@app.route("/holding_trades", methods=["GET"])
+def holding_trades():
+    fund = request.args.get("fund")
+    ticker = request.args.get("ticker")
+    start_date = request.args.get("start")
+    end_date = request.args.get("end")
+
+    response = service.holding_trades(fund, ticker, start_date, end_date)
 
     return response
 

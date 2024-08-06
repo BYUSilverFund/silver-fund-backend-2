@@ -208,3 +208,20 @@ class Service:
         result = result.to_dict(orient='records')
 
         return json.dumps(result)
+
+    def holding_dividends(self, fund: str, ticker: str, start_date: str, end_date: str):
+
+        df = self.query.get_dividends(fund, ticker, start_date, end_date)
+
+        result = df.to_dict(orient='records')
+
+        return json.dumps(result)
+
+    def holding_trades(self, fund: str, ticker: str, start_date: str, end_date: str):
+
+        df = self.query.get_trades(fund, ticker, start_date, end_date)
+
+        result = df.to_dict(orient='records')
+
+        return json.dumps(result)
+
