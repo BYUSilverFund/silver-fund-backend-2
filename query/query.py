@@ -353,16 +353,15 @@ class Query:
             date,
             fund,
             "Symbol" AS ticker,
-            "SettleDateTarget" AS settlement_date,
-            "Exchange" As exchange,
-            "Quantity" AS shares,
-            "TradePrice" AS price,
-            "TradeMoney" AS value,
+            SUM("Quantity"::DECIMAL) AS shares,
+            AVG("TradePrice"::DECIMAL) AS price,
+            SUM("TradeMoney"::DECIMAL) AS value,
             "Buy/Sell" AS side
         FROM trades
         WHERE fund = '{fund}'
             AND "Symbol" = '{ticker}'
             AND date BETWEEN '{start}' AND '{end}'
+        GROUP BY date, fund, "Symbol", "Buy/Sell"
         ;
         '''
 
