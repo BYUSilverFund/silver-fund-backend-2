@@ -66,6 +66,8 @@ class Database:
                 original_columns = set(original.columns)
                 new_columns = set(df.columns)
                 if original_columns != new_columns:
+                    print("Orginial: ", original_columns)
+                    print("New: ", new_columns)
                     raise ValueError("Schema mismatch between existing table and DataFrame.")
 
                 combined = pd.concat([original, df])

@@ -8,16 +8,16 @@ def transform(df: pd.DataFrame, fund: str, query: str) -> pd.DataFrame:
     match query:
 
         case 'nav':
-            xf_df = transform_nav(xf_df)
+            xf_df = transform_nav(xf_df, fund)
 
         case 'delta_nav':
-            xf_df = transform_delta_nav(xf_df)
+            xf_df = transform_delta_nav(xf_df, fund)
 
         case 'positions':
             xf_df = transform_positions(xf_df)
 
         case 'dividends':
-            xf_df = transform_dividends(xf_df)
+            xf_df = transform_dividends(xf_df, fund)
 
         case 'trades':
             xf_df = transform_trades(xf_df)
@@ -28,15 +28,23 @@ def transform(df: pd.DataFrame, fund: str, query: str) -> pd.DataFrame:
     return xf_df
 
 
-def transform_nav(df):
+def transform_nav(df, fund):
     xf_df = df
     xf_df['date'] = pd.to_datetime(xf_df['ReportDate'], format='%Y%m%d')
+
+    if fund == 'quant':
+        xf_df = xf_df.drop(columns=['IncentiveCouponAccruals','IncentiveCouponAccrualsShort','IncentiveCouponAccrualsLong'])
+
     return xf_df
 
 
-def transform_delta_nav(df):
+def transform_delta_nav(df, fund):
     xf_df = df
     xf_df['date'] = pd.to_datetime(xf_df['FromDate'], format='%Y%m%d')
+
+    if fund == 'quant':
+        xf_df = xf_df.drop(columns=['ChangeInIncentiveCouponAccruals'])
+
     return xf_df
 
 
@@ -46,9 +54,13 @@ def transform_positions(df):
     return xf_df
 
 
-def transform_dividends(df):
+def transform_dividends(df, fund):
     xf_df = df
     xf_df['date'] = pd.to_datetime(xf_df['ExDate'], format='%Y%m%d')
+
+    if fund == 'quant':
+        xf_df = xf_df.drop(columns=['ReportDate'])
+
     return xf_df
 
 
