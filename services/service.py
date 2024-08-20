@@ -75,7 +75,7 @@ class Service:
         return json.dumps(result)
 
     def all_portfolios_summary(self, start_date: str, end_date: str) -> json:
-        funds = ['undergrad', 'grad', 'brigham_capital']
+        funds = ['undergrad', 'grad', 'brigham_capital', 'quant']
 
         result = []
         for fund in funds:
