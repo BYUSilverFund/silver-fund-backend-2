@@ -18,7 +18,6 @@ class Query:
                         SUM("StartingValue"::DECIMAL) as starting_value,
                         SUM("EndingValue"::DECIMAL) as ending_value
                     FROM delta_nav
---                     WHERE "StartingValue"::DECIMAL <> 0 -- TESTING FIX
                     GROUP BY date
                     ORDER BY date
                 ),
