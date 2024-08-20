@@ -117,6 +117,7 @@ class Service:
             "initial_weight": round(initial_weight, 4),
             "current_weight": round(current_weight, 4),
             "price": price,
+            "value": price * shares,
             "volatility": round(holding_volatility * 100, 2),
             "total_return": round(holding_return * 100, 2),
             "total_div_return": round(holding_div_return * 100, 2),
