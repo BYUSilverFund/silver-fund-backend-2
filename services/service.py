@@ -96,8 +96,9 @@ class Service:
 
         shares = df['shares'].iloc[-1] if (ticker in current_tickers) else 0
         price = df['price'].iloc[-1]
-        initial_weight = df['weight_close'].iloc[0]
-        current_weight = df['weight_close'].iloc[-1] if (ticker in current_tickers) else 0
+        value = df['value'].iloc[-1]
+        initial_weight = df['weight'].iloc[0]
+        current_weight = df['weight'].iloc[-1] if (ticker in current_tickers) else 0
 
         holding_volatility = volatility((df['return']))
         holding_return = total_return(df['return'], annualized=False)
@@ -108,7 +109,7 @@ class Service:
         holding_alpha = alpha(left['xs_div_return_port'], left['xs_div_return_bmk'], annualized=False)
         holding_beta = beta(left['xs_div_return_port'], left['xs_div_return_bmk'])
 
-        holding_alpha_contribution = alpha_contribution(outer['xs_div_return_port'], outer['xs_div_return_bmk'], outer['weight_open'], annualized=False)
+        holding_alpha_contribution = alpha_contribution(outer['xs_div_return_port'], outer['xs_div_return_bmk'], outer['weight'], annualized=False)
 
         result = {
             "ticker": ticker,
@@ -117,7 +118,7 @@ class Service:
             "initial_weight": round(initial_weight, 4),
             "current_weight": round(current_weight, 4),
             "price": price,
-            "value": price * shares,
+            "value": round(value, 2),
             "volatility": round(holding_volatility * 100, 2),
             "total_return": round(holding_return * 100, 2),
             "total_div_return": round(holding_div_return * 100, 2),
@@ -131,6 +132,67 @@ class Service:
         return json.dumps(result)
 
     def all_holdings_summary(self, fund: str, start_date: str, end_date: str) -> json:
+        df = Query().get_all_holdings_df(fund, start_date, end_date)
+        bmk = Query().get_benchmark_df(start_date, end_date)
+        current_tickers = Query().get_current_tickers(fund)
+
+        results = pd.DataFrame()
+        with pd.option_context('future.no_silent_downcasting', True):  # This just prevents a future warning from printing
+            left = pd.merge(left=df, right=bmk, how='left', on='date', suffixes=('_port', '_bmk')).fillna(0)
+            outer = pd.merge(left=df, right=bmk, how='outer', on='date', suffixes=('_port', '_bmk')).fillna(0)
+
+        # DF metrics
+        results['ticker'] = df['ticker'].unique()
+        results['active'] = results['ticker'].isin(current_tickers)
+        results['shares'] = df.groupby('ticker')['shares'].last().reset_index(drop=True)
+        results['price'] = df.groupby('ticker')['price'].last().reset_index(drop=True)
+        results['value'] = df.groupby('ticker')['value'].last().reset_index(drop=True)
+        results['initial_weight'] = df.groupby('ticker')['weight'].first().reset_index(drop=True)
+        results['current_weight'] = df.groupby('ticker')['weight'].last().reset_index(drop=True)
+
+        # Adjust holdings that are inactive
+        results['shares'] = np.where(results['active'], results['shares'], 0)
+        results['value'] = np.where(results['active'], results['value'], 0)
+        results['current_weight'] = np.where(results['active'], results['current_weight'], 0)
+
+        # LEFT metrics
+        results['volatility'] = df.groupby('ticker')['return'].apply(volatility).reset_index(drop=True)
+        results['total_return'] = df.groupby('ticker')['return'].apply(total_return, annualized=False).reset_index(
+            drop=True)
+        results['total_div_return'] = df.groupby('ticker')['div_return'].apply(total_return,
+                                                                               annualized=False).reset_index(drop=True)
+        results['dividends'] = df.groupby('ticker')['dividends'].sum().reset_index(drop=True)
+        results['dividend_yield'] = df.groupby('ticker')['dividend_yield'].mean().fillna(0).reset_index(drop=True)
+
+        # OUTER metrics
+        results['alpha'] = left.groupby('ticker').apply(
+            lambda group: alpha(group['xs_div_return_port'], group['xs_div_return_bmk']),
+            include_groups=False).reset_index(drop=True)
+        results['beta'] = left.groupby('ticker').apply(
+            lambda group: beta(group['xs_div_return_port'], group['xs_div_return_bmk']),
+            include_groups=False).reset_index(drop=True)
+        results['alpha_contribution'] = outer.groupby('ticker').apply(
+            lambda group: alpha_contribution(group['xs_div_return_port'], group['xs_div_return_bmk'], group['weight']),
+            include_groups=False).reset_index(drop=True)
+
+        # Formatting
+        results['initial_weight'] = round(results['initial_weight'], 4)
+        results['current_weight'] = round(results['current_weight'], 4)
+        results['value'] = round(results['value'], 2)
+        results['volatility'] = round(results['volatility'] * 100, 2)
+        results['total_return'] = round(results['total_return'] * 100, 2)
+        results['total_div_return'] = round(results['total_div_return'] * 100, 2)
+        results['dividends'] = round(results['dividends'], 2)
+        results['dividend_yield'] = round(results['dividend_yield'] * 100, 2)
+        results['alpha'] = round(results['alpha'] * 100, 2)
+        results['alpha_contribution'] = round(results['alpha_contribution'] * 100, 2)
+        results['beta'] = round(results['beta'], 2)
+
+        results = results.to_dict(orient='records')
+
+        return json.dumps(results)
+
+    def old_all_holdings_summary(self, fund, start_date, end_date):
         tickers = self.query.get_tickers(fund, start_date, end_date)
 
         result = []
@@ -218,7 +280,7 @@ class Service:
 
         result = df.to_dict(orient='records')
 
-        return result # json.dumps(result)
+        return json.dumps(result)
 
     def holding_trades(self, fund: str, ticker: str, start_date: str, end_date: str):
 
@@ -229,4 +291,3 @@ class Service:
         result = df.to_dict(orient='records')
 
         return json.dumps(result)
-
