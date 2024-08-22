@@ -155,22 +155,22 @@ class Service:
         results['value'] = np.where(results['active'], results['value'], 0)
         results['current_weight'] = np.where(results['active'], results['current_weight'], 0)
 
-        # LEFT metrics
+        # DF metrics
         results['volatility'] = df.groupby('ticker')['return'].apply(volatility).reset_index(drop=True)
-        results['total_return'] = df.groupby('ticker')['return'].apply(total_return, annualized=False).reset_index(
-            drop=True)
-        results['total_div_return'] = df.groupby('ticker')['div_return'].apply(total_return,
-                                                                               annualized=False).reset_index(drop=True)
+        results['total_return'] = df.groupby('ticker')['return'].apply(total_return, annualized=False).reset_index(drop=True)
+        results['total_div_return'] = df.groupby('ticker')['div_return'].apply(total_return,annualized=False).reset_index(drop=True)
         results['dividends'] = df.groupby('ticker')['dividends'].sum().reset_index(drop=True)
         results['dividend_yield'] = df.groupby('ticker')['dividend_yield'].mean().fillna(0).reset_index(drop=True)
 
-        # OUTER metrics
+        # LEFT metrics
         results['alpha'] = left.groupby('ticker').apply(
             lambda group: alpha(group['xs_div_return_port'], group['xs_div_return_bmk']),
             include_groups=False).reset_index(drop=True)
         results['beta'] = left.groupby('ticker').apply(
             lambda group: beta(group['xs_div_return_port'], group['xs_div_return_bmk']),
             include_groups=False).reset_index(drop=True)
+
+        # OUTER Metrics
         results['alpha_contribution'] = outer.groupby('ticker').apply(
             lambda group: alpha_contribution(group['xs_div_return_port'], group['xs_div_return_bmk'], group['weight']),
             include_groups=False).reset_index(drop=True)
