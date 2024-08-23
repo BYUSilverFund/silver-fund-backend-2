@@ -500,8 +500,8 @@ class Query:
     def get_cron_log(self, date: str) -> pd.DataFrame:
         query_string = f'''
         SELECT * FROM "ETL_Cron_Log"
-        WHERE date >= '{date}'
         ORDER BY date DESC
+        LIMIT 7
         ;
         '''
 
