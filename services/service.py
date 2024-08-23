@@ -294,8 +294,7 @@ class Service:
         return json.dumps(result)
     
     def cron_logs(self):
-        week_ago = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
-        df = self.query.get_cron_log(week_ago)
+        df = self.query.get_cron_log()
 
         df['date'] = pd.to_datetime(df['date']).dt.strftime("%Y-%m-%d")
 

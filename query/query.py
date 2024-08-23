@@ -497,7 +497,7 @@ class Query:
 
         return df
     
-    def get_cron_log(self, date: str) -> pd.DataFrame:
+    def get_cron_log(self) -> pd.DataFrame:
         query_string = f'''
         SELECT * FROM "ETL_Cron_Log"
         ORDER BY date DESC
