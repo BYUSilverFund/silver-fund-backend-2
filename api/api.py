@@ -176,6 +176,11 @@ def benchmark_summary():
 
     return response
 
+@app.route("/cron_logs", methods=["GET"])
+def cron_log():
+    response = service.cron_logs()
+    return response
+
 
 if __name__ == '__main__':
     app.run(debug=False)

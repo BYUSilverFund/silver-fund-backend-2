@@ -2,6 +2,7 @@ import json
 import pandas as pd
 from query.query import Query
 from functions.functions import *
+from datetime import datetime, timedelta
 
 
 class Service:
@@ -285,6 +286,16 @@ class Service:
     def holding_trades(self, fund: str, ticker: str, start_date: str, end_date: str):
 
         df = self.query.get_trades(fund, ticker, start_date, end_date)
+
+        df['date'] = pd.to_datetime(df['date']).dt.strftime("%Y-%m-%d")
+
+        result = df.to_dict(orient='records')
+
+        return json.dumps(result)
+    
+    def cron_logs(self):
+        week_ago = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
+        df = self.query.get_cron_log(week_ago)
 
         df['date'] = pd.to_datetime(df['date']).dt.strftime("%Y-%m-%d")
 
