@@ -17,7 +17,7 @@ def run():
         query_types = config[fund]['queries'].keys()
 
         print(f"Beginning {fund} fund ETL")
-        cron_log_string += f"Beginning {fund} fund ETL\n"
+        cron_log_string += f"{fund}: "
 
         for query_type in query_types:
             try:
@@ -25,17 +25,17 @@ def run():
 
                 # Extract
                 print(f"Executing IBKR {query_type} query")
-                cron_log_string += f"Executing IBKR {query_type} query\n"
+                cron_log_string += f"{query_type} extracted, "
                 raw_data = ibkr_query(token, query_id)
 
                 # Transform
                 print(f"Transforming the {query_type} data")
-                cron_log_string += f"Transforming the {query_type} data\n"
+                cron_log_string += f"{query_type} transformed, "
                 transformed_data = transform(raw_data, fund, query_type)
 
                 # Load
                 database.load_df(transformed_data, query_type)
-                cron_log_string += f"Data loaded into the {query_type} table in the database.\n"
+                cron_log_string += f"{query_type} loaded. \n"
                 print(f"Data loaded into the {query_type} table in the database.")
 
             except Exception as e:
@@ -46,13 +46,13 @@ def run():
 
     try:
         print("Updating risk free rate")
-        cron_log_string += "Updating risk free rate\n"
+        cron_log_string += "Updated risk free rate\n"
         raw_rf = fred_query()
         transformed_rf = transform_rf(raw_rf)
         database.load_df(transformed_rf, 'risk_free_rate')
 
         print("Updating benchmark")
-        cron_log_string += "Updating benchmark\n"
+        cron_log_string += "Updated benchmark\n"
         bmk_token = config['undergrad']['token']
         bmk_query_id = config['undergrad']['queries']['positions']
 
