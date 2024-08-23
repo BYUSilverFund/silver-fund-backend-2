@@ -361,6 +361,7 @@ class Query:
                     FROM join_table_1 a
                     INNER JOIN risk_free_rate c ON a.date = c.date
                     WHERE a.return <> 0
+                        AND a.shares_1 <> 0
                         AND a.date BETWEEN '{start}' AND '{end}'
                 )
                 SELECT * FROM join_table_2
