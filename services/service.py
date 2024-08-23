@@ -164,7 +164,7 @@ class Service:
 
         # LEFT metrics
         results['alpha'] = left.groupby('ticker').apply(
-            lambda group: alpha(group['xs_div_return_port'], group['xs_div_return_bmk']),
+            lambda group: alpha(group['xs_div_return_port'], group['xs_div_return_bmk'], annualized=False),
             include_groups=False).reset_index(drop=True)
         results['beta'] = left.groupby('ticker').apply(
             lambda group: beta(group['xs_div_return_port'], group['xs_div_return_bmk']),
@@ -172,7 +172,7 @@ class Service:
 
         # OUTER Metrics
         results['alpha_contribution'] = outer.groupby('ticker').apply(
-            lambda group: alpha_contribution(group['xs_div_return_port'], group['xs_div_return_bmk'], group['weight']),
+            lambda group: alpha_contribution(group['xs_div_return_port'], group['xs_div_return_bmk'], group['weight'], annualized=False),
             include_groups=False).reset_index(drop=True)
 
         # Formatting
@@ -197,9 +197,9 @@ class Service:
 
         result = []
         for ticker in tickers:
-            result.append(
-                self.holding_summary(fund, ticker, start_date, end_date)
-            )
+            res = self.holding_summary(fund, ticker, start_date, end_date)
+            res = json.loads(res)
+            result.append(res)
 
         return json.dumps(result)
 
