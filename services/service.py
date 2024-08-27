@@ -2,7 +2,6 @@ import json
 import pandas as pd
 from query.query import Query
 from functions.functions import *
-from datetime import datetime, timedelta
 
 
 class Service:

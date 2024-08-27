@@ -1,11 +1,8 @@
 import numpy as np
-
-from database.database import Database
 import pandas as pd
-
+from database.database import Database
 
 class Query:
-
     def __init__(self):
         self.db = Database()
 

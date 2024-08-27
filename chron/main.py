@@ -42,8 +42,6 @@ def run():
                 # print(f"Error loading {fund} {query_type} data: {e}")
                 cron_log_string += f"Error loading {fund} {query_type} data: {e}\n"
 
-            
-
     try:
         # print("Updating risk free rate")
         cron_log_string += "Updated risk-free rate.\n"

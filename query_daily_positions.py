@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 from database.database import Database
+from io import StringIO, BytesIO
 import pandas as pd
 import boto3
-from io import StringIO, BytesIO
 import os
 
 FUNDS = ['grad', 'undergrad']
