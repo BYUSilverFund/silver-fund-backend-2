@@ -17,7 +17,7 @@ source .venv/bin/activate //Mac
 - Install dependencies
 
 ```
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 - How to deactivate virtual environment
@@ -31,15 +31,16 @@ deactivate
 - In the event you pip install a new package onto the virtual environment
 
 ```
-pip freeze > requirements.txt
+python -m pip freeze > requirements.txt
 ```
 
 - This adds the new package dependency to the requirements
+  - Packages shouldn't need a version number in the requirements file unless necessary i.e. numpy
 
 ### Run dev server
 
 ```
-python main.py
+python dev.py
 ```
 
 ### Execute test file
