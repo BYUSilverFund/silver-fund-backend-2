@@ -2,4 +2,4 @@
 
 cd /home/ubuntu/47-fund-web-app
 source .venv/bin/activate
-sudo ./chron.py
+sudo ./chron/main.py

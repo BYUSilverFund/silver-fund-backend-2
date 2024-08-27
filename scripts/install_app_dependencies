@@ -3,5 +3,5 @@
 cd /home/ubuntu/47-fund-web-app
 source .venv/bin/activate
 pip install -r requirements.txt
-sudo chmod +x ./chron.py
-sudo chmod +x ./query_daily_positions.py
+sudo chmod +x ./chron/main.py
+sudo chmod +x ./upload_top_positions_s3.py
