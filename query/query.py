@@ -49,12 +49,13 @@ class Query:
                         f.ending_value,
                         COALESCE(d.dividends, 0) AS dividends,
                         f.return,
-                        r.return AS rf_return,
-                        f.return - r.return AS xs_return
+                        COALESCE(r.return, LAG(r.return) OVER (ORDER BY r.date)) AS rf_return,
+                        f.return - COALESCE(r.return, LAG(r.return) OVER (ORDER BY r.date)) AS xs_return
                     FROM fund_xf f
-                    INNER JOIN risk_free_rate r ON f.date = r.date
+                    LEFT JOIN risk_free_rate r ON f.date = r.date
                     LEFT JOIN dividends_xf d ON f.date = d.date
-                    WHERE f.date BETWEEN '{start_date}' AND '{end_date}'
+                    WHERE f.return <> 0
+                        AND f.date BETWEEN '{start_date}' AND '{end_date}'
                 )
             SELECT * FROM join_table;
         '''
@@ -110,12 +111,13 @@ class Query:
                          p.ending_value,
                          COALESCE(d.dividends, 0) AS dividends,
                          p.return,
-                         r.return AS rf_return,
-                         p.return - r.return AS xs_return
+                        COALESCE(r.return, LAG(r.return) OVER (ORDER BY r.date)) AS rf_return,
+                        p.return - COALESCE(r.return, LAG(r.return) OVER (ORDER BY r.date)) AS xs_return
                     FROM port_xf p
-                    INNER JOIN risk_free_rate r ON p.date = r.date
+                    LEFT JOIN risk_free_rate r ON p.date = r.date
                     LEFT JOIN dividends_xf d ON p.date = d.date
                     WHERE starting_value <> 0
+                        AND p.return <> 0
                         AND ending_value / starting_value - 1 <> 0
                         AND p.date BETWEEN '{start_date}' AND '{end_date}'
                 )
@@ -232,11 +234,11 @@ class Query:
                        a.dividends,
                        a.return,
                        a.div_return,                       
-                       c.return AS rf_return,
-                       a.return - c.return AS xs_return,
-                       a.div_return - c.return AS xs_div_return
+                       COALESCE(c.return, LAG(c.return) OVER (ORDER BY c.date)) AS rf_return,
+                       a.return - COALESCE(c.return, LAG(c.return) OVER (ORDER BY c.date)) AS xs_return,
+                       a.div_return - COALESCE(c.return, LAG(c.return) OVER (ORDER BY c.date)) AS xs_div_return
                     FROM join_table_1 a
-                    INNER JOIN risk_free_rate c ON a.date = c.date
+                    LEFT JOIN risk_free_rate c ON a.date = c.date
                     WHERE a.return <> 0
                         AND a.shares_1 <> 0
                         AND a.date BETWEEN '{start_date}' AND '{end_date}'
@@ -352,14 +354,15 @@ class Query:
                        a.dividends,
                        a.return,
                        a.div_return,
-                       c.return AS rf_return,
-                       a.return - c.return AS xs_return,
-                       a.div_return - c.return AS xs_div_return
+                       COALESCE(c.return, LAG(c.return) OVER (ORDER BY a.ticker, c.date)) AS rf_return,
+                       a.return - COALESCE(c.return, LAG(c.return) OVER (ORDER BY a.ticker, c.date)) AS xs_return,
+                       a.div_return - COALESCE(c.return, LAG(c.return) OVER (ORDER BY a.ticker, c.date)) AS xs_div_return
                     FROM join_table_1 a
-                    INNER JOIN risk_free_rate c ON a.date = c.date
+                    LEFT JOIN risk_free_rate c ON a.date = c.date
                     WHERE a.return <> 0
                         AND a.shares_1 <> 0
                         AND a.date BETWEEN '{start}' AND '{end}'
+                    ORDER BY a.date, a.ticker
                 )
                 SELECT * FROM join_table_2
         ;
@@ -408,11 +411,11 @@ class Query:
                     b.dividend_yield,
                     b.return,
                     b.div_return,
-                    r.return AS rf_return,
-                    b.return - r.return AS xs_return,
-                    b.div_return - r.return AS xs_div_return
+                    COALESCE(r.return, LAG(r.return) OVER (ORDER BY r.date)) AS rf_return,
+                    b.return - COALESCE(r.return, LAG(r.return) OVER (ORDER BY r.date)) AS xs_return,
+                    b.div_return - COALESCE(r.return, LAG(r.return) OVER (ORDER BY r.date)) AS xs_div_return
                 FROM bmk_xf b
-                INNER JOIN risk_free_rate r ON r.date = b.date
+                LEFT JOIN risk_free_rate r ON r.date = b.date
                 WHERE b.ending_value / b.starting_value <> 1
                     AND b.date BETWEEN '{start}' AND '{end}'
             )
