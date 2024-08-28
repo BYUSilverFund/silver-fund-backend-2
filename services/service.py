@@ -16,6 +16,8 @@ class Service:
         with pd.option_context('future.no_silent_downcasting', True):  # This just prevents a future warning from printing
             left = pd.merge(left=df, right=bmk, how='left', on='date', suffixes=('_port', '_bmk')).fillna(0)
 
+        true_start = str(df['date'].iloc[0]).split(" ")[0]
+        true_end = str(df['date'].iloc[-1]).split(" ")[0]
         fund_value = df['ending_value'].iloc[-1]
         fund_return = total_return(df['return'], annualized=False)
         fund_volatility = volatility((df['return']))
@@ -28,6 +30,8 @@ class Service:
         fund_tracking_error = tracking_error(left['return_port'], left['div_return'])
 
         result = {
+            "start": true_start,
+            "end": true_end,
             "value": round(fund_value, 2),
             "total_return": round(fund_return * 100, 2),
             "dividends": round(fund_dividends, 2),
@@ -48,6 +52,8 @@ class Service:
         with pd.option_context('future.no_silent_downcasting', True):  # This just prevents a future warning from printing
             left = pd.merge(left=df, right=bmk, how='left', on='date', suffixes=('_port', '_bmk')).fillna(0)
 
+        true_start = str(df['date'].iloc[0]).split(" ")[0]
+        true_end = str(df['date'].iloc[-1]).split(" ")[0]
         port_value = df['ending_value'].iloc[-1]
         port_return = total_return(df['return'], annualized=False)
         port_volatility = volatility((df['return']))
@@ -60,6 +66,8 @@ class Service:
         port_tracking_error = tracking_error(left['return_port'], left['div_return'])
 
         result = {
+            "start": true_start,
+            "end": true_end,
             "fund": fund,
             "value": round(port_value, 2),
             "total_return": round(port_return * 100, 2),
@@ -94,6 +102,8 @@ class Service:
             left = pd.merge(left=df, right=bmk, how='left', on='date', suffixes=('_port', '_bmk')).fillna(0)
             outer = pd.merge(left=df, right=bmk, how='outer', on='date', suffixes=('_port', '_bmk')).fillna(0)
 
+        true_start = str(df['date'].iloc[0]).split(" ")[0]
+        true_end = str(df['date'].iloc[-1]).split(" ")[0]
         shares = df['shares'].iloc[-1] if (ticker in current_tickers) else 0
         price = df['price'].iloc[-1]
         value = df['value'].iloc[-1]
@@ -112,6 +122,8 @@ class Service:
         holding_alpha_contribution = alpha_contribution(outer['xs_div_return_port'], outer['xs_div_return_bmk'], outer['weight'], annualized=False)
 
         result = {
+            "start": true_start,
+            "end": true_end,
             "ticker": ticker,
             "active": ticker in current_tickers,
             "shares": shares,
