@@ -37,10 +37,10 @@ python -m pip freeze > requirements.txt
 - This adds the new package dependency to the requirements
   - Packages shouldn't need a version number in the requirements file unless necessary i.e. numpy
 
-### Run dev server
+### Run local server
 
 ```
-python dev.py
+python local.py
 ```
 
 ### Execute test file
@@ -58,3 +58,22 @@ pytest functions/tests.py
 - Short positions
 - Account withdrawals and deposits
 - Cash returns
+
+## Naming Conventions
+
+- Varibable names: snake_case
+- Class names: PascalCase
+
+### Abbreviations
+
+| Abbreviation | Meaning             |
+| ------------ | ------------------- |
+| bmk          | Benchmark           |
+| xs           | Excess              |
+| port         | Portfolio           |
+| rf           | Risk Free           |
+| vol          | Volatility          |
+| ir           | Information Ratio   |
+| cum          | Cummulative         |
+| ci           | Confidence Interval |
+| xf           | Transform           |
