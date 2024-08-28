@@ -1,11 +1,8 @@
 import numpy as np
-
-from database.database import Database
 import pandas as pd
-
+from database.database import Database
 
 class Query:
-
     def __init__(self):
         self.db = Database()
 
@@ -490,6 +487,18 @@ class Query:
             AND "Symbol" = '{ticker}'
             AND date BETWEEN '{start}' AND '{end}'
         GROUP BY date, fund, "Symbol", "Buy/Sell"
+        ;
+        '''
+
+        df = self.db.execute_query(query_string)
+
+        return df
+    
+    def get_cron_log(self) -> pd.DataFrame:
+        query_string = f'''
+        SELECT * FROM "ETL_Cron_Log"
+        ORDER BY date DESC
+        LIMIT 7
         ;
         '''
 

@@ -303,3 +303,12 @@ class Service:
         result = df.to_dict(orient='records')
 
         return json.dumps(result)
+    
+    def cron_logs(self):
+        df = self.query.get_cron_log()
+
+        df['date'] = pd.to_datetime(df['date']).dt.strftime("%Y-%m-%d")
+
+        result = df.to_dict(orient='records')
+
+        return json.dumps(result)
