@@ -1,7 +1,8 @@
 from flask import Flask, request
 from flask_cors import CORS
 from flask_talisman import Talisman
-from services.service import Service
+from waitress import serve
+from server.service import Service
 import json
 import os
 import bcrypt
@@ -183,4 +184,13 @@ def cron_log():
 
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    environment = os.getenv('ENVIRONMENT')
+    
+    if environment == 'PRODUCTION':
+        serve(app, host="0.0.0.0", port=5000, url_scheme="https")
+
+    elif environment == 'DEVELOPMENT':
+        app.run(debug=True, port=8080)
+
+    else:
+        print("You have not set your ENVIRONMENT in .env")

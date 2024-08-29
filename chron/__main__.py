@@ -3,10 +3,10 @@
 from .config import config
 from .extractor import ibkr_query, fred_query
 from .transformer import transform, transform_rf, transform_bmk
-from database.database import Database
+from shared.database import Database
 
 # Entry point for chron job
-def run():
+def main():
     database = Database()
 
     funds = config.keys()
@@ -64,5 +64,9 @@ def run():
         cron_log_string += f"Error updating risk free rate or benchmark: {e}\n"
 
     database.load_cron_log(cron_log_string)
+
+
+if __name__ == '__main__':
+    main()
 
 

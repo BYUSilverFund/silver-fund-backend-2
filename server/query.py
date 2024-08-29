@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from database.database import Database
+from shared.database import Database
 
 class Query:
     def __init__(self):
