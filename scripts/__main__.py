@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from shared.database import Database
 from io import StringIO, BytesIO
 import pandas as pd
