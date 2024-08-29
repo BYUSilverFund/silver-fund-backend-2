@@ -13,3 +13,4 @@ requests
 SQLAlchemy
 statsmodels
 waitress
+ipykernel
