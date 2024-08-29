@@ -2,4 +2,4 @@
 
 cd /home/ubuntu/47-fund-web-app
 source .venv/bin/activate
-python -m chron
+python3 -m chron
