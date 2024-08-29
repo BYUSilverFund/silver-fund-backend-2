@@ -362,7 +362,7 @@ class Query:
                     WHERE a.return <> 0
                         AND a.shares_1 <> 0
                         AND a.date BETWEEN '{start}' AND '{end}'
-                    ORDER BY a.date, a.ticker
+                    ORDER BY a.ticker, a.date
                 )
                 SELECT * FROM join_table_2
         ;
