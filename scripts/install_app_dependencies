@@ -3,5 +3,3 @@
 cd /home/ubuntu/47-fund-web-app
 source .venv/bin/activate
 pip install -r requirements.txt
-sudo chmod +x ./ibkr_db_daily_update.py
-sudo chmod +x ./load_daily_top_positions.py

@@ -1,7 +1,7 @@
 import json
 import pandas as pd
-from query.query import Query
-from functions.functions import *
+from server.query import Query
+from server.functions import *
 
 
 class Service:

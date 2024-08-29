@@ -2,4 +2,4 @@
 
 cd /home/ubuntu/47-fund-web-app
 source .venv/bin/activate
-sudo ./load_daily_top_positions_s3.py
+sudo _load_daily_top_positions_s3.py

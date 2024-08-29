@@ -4,9 +4,9 @@ Flask
 Flask-Cors
 flask-talisman
 fredapi
-numpy==1.26.4
+numpy
 pandas
-psycopg2
+psycopg2-binary
 pytest
 python-dotenv
 requests
