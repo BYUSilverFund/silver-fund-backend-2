@@ -172,6 +172,17 @@ class Query:
                         AND "Symbol" = '{ticker}'
                     GROUP BY date, fund, "Symbol", "Buy/Sell"
                 ),
+                trades_xf AS(
+                    SELECT
+                        date,
+                        fund,
+                        ticker,
+                        trade_type,
+                        shares_traded,
+                        trade_price
+                    FROM trades_query
+                    WHERE shares_traded <> 0
+                ),
                 nav_query AS(
                     SELECT
                         date,
@@ -203,7 +214,7 @@ class Query:
                            COALESCE(d.div_gross_rate,0) as div_gross_rate,
                            COALESCE(d.div_gross_amount, 0) AS dividends
                     FROM positions_query p
-                    FULL JOIN trades_query t ON p.date = t.date AND p.ticker = t.ticker AND p.fund = t.fund
+                    FULL JOIN trades_xf t ON p.date = t.date AND p.ticker = t.ticker AND p.fund = t.fund
                     LEFT JOIN dividends_query d ON p.date = d.date AND p.ticker = d.ticker AND p.fund = d.fund
                     ORDER BY COALESCE(p.date, t.date)
                 ),
@@ -338,6 +349,17 @@ class Query:
                         AND "AssetClass" != 'OPT'
                     GROUP BY date, fund, "Symbol"
                 ),
+                trades_xf AS(
+                    SELECT
+                        date,
+                        fund,
+                        ticker,
+                        trade_type,
+                        shares_traded,
+                        trade_price
+                    FROM trades_query
+                    WHERE shares_traded <> 0
+                ),
                 nav_query AS(
                     SELECT
                         date,
@@ -369,9 +391,8 @@ class Query:
                         COALESCE(d.div_gross_rate,0) as div_gross_rate,
                         COALESCE(d.div_gross_amount, 0) AS dividends
                     FROM positions_query p
-                    FULL JOIN trades_query t ON p.date = t.date AND p.ticker = t.ticker AND p.fund = t.fund
+                    FULL JOIN trades_xf t ON p.date = t.date AND p.ticker = t.ticker AND p.fund = t.fund
                     LEFT JOIN dividends_query d ON p.date = d.date AND p.ticker = d.ticker AND p.fund = d.fund
-                    WHERE p.shares_1 <> 0
                     ORDER BY ticker, COALESCE(p.date, t.date)
                 ),
                 join_table_2 AS( -- Coalesce and lag missing values
