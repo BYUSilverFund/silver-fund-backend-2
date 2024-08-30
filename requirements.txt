@@ -14,4 +14,4 @@ SQLAlchemy
 statsmodels
 waitress
 ipykernel
-pandas-markets-calendars
+pandas-market-calendars
