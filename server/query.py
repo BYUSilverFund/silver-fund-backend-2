@@ -592,7 +592,7 @@ class Query:
         query_string = f'''
         SELECT * FROM "ETL_Cron_Log"
         ORDER BY date DESC
-        LIMIT 7
+        LIMIT 8
         ;
         '''
 
