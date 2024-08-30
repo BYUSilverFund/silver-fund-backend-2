@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from .config import config
-from .extractor import ibkr_query, fred_query
+from .extractor import ibkr_query, fred_query, calendar_query
 from .transformer import transform, transform_rf, transform_bmk
 from shared.database import Database
 
@@ -68,6 +68,15 @@ def main():
     except Exception as e:
         print(f"Error updating risk free rate or benchmark: {e}")
         cron_log_string += f"Error updating risk free rate or benchmark: {e}\n"
+
+    try:
+        print("Updating calendar")
+        cron_log_string += "Updated calendar.\n"
+        df = calendar_query()
+        database.load_df(df, 'calendar')
+
+    except Exception as e:
+        print(f"Error loading calendar")
 
     database.load_cron_log(cron_log_string)
 
