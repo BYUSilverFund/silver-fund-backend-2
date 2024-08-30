@@ -95,6 +95,9 @@ def alpha(xs_returns: pd.Series, xs_bmk_returns: pd.Series, annualized: bool = T
     - list: A list containing the alpha, lower bound of the 95% confidence interval, and upper bound of the 95% confidence interval.
     """
 
+    if len(xs_returns) < 2:
+        return None
+
     num_days = xs_returns.count()
 
     X = xs_bmk_returns
@@ -119,6 +122,10 @@ def beta(xs_returns: pd.Series, xs_bmk_returns: pd.Series) -> float:
     Returns:
     - float: beta.
     """
+
+    if len(xs_returns) < 2:
+        return None
+
     X = xs_bmk_returns
     Y = xs_returns
 
@@ -209,6 +216,10 @@ def alpha_contribution(xs_returns: pd.Series, xs_bmk_returns: pd.Series, weights
     Returns:
     - list: A list containing the alpha, lower bound of the 95% confidence interval, and upper bound of the 95% confidence interval.
     """
+
+    if len(xs_returns) < 2:
+        return None
+
     X = xs_bmk_returns * weights
     Y = xs_returns
 
