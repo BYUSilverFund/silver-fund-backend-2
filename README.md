@@ -1,70 +1,50 @@
-### Python Virtual Envrionment
+# Getting Started
 
-- create virtual envrionment
+## 1. Create python virtual environment
 
-```
-python -m venv .venv
-```
+```bash
+python3 -m venv .venv  #MacOS/Linux
 
-- Activate virtual environment
-
-```
-source .venv/bin/activate //Mac
-
-.venv/Scripts/activate //Windows
+python -m venv .venv #Windows
 ```
 
-- Install dependencies
+## 2. Activate virtual environment
 
-```
-python -m pip install -r requirements.txt
-```
+```bash
+source .venv/bin/activate #MacOS/Linux
 
-- How to deactivate virtual environment
-
-```
-deactivate
+.venv/Scripts/activate #Windows
 ```
 
-### Update Virtual Environment Dependencies
-
-- In the event you pip install a new package onto the virtual environment
-
-```
-python -m pip freeze > requirements.txt
+## 3. Update pip
+```bash
+pip install --upgrade pip
 ```
 
-- This adds the new package dependency to the requirements
-  - Packages shouldn't need a version number in the requirements file unless necessary i.e. numpy
-
-### Run local server
-
+## 4. Install dependencies
+```bash
+pip install -r requirements.txt
 ```
-python local.py
-```
+# Running Modules
+Make sure to set up you .env file with ENVIRONMENT=DEVELOPMENT
 
-### Execute test file
-
-```
-pytest functions/tests.py
+## Local Server
+```bash
+python -m server
 ```
 
-### Special cases to think about when calculating performance
+## Local Chron Execution
+```bash
+python -m chron
+```
 
-- Buying a stock, selling a month later, buying the same stock a month after that
-- Selling half of a position
-- Stock splits
-- Doubling the size of a position
-- Short positions
-- Account withdrawals and deposits
-- Cash returns
-
+# Developer Notes
 ## Naming Conventions
 
 - Varibable names: snake_case
 - Class names: PascalCase
 
-### Abbreviations
+## Abbreviations
 
 | Abbreviation | Meaning             |
 | ------------ | ------------------- |

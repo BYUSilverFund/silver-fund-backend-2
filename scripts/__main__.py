@@ -1,6 +1,4 @@
-#!/usr/bin/env python3
-
-from database.database import Database
+from shared.database import Database
 from io import StringIO, BytesIO
 import pandas as pd
 import boto3
@@ -39,10 +37,13 @@ def upload_fund_positions(df: pd.DataFrame, fund: str) -> None:
 
 
 def main() -> None:
+    cron_log_string = ""
     for fund in FUNDS:
         df = query_fund_positions(fund)
         upload_fund_positions(df, fund)
+        cron_log_string += f"{fund} uploaded to S3. "
 
+    Database().load_cron_log(cron_log_string)
 if __name__ == "__main__":
     main()
     

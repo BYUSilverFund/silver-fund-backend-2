@@ -3,10 +3,10 @@
 from .config import config
 from .extractor import ibkr_query, fred_query
 from .transformer import transform, transform_rf, transform_bmk
-from database.database import Database
+from shared.database import Database
 
 # Entry point for chron job
-def run():
+def main():
     database = Database()
 
     funds = config.keys()
@@ -26,18 +26,24 @@ def run():
 
                 # Extract
                 print(f"Executing IBKR {query_type} query")
-                cron_log_string += f"{query_type} extracted, "
+                cron_log_string += f"{query_type}"
+                # cron_log_string += f"{query_type} extracted, "
                 raw_data = ibkr_query(token, query_id)
 
                 # Transform
                 print(f"Transforming the {query_type} data")
-                cron_log_string += f"transformed, "
+                # cron_log_string += f"transformed, "
                 transformed_data = transform(raw_data, fund, query_type)
 
                 # Load
                 database.load_df(transformed_data, query_type)
-                cron_log_string += f"loaded. \n"
+                # cron_log_string += f"loaded. \n"
                 print(f"Data loaded into the {query_type} table in the database.")
+
+                if query_type == query_types[-1]:
+                    cron_log_string += "."
+                else:
+                    cron_log_string += ", "
 
             except Exception as e:
                 print(f"Error loading {fund} {query_type} data: {e}")
@@ -64,5 +70,9 @@ def run():
         cron_log_string += f"Error updating risk free rate or benchmark: {e}\n"
 
     database.load_cron_log(cron_log_string)
+
+
+if __name__ == '__main__':
+    main()
 
 
