@@ -78,6 +78,9 @@ def volatility(returns: pd.Series, annualized: bool = True) -> float:
     - float: volatility (annualized).
     """
 
+    if len(returns) < 2:
+        return 0
+
     standard_deviation = returns.std()
 
     return standard_deviation * np.sqrt(TRADING_DAYS) if annualized else standard_deviation
@@ -96,7 +99,7 @@ def alpha(xs_returns: pd.Series, xs_bmk_returns: pd.Series, annualized: bool = T
     """
 
     if len(xs_returns) < 2:
-        return None
+        return 0
 
     num_days = xs_returns.count()
 
@@ -124,7 +127,7 @@ def beta(xs_returns: pd.Series, xs_bmk_returns: pd.Series) -> float:
     """
 
     if len(xs_returns) < 2:
-        return None
+        return 0
 
     X = xs_bmk_returns
     Y = xs_returns
@@ -218,7 +221,7 @@ def alpha_contribution(xs_returns: pd.Series, xs_bmk_returns: pd.Series, weights
     """
 
     if len(xs_returns) < 2:
-        return None
+        return 0
 
     X = xs_bmk_returns * weights
     Y = xs_returns
