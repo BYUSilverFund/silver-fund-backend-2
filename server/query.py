@@ -335,6 +335,7 @@ class Query:
                         AVG("TradePrice"::DECIMAL) as trade_price
                     FROM trades
                     WHERE fund = '{fund}'
+                        AND "AssetClass" != 'OPT'
                     GROUP BY date, fund, "Symbol"
                 ),
                 nav_query AS(
@@ -370,6 +371,7 @@ class Query:
                     FROM positions_query p
                     FULL JOIN trades_query t ON p.date = t.date AND p.ticker = t.ticker AND p.fund = t.fund
                     LEFT JOIN dividends_query d ON p.date = d.date AND p.ticker = d.ticker AND p.fund = d.fund
+                    WHERE p.shares_1 <> 0
                     ORDER BY ticker, COALESCE(p.date, t.date)
                 ),
                 join_table_2 AS( -- Coalesce and lag missing values
