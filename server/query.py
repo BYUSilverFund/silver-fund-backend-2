@@ -286,8 +286,8 @@ class Query:
                        a.div_return - COALESCE(c.return, LAG(c.return) OVER (ORDER BY c.date)) AS xs_div_return
                     FROM join_table_4 a
                     LEFT JOIN risk_free_rate c ON a.date = c.date
-                    WHERE a.return <> 0
-                        AND a.date BETWEEN '{start_date}' AND '{end_date}'
+                    INNER JOIN calendar d ON a.date = d.date -- remove holidays
+                    WHERE a.date BETWEEN '{start_date}' AND '{end_date}'
                 )
             SELECT * FROM join_table_5;
         '''
@@ -434,26 +434,26 @@ class Query:
                 ),
                 join_table_5 AS( -- Compute excess returns
                     SELECT
-                    a.date,
-                    a.fund,
-                    a.ticker,
-                    a.side,
-                    a.price_1 AS price,
-                    a.shares_1 AS shares,
-                    a.fx_rate_1 AS fx_rate,
-                    a.value_1 AS value,
-                    a.weight_1 AS weight,
-                    a.div_gross_rate / a.price_1 AS dividend_yield,
-                    a.dividends,
-                    a.return,
-                    a.div_return,
-                    COALESCE(c.return, LAG(c.return) OVER (PARTITION BY a.ticker ORDER BY c.date)) AS rf_return,
-                    a.return - COALESCE(c.return, LAG(c.return) OVER (PARTITION BY a.ticker ORDER BY c.date)) AS xs_return,
-                    a.div_return - COALESCE(c.return, LAG(c.return) OVER (PARTITION BY a.ticker ORDER BY c.date)) AS xs_div_return
+                        a.date,
+                        a.fund,
+                        a.ticker,
+                        a.side,
+                        a.price_1 AS price,
+                        a.shares_1 AS shares,
+                        a.fx_rate_1 AS fx_rate,
+                        a.value_1 AS value,
+                        a.weight_1 AS weight,
+                        a.div_gross_rate / a.price_1 AS dividend_yield,
+                        a.dividends,
+                        a.return,
+                        a.div_return,
+                        COALESCE(c.return, LAG(c.return) OVER (PARTITION BY a.ticker ORDER BY c.date)) AS rf_return,
+                        a.return - COALESCE(c.return, LAG(c.return) OVER (PARTITION BY a.ticker ORDER BY c.date)) AS xs_return,
+                        a.div_return - COALESCE(c.return, LAG(c.return) OVER (PARTITION BY a.ticker ORDER BY c.date)) AS xs_div_return
                     FROM join_table_4 a
                     LEFT JOIN risk_free_rate c ON a.date = c.date
-                    WHERE a.return <> 0
-                        AND a.date BETWEEN '{start}' AND '{end}'
+                    INNER JOIN calendar d ON a.date = d.date -- remove holidays
+                    WHERE a.date BETWEEN '{start}' AND '{end}'
                     ORDER BY ticker, a.date
                 )
                 SELECT * FROM join_table_5;
@@ -525,7 +525,7 @@ class Query:
                 AND "AssetClass" != 'OPT'
                 AND date BETWEEN '{start_date}' AND '{end_date}'
             GROUP BY "Symbol"
-            HAVING COUNT(*) > 2; -- Only include tickers with more than 2 days of data
+            ORDER BY "Symbol";
         '''
 
         df = self.db.execute_query(query_string)
@@ -539,7 +539,7 @@ class Query:
         WHERE fund = '{fund}'
             AND "AssetClass" != 'OPT'
             AND date = (SELECT MAX(date) FROM positions WHERE fund = '{fund}')
-        ;
+        ORDER BY "Symbol";
         '''
 
         df = self.db.execute_query(query_string)
