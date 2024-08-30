@@ -330,12 +330,12 @@ class Query:
                         date,
                         fund,
                         "Symbol" as ticker,
-                        CASE WHEN "Buy/Sell" = 'BUY' THEN 1 ELSE -1 END AS trade_type,
+                        CASE WHEN SUM("Quantity"::DECIMAL) > 0 THEN 1 ELSE -1 END AS trade_type,
                         SUM("Quantity"::DECIMAL) AS shares_traded,
                         AVG("TradePrice"::DECIMAL) as trade_price
                     FROM trades
                     WHERE fund = '{fund}'
-                    GROUP BY date, fund, "Symbol", "Buy/Sell"
+                    GROUP BY date, fund, "Symbol"
                 ),
                 nav_query AS(
                     SELECT
@@ -430,6 +430,7 @@ class Query:
                         side * (value_1 + dividends) / value_0 - 1 AS div_return
                     FROM join_table_3 p
                     LEFT JOIN nav_xf n ON p.date = n.date AND p.fund = n.fund
+                    ORDER BY ticker, p.date
                 ),
                 join_table_5 AS( -- Compute excess returns
                     SELECT
@@ -446,9 +447,9 @@ class Query:
                     a.dividends,
                     a.return,
                     a.div_return,
-                    COALESCE(c.return, LAG(c.return) OVER (ORDER BY c.date)) AS rf_return,
-                    a.return - COALESCE(c.return, LAG(c.return) OVER (ORDER BY c.date)) AS xs_return,
-                    a.div_return - COALESCE(c.return, LAG(c.return) OVER (ORDER BY c.date)) AS xs_div_return
+                    COALESCE(c.return, LAG(c.return) OVER (PARTITION BY a.ticker ORDER BY c.date)) AS rf_return,
+                    a.return - COALESCE(c.return, LAG(c.return) OVER (PARTITION BY a.ticker ORDER BY c.date)) AS xs_return,
+                    a.div_return - COALESCE(c.return, LAG(c.return) OVER (PARTITION BY a.ticker ORDER BY c.date)) AS xs_div_return
                     FROM join_table_4 a
                     LEFT JOIN risk_free_rate c ON a.date = c.date
                     WHERE a.return <> 0
