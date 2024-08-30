@@ -43,4 +43,4 @@ jobs:
             --application-name 47-Fund-EC2-dev \
             --deployment-group-name 47-fund-ec2-instances-dev \
             --deployment-config-name CodeDeployDefault.OneAtATime \
-            --github-location repository=${{ github.repository }}, branch=development, commitId=${{ github.sha }}
+            --github-location repository=${{ github.repository }},branch=development,commitId=${{ github.sha }}
