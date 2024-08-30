@@ -184,6 +184,7 @@ def cron_log():
 
 
 if __name__ == '__main__':
+    # Check if the environment is set to production
     environment = os.getenv('ENVIRONMENT')
     
     if environment == 'PRODUCTION':
