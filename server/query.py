@@ -136,15 +136,15 @@ class Query:
                         date,
                         fund,
                         "Symbol" AS ticker,
-                        "Description" AS name,
-                        CASE WHEN "Quantity"::DECIMAL > 0 THEN 1 ELSE -1 END AS side,
-                        "Quantity"::DECIMAL AS shares_1,
-                        "MarkPrice"::DECIMAL AS price_1,
-                        "FXRateToBase":: DECIMAL AS fx_rate_1
+                        CASE WHEN AVG("Quantity"::DECIMAL) > 0 THEN 1 ELSE -1 END AS side,
+                        AVG("Quantity"::DECIMAL) AS shares_1,
+                        AVG("MarkPrice"::DECIMAL) AS price_1,
+                        AVG("FXRateToBase":: DECIMAL) AS fx_rate_1
                     FROM positions
                     WHERE fund = '{fund}'
                         AND "Symbol" = '{ticker}'
                         AND "AssetClass" != 'OPT'
+                    GROUP BY date, fund, "Symbol"
                     ORDER BY date
                 ),
                 dividends_query AS (
@@ -171,6 +171,7 @@ class Query:
                      WHERE fund = '{fund}'
                        AND "Symbol" = '{ticker}'
                        AND "AssetClass" != 'OPT'
+                       AND "Buy/Sell" != 'SELL (Ca.)'
                      GROUP BY date, fund, "Symbol"
                 ),
                 trades_xf AS(
@@ -244,14 +245,14 @@ class Query:
                            fund,
                            ticker,
                            side,
-                           shares_0,
-                           CASE WHEN shares_1 = 0 THEN shares_0 ELSE shares_1 END AS shares_1,
+                           CASE WHEN shares_0 < shares_1 THEN shares_1 ELSE shares_0 END AS shares_0,
+                           CASE WHEN shares_1 < shares_0 THEN shares_0 ELSE shares_1 END AS shares_1,
                            price_0,
                            price_1,
                            fx_rate_0,
                            fx_rate_1,
-                           shares_0 * price_0 * fx_rate_0 AS value_0,
-                           CASE WHEN shares_1 = 0 THEN shares_0 ELSE shares_1 END * price_1 * fx_rate_1 AS value_1,
+                           CASE WHEN shares_0 < shares_1 THEN shares_1 ELSE shares_0 END * price_0 * fx_rate_0 AS value_0,
+                           CASE WHEN shares_1 < shares_0 THEN shares_0 ELSE shares_1 END * price_1 * fx_rate_1 AS value_1,
                            trade_type,
                            shares_traded,
                            trade_price,
@@ -317,13 +318,14 @@ class Query:
                         fund,
                         "Symbol" AS ticker,
                         "Description" AS name,
-                        CASE WHEN "Quantity"::DECIMAL > 0 THEN 1 ELSE -1 END AS side,
-                        "Quantity"::DECIMAL AS shares_1,
-                        "MarkPrice"::DECIMAL AS price_1,
-                        "FXRateToBase":: DECIMAL AS fx_rate_1
+                        CASE WHEN AVG("Quantity"::DECIMAL) > 0 THEN 1 ELSE -1 END AS side,
+                        AVG("Quantity"::DECIMAL) AS shares_1,
+                        AVG("MarkPrice"::DECIMAL) AS price_1,
+                        AVG("FXRateToBase":: DECIMAL) AS fx_rate_1
                     FROM positions
                     WHERE fund = '{fund}'
                         AND "AssetClass" != 'OPT'
+                    GROUP BY date, fund, "Symbol"
                     ORDER BY ticker, date
                 ),
                 dividends_query AS (
@@ -348,6 +350,7 @@ class Query:
                     FROM trades
                     WHERE fund = '{fund}'
                         AND "AssetClass" != 'OPT'
+                        AND "Buy/Sell" != 'SELL (Ca.)'
                     GROUP BY date, fund, "Symbol"
                 ),
                 trades_xf AS(
@@ -421,14 +424,14 @@ class Query:
                         fund,
                         ticker,
                         side,
-                        shares_0,
-                        CASE WHEN shares_1 = 0 THEN shares_0 ELSE shares_1 END AS shares_1,
+                        CASE WHEN shares_0 < shares_1 THEN shares_1 ELSE shares_0 END AS shares_0,
+                        CASE WHEN shares_1 < shares_0 THEN shares_0 ELSE shares_1 END AS shares_1,
                         price_0,
                         price_1,
                         fx_rate_0,
                         fx_rate_1,
-                        shares_0 * price_0 * fx_rate_0 AS value_0,
-                        CASE WHEN shares_1 = 0 THEN shares_0 ELSE shares_1 END * price_1 * fx_rate_1 AS value_1,
+                        CASE WHEN shares_0 < shares_1 THEN shares_1 ELSE shares_0 END * price_0 * fx_rate_0 AS value_0,
+                        CASE WHEN shares_1 < shares_0 THEN shares_0 ELSE shares_1 END * price_1 * fx_rate_1 AS value_1,
                         trade_type,
                         shares_traded,
                         trade_price,
