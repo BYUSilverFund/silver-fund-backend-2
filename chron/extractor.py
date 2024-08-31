@@ -6,7 +6,7 @@ from io import StringIO
 import pandas as pd
 from fredapi import Fred
 from dotenv import load_dotenv
-
+import pandas_market_calendars as mcal
 
 def ibkr_query(token, query):
     # Checks
@@ -49,3 +49,14 @@ def fred_query() -> pd.DataFrame:
     data.rename(columns={'index': 'date'}, inplace=True)
 
     return data
+
+def calendar_query():
+    today = pd.Timestamp.today()
+    start_date = today - pd.Timedelta(days=7)
+    end_date = today + pd.Timedelta(days=7)
+
+    nyse = mcal.get_calendar('NYSE')
+    df = nyse.schedule(start_date,end_date)
+    df = df.reset_index().rename(columns={'index':'date'})
+
+    return df
