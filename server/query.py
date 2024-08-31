@@ -317,7 +317,6 @@ class Query:
                         date,
                         fund,
                         "Symbol" AS ticker,
-                        "Description" AS name,
                         CASE WHEN AVG("Quantity"::DECIMAL) > 0 THEN 1 ELSE -1 END AS side,
                         AVG("Quantity"::DECIMAL) AS shares_1,
                         AVG("MarkPrice"::DECIMAL) AS price_1,
