@@ -159,18 +159,19 @@ class Query:
                         AND "Symbol" = '{ticker}'
                     GROUP BY date, fund, "Symbol"
                 ),
-                trades_query AS(
+                trades_query AS (
                     SELECT
                         date,
                         fund,
-                        "Symbol" as ticker,
-                        CASE WHEN "Buy/Sell" = 'BUY' THEN 1 ELSE -1 END AS trade_type,
+                        "Symbol" AS ticker,
+                        CASE WHEN SUM("Quantity"::DECIMAL) > 0 THEN 1 ELSE -1 END AS trade_type,
                         SUM("Quantity"::DECIMAL) AS shares_traded,
-                        AVG("TradePrice"::DECIMAL) as trade_price
-                    FROM trades
-                    WHERE fund = '{fund}'
-                        AND "Symbol" = '{ticker}'
-                    GROUP BY date, fund, "Symbol", "Buy/Sell"
+                        AVG("TradePrice"::DECIMAL) AS trade_price
+                     FROM trades
+                     WHERE fund = '{fund}'
+                       AND "Symbol" = '{ticker}'
+                       AND "AssetClass" != 'OPT'
+                     GROUP BY date, fund, "Symbol"
                 ),
                 trades_xf AS(
                     SELECT
