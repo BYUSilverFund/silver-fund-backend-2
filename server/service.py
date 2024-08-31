@@ -278,7 +278,7 @@ class Service:
         with pd.option_context('future.no_silent_downcasting', True):  # This just prevents a future warning from printing
             left = pd.merge(left=df, right=bmk, how='left', on='date', suffixes=('_port', '_bmk')).fillna(0)
 
-        result = cumulative_return_vector(left, 'date', 'price', 'return_port', 'div_return_bmk')
+        result = cumulative_return_vector(left, 'date', 'price', 'div_return_port', 'div_return_bmk')
 
         result = result.to_dict(orient='records')
 
