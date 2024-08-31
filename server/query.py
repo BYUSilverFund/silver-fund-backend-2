@@ -273,8 +273,8 @@ class Query:
                         value_1 / n.total_stock_1 AS weight_1,
                         div_gross_rate,
                         dividends,
-                        side * (value_1 / value_0 - 1) AS return,
-                        side * ((value_1 + dividends) / value_0 - 1) AS div_return
+                        CASE WHEN side = 1 THEN (value_1 / value_0 - 1) ELSE (value_0 / value_1 - 1) END AS return,
+                        CASE WHEN side = 1 THEN ((value_1 + dividends) / value_0 - 1) ELSE (value_0 / (value_1 + dividends) - 1) END AS div_return
                     FROM join_table_3 p
                     LEFT JOIN nav_xf n ON p.date = n.date AND p.fund = n.fund
                 ),
@@ -450,8 +450,8 @@ class Query:
                         value_1 / n.total_stock_1 AS weight_1,
                         div_gross_rate,
                         dividends,
-                        side * (value_1 / value_0 - 1) AS return,
-                        side * ((value_1 + dividends) / value_0 - 1) AS div_return
+                        CASE WHEN side = 1 THEN (value_1 / value_0 - 1) ELSE (value_0 / value_1 - 1) END AS return,
+                        CASE WHEN side = 1 THEN ((value_1 + dividends) / value_0 - 1) ELSE (value_0 / (value_1 + dividends) - 1) END AS div_return
                     FROM join_table_3 p
                     LEFT JOIN nav_xf n ON p.date = n.date AND p.fund = n.fund
                     ORDER BY ticker, p.date
