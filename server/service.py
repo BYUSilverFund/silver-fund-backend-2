@@ -268,7 +268,7 @@ class Service:
 
         day_zero = pd.DataFrame({
             'date': (pd.to_datetime(result.iloc[0,0]) - pd.Timedelta(days=1)).strftime('%Y-%m-%d'),
-            'ending_value_port': result.iloc[0,1] / result.iloc[0,2],
+            'ending_value_port': result.iloc[0,1] / (1+result.iloc[0,2]),
             'cumulative_return_port': [0],
             'cumulative_return_bmk': [0]
         })
