@@ -25,6 +25,7 @@ class Query:
                         ending_value,
                         ending_value / starting_value - 1 AS return
                     FROM fund_query
+                    WHERE starting_value <> 0
                 ),
                 dividends_query AS(
                     SELECT
