@@ -318,6 +318,7 @@ class Query:
                     FROM positions
                     WHERE fund = '{fund}'
                         AND "AssetClass" != 'OPT'
+                        AND "Symbol" != 'VMFXX'
                     GROUP BY date, fund, "Symbol"
                     ORDER BY ticker, date
                 ),
@@ -330,6 +331,7 @@ class Query:
                         AVG("GrossAmount"::DECIMAL) AS div_gross_amount -- Sometimes dividends gets double counted
                     FROM dividends
                     WHERE fund = '{fund}'
+                        AND "Symbol" != 'VMFXX'
                     GROUP BY date, fund, "Symbol"
                 ),
                 trades_query AS(
@@ -344,6 +346,7 @@ class Query:
                     WHERE fund = '{fund}'
                         AND "AssetClass" != 'OPT'
                         AND "Buy/Sell" != 'SELL (Ca.)'
+                        AND "Symbol" != 'VMFXX'
                     GROUP BY date, fund, "Symbol"
                 ),
                 trades_xf AS(
