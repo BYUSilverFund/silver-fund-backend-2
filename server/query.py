@@ -25,6 +25,7 @@ class Query:
                         ending_value,
                         ending_value / starting_value - 1 AS return
                     FROM fund_query
+                    WHERE starting_value <> 0
                 ),
                 dividends_query AS(
                     SELECT
@@ -56,6 +57,7 @@ class Query:
                     LEFT JOIN dividends_xf d ON f.date = d.date
                     WHERE f.return <> 0
                         AND f.date BETWEEN '{start_date}' AND '{end_date}'
+                    ORDER BY date
                 )
             SELECT * FROM join_table;
         '''
@@ -192,14 +194,7 @@ class Query:
                         "Stock"::DECIMAL AS total_stock_1
                     FROM nav
                     WHERE fund = '{fund}'
-                ),
-                nav_xf AS(
-                    SELECT
-                        date,
-                        fund,
-                        total_stock_1,
-                        LAG(total_stock_1) OVER (ORDER BY date) AS total_stock_0
-                    FROM nav_query
+                        AND "Stock"::DECIMAL <> 0
                 ),
                 join_table_1 AS( -- Merge trades and dividends into positions
                     SELECT
@@ -277,7 +272,7 @@ class Query:
                         CASE WHEN side = 1 THEN (value_1 / value_0 - 1) ELSE (value_0 / value_1 - 1) END AS return,
                         CASE WHEN side = 1 THEN ((value_1 + dividends) / value_0 - 1) ELSE (value_0 / (value_1 + dividends) - 1) END AS div_return
                     FROM join_table_3 p
-                    LEFT JOIN nav_xf n ON p.date = n.date AND p.fund = n.fund
+                    LEFT JOIN nav_query n ON p.date = n.date AND p.fund = n.fund
                 ),
                 join_table_5 AS( -- Compute excess returns
                     SELECT
@@ -324,6 +319,7 @@ class Query:
                     FROM positions
                     WHERE fund = '{fund}'
                         AND "AssetClass" != 'OPT'
+                        AND "Symbol" != 'VMFXX'
                     GROUP BY date, fund, "Symbol"
                     ORDER BY ticker, date
                 ),
@@ -336,6 +332,7 @@ class Query:
                         AVG("GrossAmount"::DECIMAL) AS div_gross_amount -- Sometimes dividends gets double counted
                     FROM dividends
                     WHERE fund = '{fund}'
+                        AND "Symbol" != 'VMFXX'
                     GROUP BY date, fund, "Symbol"
                 ),
                 trades_query AS(
@@ -350,6 +347,7 @@ class Query:
                     WHERE fund = '{fund}'
                         AND "AssetClass" != 'OPT'
                         AND "Buy/Sell" != 'SELL (Ca.)'
+                        AND "Symbol" != 'VMFXX'
                     GROUP BY date, fund, "Symbol"
                 ),
                 trades_xf AS(
@@ -370,14 +368,7 @@ class Query:
                         "Stock"::DECIMAL AS total_stock_1
                     FROM nav
                     WHERE fund = '{fund}'
-                ),
-                nav_xf AS(
-                    SELECT
-                        date,
-                        fund,
-                        total_stock_1,
-                        LAG(total_stock_1) OVER (ORDER BY date) AS total_stock_0
-                    FROM nav_query
+                        AND "Stock"::DECIMAL <> 0
                 ),
                 join_table_1 AS( -- Merge trades and dividends into positions
                     SELECT
@@ -455,7 +446,7 @@ class Query:
                         CASE WHEN side = 1 THEN (value_1 / value_0 - 1) ELSE (value_0 / value_1 - 1) END AS return,
                         CASE WHEN side = 1 THEN ((value_1 + dividends) / value_0 - 1) ELSE (value_0 / (value_1 + dividends) - 1) END AS div_return
                     FROM join_table_3 p
-                    LEFT JOIN nav_xf n ON p.date = n.date AND p.fund = n.fund
+                    LEFT JOIN nav_query n ON p.date = n.date AND p.fund = n.fund
                     ORDER BY ticker, p.date
                 ),
                 join_table_5 AS( -- Compute excess returns
