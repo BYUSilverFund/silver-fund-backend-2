@@ -193,14 +193,7 @@ class Query:
                         "Stock"::DECIMAL AS total_stock_1
                     FROM nav
                     WHERE fund = '{fund}'
-                ),
-                nav_xf AS(
-                    SELECT
-                        date,
-                        fund,
-                        total_stock_1,
-                        LAG(total_stock_1) OVER (ORDER BY date) AS total_stock_0
-                    FROM nav_query
+                        AND "Stock"::DECIMAL <> 0
                 ),
                 join_table_1 AS( -- Merge trades and dividends into positions
                     SELECT
@@ -278,7 +271,7 @@ class Query:
                         CASE WHEN side = 1 THEN (value_1 / value_0 - 1) ELSE (value_0 / value_1 - 1) END AS return,
                         CASE WHEN side = 1 THEN ((value_1 + dividends) / value_0 - 1) ELSE (value_0 / (value_1 + dividends) - 1) END AS div_return
                     FROM join_table_3 p
-                    LEFT JOIN nav_xf n ON p.date = n.date AND p.fund = n.fund
+                    LEFT JOIN nav_query n ON p.date = n.date AND p.fund = n.fund
                 ),
                 join_table_5 AS( -- Compute excess returns
                     SELECT
