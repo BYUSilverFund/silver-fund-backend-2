@@ -57,6 +57,7 @@ class Query:
                     LEFT JOIN dividends_xf d ON f.date = d.date
                     WHERE f.return <> 0
                         AND f.date BETWEEN '{start_date}' AND '{end_date}'
+                    ORDER BY date
                 )
             SELECT * FROM join_table;
         '''
