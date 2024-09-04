@@ -253,6 +253,15 @@ class Service:
 
         result = cumulative_return_vector(left, 'date', 'ending_value_port', 'return_port', 'div_return')
 
+        day_zero = pd.DataFrame({
+            'date': (pd.to_datetime(result.iloc[0,0]) - pd.Timedelta(days=1)).strftime('%Y-%m-%d'),
+            'ending_value_port': result.iloc[0,1] / (1 + result.iloc[0,2] / 100),
+            'cumulative_return_port': [0],
+            'cumulative_return_bmk': [0]
+        })
+
+        result = pd.concat([day_zero, result]).reset_index(drop=True)
+
         result = result.to_dict(orient='records')
 
         return json.dumps(result)
@@ -265,6 +274,15 @@ class Service:
             left = pd.merge(left=df, right=bmk, how='left', on='date', suffixes=('_port', '_bmk')).fillna(0)
 
         result = cumulative_return_vector(left, 'date', 'ending_value_port', 'return_port', 'div_return')
+
+        day_zero = pd.DataFrame({
+            'date': (pd.to_datetime(result.iloc[0,0]) - pd.Timedelta(days=1)).strftime('%Y-%m-%d'),
+            'ending_value_port': result.iloc[0,1] / (1 + result.iloc[0,2] / 100),
+            'cumulative_return_port': [0],
+            'cumulative_return_bmk': [0]
+        })
+
+        result = pd.concat([day_zero, result]).reset_index(drop=True)
 
         result = result.to_dict(orient='records')
 
@@ -279,6 +297,15 @@ class Service:
             left = pd.merge(left=df, right=bmk, how='left', on='date', suffixes=('_port', '_bmk')).fillna(0)
 
         result = cumulative_return_vector(left, 'date', 'price', 'div_return_port', 'div_return_bmk')
+
+        day_zero = pd.DataFrame({
+            'date': (pd.to_datetime(result.iloc[0,0]) - pd.Timedelta(days=1)).strftime('%Y-%m-%d'),
+            'price': result.iloc[0,1] / (1 + result.iloc[0,2] / 100),
+            'cumulative_return_port': [0],
+            'cumulative_return_bmk': [0]
+        })
+
+        result = pd.concat([day_zero, result]).reset_index(drop=True)
 
         result = result.to_dict(orient='records')
 
