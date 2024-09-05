@@ -10,7 +10,7 @@ class S3:
             's3',
             aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
             aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
-            region_name='us-west-2'
+            region_name='us-west-2' # Should probably make this an environment variable
         )
 
     def get_file(self, bucket_name: str, file_key: str) -> pd.DataFrame:
