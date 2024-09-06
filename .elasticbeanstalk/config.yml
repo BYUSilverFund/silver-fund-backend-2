@@ -1,6 +1,0 @@
-branch-defaults:
-  elastic-beanstalk:
-    environment: 47-fund-backend-env-1
-    application_name: 47-fund-backend
-global:
-  profile: null
