@@ -126,7 +126,6 @@ celerybeat.pid
 # Environments
 .env
 .venv
-.elasticbeanstalk
 env/
 venv/
 ENV/
