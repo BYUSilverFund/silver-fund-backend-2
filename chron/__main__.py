@@ -20,6 +20,7 @@ def main():
         print(f"Beginning {fund} fund ETL")
         cron_log_string += f"{fund}: "
 
+        query_types_list = list(query_types)
         for query_type in query_types:
             try:
                 query_id = config[fund]['queries'][query_type]
@@ -40,8 +41,8 @@ def main():
                 # cron_log_string += f"loaded. \n"
                 print(f"Data loaded into the {query_type} table in the database.")
 
-                if query_type == query_types[-1]:
-                    cron_log_string += "."
+                if query_type == query_types_list[-1]:
+                    cron_log_string += ".\n"
                 else:
                     cron_log_string += ", "
 
@@ -56,6 +57,11 @@ def main():
         transformed_rf = transform_rf(raw_rf)
         database.load_df(transformed_rf, 'risk_free_rate')
 
+    except Exception as e:
+        print(f"Error updating risk free rate: {e}")
+        cron_log_string += f"Error updating risk free rate: {e}\n"
+
+    try:
         print("Updating benchmark")
         cron_log_string += "Updated benchmark.\n"
         bmk_token = config['undergrad']['token']
@@ -66,8 +72,8 @@ def main():
         database.load_df(transformed_bmk, 'benchmark')
 
     except Exception as e:
-        print(f"Error updating risk free rate or benchmark: {e}")
-        cron_log_string += f"Error updating risk free rate or benchmark: {e}\n"
+        print(f"Error updating benchmark: {e}")
+        cron_log_string += f"Error updating benchmark: {e}\n"
 
     try:
         print("Updating calendar")
@@ -77,7 +83,9 @@ def main():
 
     except Exception as e:
         print(f"Error loading calendar")
+        cron_log_string += f"Error loading calendar: {e}\n"
 
+    cron_log_string = cron_log_string.replace("'", "")
     database.load_cron_log(cron_log_string)
 
 
