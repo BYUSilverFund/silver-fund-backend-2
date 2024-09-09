@@ -637,11 +637,58 @@ class Query:
         '''
         self.db.query(query_string)
 
-    def get_all_holdings(self):
+    def get_all_holdings(self, fund):
         query_string = f'''
-        
+        WITH
+        positions_query AS(
+            SELECT
+                date,
+                fund,
+                "Symbol" AS ticker,
+                "Quantity"::DECIMAL AS shares,
+                "MarkPrice"::DECIMAL AS price,
+                "PositionValue"::DECIMAL AS value
+            FROM positions
+            WHERE date = (SELECT MAX(date) FROM positions WHERE fund = '{fund}')
+                AND fund = '{fund}'
+        ),
+        nav_query AS (
+            SELECT
+                date,
+                fund,
+                "Stock"::DECIMAL AS total_stock
+            FROM nav
+            WHERE fund = '{fund}'
+        ),
+        positions_xf AS(
+            SELECT
+                p.date,
+                p.fund,
+                p.ticker,
+                p.shares,
+                p.price,
+                p.value,
+                p.value / n.total_stock AS weight
+            FROM positions_query p
+            JOIN nav_query n ON n.date = p.date
+        )
+        SELECT
+            p.fund,
+            p.ticker,
+            p.shares,
+            p.price,
+            p.value,
+            COALESCE(h.horizon_date, NULL) AS horizon_date,
+            COALESCE(h.target_price, NULL) AS target_price,
+            p.weight
+        FROM positions_xf p
+        FULL OUTER JOIN holding h ON h.ticker = p.ticker AND h.fund = p.fund
+        WHERE p.fund = '{fund}';
         '''
-        return
+
+        df = self.db.execute_query(query_string)
+
+        return df
     
     def upsert_holding(self, fund, ticker, horizon, target) -> None:
         query_string = f'''
