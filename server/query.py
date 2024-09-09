@@ -616,6 +616,43 @@ class Query:
         df = self.db.execute_query(query_string)
 
         return df
+    
+    def get_portfolio_defaults(self, fund) -> pd.DataFrame:
+        query_string = f'''
+            SELECT * FROM portfolio WHERE fund = '{fund}';
+        '''
+        df = self.db.execute_query(query_string)
+        return df
+    
+    def upsert_portfolio(self, fund, bmk_return, target_te) -> None:
+        query_string = f'''
+            INSERT INTO portfolio
+            (FUND, BENCHMARK_RETURN, TARGET_TRACKING_ERROR)
+            VALUES
+            ('{fund}',{bmk_return},{target_te})
+            ON CONFLICT (FUND)
+            DO UPDATE SET
+                BENCHMARK_RETURN = EXCLUDED.BENCHMARK_RETURN,
+                TARGET_TRACKING_ERROR = EXCLUDED.TARGET_TRACKING_ERROR;
+        '''
+        self.db.query(query_string)
+
+    def get_all_holdings(self):
+        query_string = f'''
+        
+        '''
+        return
+    
+    def upsert_holding(self, fund, ticker, horizon, target) -> None:
+        query_string = f'''
+            INSERT INTO holding (FUND, TICKER, HORIZON_DATE, TARGET_PRICE)
+            VALUES ('{fund}','{ticker}','{horizon}',{target})
+            ON CONFLICT (FUND, TICKER)
+            DO UPDATE SET
+                HORIZON_DATE = EXCLUDED.HORIZON_DATE,
+                TARGET_PRICE = EXCLUDED.TARGET_PRICE;
+        '''
+        self.db.query(query_string)
 
 
 

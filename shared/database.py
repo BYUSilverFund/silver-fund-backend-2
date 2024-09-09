@@ -81,6 +81,10 @@ class Database:
         except Exception as e:
             print(f"Error: {e}")
 
+    def query(self, query_string: str) -> None:
+        self.cursor.execute(query_string)
+        self.connection.commit()
+
     def execute_query(self, query_string: str) -> pd.DataFrame:
         df = pd.read_sql(query_string, self.engine)
         return df
