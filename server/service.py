@@ -345,6 +345,7 @@ class Service:
 
     def get_portfolio_defaults(self, fund):
         df = self.query.get_portfolio_defaults(fund)
+        df = df.fillna('null')
         result = df.to_dict(orient='records')
         return json.dumps(result)
     
@@ -353,6 +354,7 @@ class Service:
 
     def get_all_holdings(self,fund):
         df = self.query.get_all_holdings(fund)
+        df = df.fillna('null')
         result = df.to_dict(orient='records')
         return json.dumps(result)
     
