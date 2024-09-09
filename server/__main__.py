@@ -200,7 +200,7 @@ def upsert_portfolio():
 @app.route("/holding_defaults", methods=["GET"])
 def holding_defaults():
     fund = request.args.get("fund")
-    response = service.get_portfolio_defaults(fund)
+    response = service.get_all_holdings(fund)
     return response
 
 @app.route("/upsert_holding", methods=["POST"])
