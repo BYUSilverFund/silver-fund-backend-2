@@ -8,10 +8,10 @@ import os
 import bcrypt
 import boto3
 
-app = Flask(__name__)
+application = Flask(__name__)
 service = Service()
-CORS(app)
-Talisman(app)
+CORS(application)
+Talisman(application)
 
 
 def check_user(username):
@@ -27,7 +27,7 @@ def check_user(username):
         return False
 
 
-@app.before_request
+@application.before_request
 def before_request():
     if request.method != "OPTIONS" and request.endpoint != "home":
         if request.headers.get("x-api-key") is None:
@@ -42,18 +42,18 @@ def before_request():
             return json.dumps({"error": "Invalid authorization token"}), 401
 
 
-@app.route("/")
+@application.route("/")
 def home():
     return "Welcome to the 47 Fund API v1.0"
 
 
-@app.route("/test")
+@application.route("/test")
 def test():
     parameter = request.args.get("fund")
     return json.dumps({"fund": parameter})
 
 
-@app.route("/fund_summary", methods=["GET"])
+@application.route("/fund_summary", methods=["GET"])
 def fund_summary():
     start_date = request.args.get("start")
     end_date = request.args.get("end")
@@ -62,7 +62,7 @@ def fund_summary():
     return response
 
 
-@app.route("/fund_chart", methods=["GET"])
+@application.route("/fund_chart", methods=["GET"])
 def fund_chart():
     start_date = request.args.get("start")
     end_date = request.args.get("end")
@@ -71,7 +71,7 @@ def fund_chart():
     return response
 
 
-@app.route("/portfolio_summary", methods=["GET"])
+@application.route("/portfolio_summary", methods=["GET"])
 def portfolio_summary():
     fund = request.args.get("fund")
     start_date = request.args.get("start")
@@ -81,7 +81,7 @@ def portfolio_summary():
     return response
 
 
-@app.route("/portfolio_chart", methods=["GET"])
+@application.route("/portfolio_chart", methods=["GET"])
 def portfolio_chart():
     fund = request.args.get("fund")
     start_date = request.args.get("start")
@@ -91,7 +91,7 @@ def portfolio_chart():
     return response
 
 
-@app.route("/holding_chart", methods=["GET"])
+@application.route("/holding_chart", methods=["GET"])
 def holding_chart():
     fund = request.args.get("fund")
     ticker = request.args.get("ticker")
@@ -102,7 +102,7 @@ def holding_chart():
     return response
 
 
-@app.route("/benchmark_chart", methods=["GET"])
+@application.route("/benchmark_chart", methods=["GET"])
 def benchmark_chart():
     start_date = request.args.get("start")
     end_date = request.args.get("end")
@@ -111,7 +111,7 @@ def benchmark_chart():
     return response
 
 
-@app.route("/all_portfolios_summary", methods=["GET"])
+@application.route("/all_portfolios_summary", methods=["GET"])
 def all_portfolios_summary():
     start_date = request.args.get("start")
     end_date = request.args.get("end")
@@ -121,7 +121,7 @@ def all_portfolios_summary():
     return response
 
 
-@app.route("/all_holdings_summary", methods=["GET"])
+@application.route("/all_holdings_summary", methods=["GET"])
 def all_holdings_summary():
     fund = request.args.get("fund")
     start_date = request.args.get("start")
@@ -132,7 +132,7 @@ def all_holdings_summary():
     return response
 
 
-@app.route("/holding_summary", methods=["GET"])
+@application.route("/holding_summary", methods=["GET"])
 def holding_summary():
     fund = request.args.get("fund")
     ticker = request.args.get("ticker")
@@ -144,7 +144,7 @@ def holding_summary():
     return response
 
 
-@app.route("/holding_dividends", methods=["GET"])
+@application.route("/holding_dividends", methods=["GET"])
 def holding_dividends():
     fund = request.args.get("fund")
     ticker = request.args.get("ticker")
@@ -156,7 +156,7 @@ def holding_dividends():
     return response
 
 
-@app.route("/holding_trades", methods=["GET"])
+@application.route("/holding_trades", methods=["GET"])
 def holding_trades():
     fund = request.args.get("fund")
     ticker = request.args.get("ticker")
@@ -168,7 +168,7 @@ def holding_trades():
     return response
 
 
-@app.route("/benchmark_summary", methods=["GET"])
+@application.route("/benchmark_summary", methods=["GET"])
 def benchmark_summary():
     start_date = request.args.get("start")
     end_date = request.args.get("end")
@@ -177,7 +177,7 @@ def benchmark_summary():
 
     return response
 
-@app.route("/cron_logs", methods=["GET"])
+@application.route("/cron_logs", methods=["GET"])
 def cron_log():
     response = service.cron_logs()
     return response
@@ -189,10 +189,10 @@ if __name__ == '__main__':
     environment = os.getenv('ENVIRONMENT')
     
     if environment == 'PRODUCTION':
-        serve(app, host="0.0.0.0", port=5000, url_scheme="https")
+        serve(application, host="0.0.0.0", port=5000, url_scheme="https")
 
     elif environment == 'DEVELOPMENT':
-        app.run(debug=True, port=8080)
+        application.run(debug=True, port=8080)
 
     else:
         print("You have not set your ENVIRONMENT in .env")
