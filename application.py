@@ -44,7 +44,7 @@ def before_request():
 
 @application.route("/")
 def home():
-    return "Welcome to the 47 Fund API v1.0"
+    return "Welcome to the 47 Fund API v1.0", 
 
 
 @application.route("/test")
@@ -181,6 +181,10 @@ def benchmark_summary():
 def cron_log():
     response = service.cron_logs()
     return response
+
+@application.route("/healthCheck", methods=["GET"])
+def healthCheck():
+    return json.dumps({"message": "Instances are healthy"}), 200
 
 
 if __name__ == '__main__':
