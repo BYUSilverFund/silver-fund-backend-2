@@ -29,7 +29,7 @@ def check_user(username):
 
 @application.before_request
 def before_request():
-    if request.method != "OPTIONS" and request.endpoint != "home":
+    if request.method != "OPTIONS" and request.endpoint != "home" and request.endpoint != "health_check":
         if request.headers.get("x-api-key") is None:
             return json.dumps({"error": "No authorization token provided"}), 401
 
@@ -44,7 +44,7 @@ def before_request():
 
 @application.route("/")
 def home():
-    return "Welcome to the 47 Fund API v1.0", 
+    return "Welcome to the 47 Fund API v1.0"
 
 
 @application.route("/test")
@@ -182,9 +182,10 @@ def cron_log():
     response = service.cron_logs()
     return response
 
-@application.route("/healthCheck", methods=["GET"])
-def healthCheck():
-    return json.dumps({"message": "Instances are healthy"}), 200
+@application.route("/health_check", methods=["GET"])
+def health_check():
+    response = json.dumps({"message": "Instances are healthy"}), 200
+    return response
 
 
 if __name__ == '__main__':
