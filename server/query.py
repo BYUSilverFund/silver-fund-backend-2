@@ -616,6 +616,90 @@ class Query:
         df = self.db.execute_query(query_string)
 
         return df
+    
+    def get_portfolio_defaults(self, fund) -> pd.DataFrame:
+        query_string = f'''
+            SELECT * FROM portfolio WHERE fund = '{fund}';
+        '''
+        df = self.db.execute_query(query_string)
+        return df
+    
+    def upsert_portfolio(self, fund, bmk_return, target_te) -> None:
+        query_string = f'''
+            INSERT INTO portfolio
+            (FUND, BENCHMARK_RETURN, TARGET_TRACKING_ERROR)
+            VALUES
+            ('{fund}',{bmk_return},{target_te})
+            ON CONFLICT (FUND)
+            DO UPDATE SET
+                BENCHMARK_RETURN = EXCLUDED.BENCHMARK_RETURN,
+                TARGET_TRACKING_ERROR = EXCLUDED.TARGET_TRACKING_ERROR;
+        '''
+        self.db.query(query_string)
+
+    def get_all_holdings(self, fund):
+        query_string = f'''
+        WITH
+        positions_query AS(
+            SELECT
+                date,
+                fund,
+                "Symbol" AS ticker,
+                "Quantity"::DECIMAL AS shares,
+                "MarkPrice"::DECIMAL AS price,
+                "PositionValue"::DECIMAL AS value
+            FROM positions
+            WHERE date = (SELECT MAX(date) FROM positions WHERE fund = '{fund}')
+                AND fund = '{fund}'
+        ),
+        nav_query AS (
+            SELECT
+                date,
+                fund,
+                "Stock"::DECIMAL AS total_stock
+            FROM nav
+            WHERE fund = '{fund}'
+        ),
+        positions_xf AS(
+            SELECT
+                p.date,
+                p.fund,
+                p.ticker,
+                p.shares,
+                p.price,
+                p.value,
+                p.value / n.total_stock AS weight
+            FROM positions_query p
+            JOIN nav_query n ON n.date = p.date
+        )
+        SELECT
+            p.fund,
+            p.ticker,
+            p.shares,
+            p.price,
+            p.value,
+            COALESCE(h.horizon_date, NULL) AS horizon_date,
+            COALESCE(h.target_price, NULL) AS target_price,
+            p.weight
+        FROM positions_xf p
+        FULL OUTER JOIN holding h ON h.ticker = p.ticker AND h.fund = p.fund
+        WHERE p.fund = '{fund}';
+        '''
+
+        df = self.db.execute_query(query_string)
+
+        return df
+    
+    def upsert_holding(self, fund, ticker, horizon, target) -> None:
+        query_string = f'''
+            INSERT INTO holding (FUND, TICKER, HORIZON_DATE, TARGET_PRICE)
+            VALUES ('{fund}','{ticker}','{horizon}',{target})
+            ON CONFLICT (FUND, TICKER)
+            DO UPDATE SET
+                HORIZON_DATE = EXCLUDED.HORIZON_DATE,
+                TARGET_PRICE = EXCLUDED.TARGET_PRICE;
+        '''
+        self.db.query(query_string)
 
 
 
