@@ -11,8 +11,7 @@ import boto3
 application = Flask(__name__)
 service = Service()
 
-# CORS(application)
-# Talisman(application)
+Talisman(application)
 
 def check_user(username):
     cognito = boto3.client("cognito-idp", region_name="us-west-2", aws_access_key_id=os.getenv("COGNITO_ACCESS_KEY_ID"),
@@ -187,21 +186,35 @@ def cron_log():
     response = service.cron_logs()
     return response
 
+############################# Portfolio Optimizer #############################
+
+@application.route("/portfolio_defaults", methods=["GET"])
+def portfolio_defaults():
+    fund = request.args.get("fund")
+    response = service.get_portfolio_defaults(fund)
+    return response
+
+@application.route("/upsert_portfolio", methods=["POST"])
+def upsert_portfolio():
+    fund = request.args.get("fund")
+    bmk_return = request.args.get("bmk_return")
+    target_te = request.args.get("target_te")
+    service.upsert_portfolio(fund,bmk_return,target_te)
+
+@application.route("/holding_defaults", methods=["GET"])
+def holding_defaults():
+    fund = request.args.get("fund")
+    response = service.get_all_holdings(fund)
+    return response
+
+@application.route("/upsert_holding", methods=["POST"])
+def upsert_holding():
+    fund = request.args.get("fund")
+    ticker = request.args.get("ticker")
+    horizon = request.args.get("horizon")
+    target = request.args.get("target")
+    service.upsert_holding(fund,ticker,horizon,target)
+
 if __name__ == "__main__":
     application.debug = True
     application.run()
-
-
-# if __name__ == '__main__':
-#     # Check if the environment is set to production
-#     # testing or development
-#     environment = os.getenv('ENVIRONMENT')
-    
-#     if environment == 'PRODUCTION':
-#         serve(application, host="0.0.0.0", port=5000, url_scheme="https")
-
-#     elif environment == 'DEVELOPMENT':
-#         application.run(debug=True, port=8080)
-
-#     else:
-#         print("You have not set your ENVIRONMENT in .env")

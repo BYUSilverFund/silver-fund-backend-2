@@ -15,11 +15,11 @@ Talisman(app)
 
 
 def check_user(username):
-    cognito = boto3.client("cognito-idp", region_name="us-west-2", aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-                           aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"))
+    cognito = boto3.client("cognito-idp", region_name="us-west-2", aws_access_key_id=os.getenv("COGNITO_ACCESS_KEY_ID"),
+                           aws_secret_access_key=os.getenv("COGNITO_SECRET_ACCESS_KEY"))
     try:
         response = cognito.admin_get_user(
-            UserPoolId=os.getenv("AWS_USER_POOL_ID"),
+            UserPoolId=os.getenv("COGNITO_USER_POOL_ID"),
             Username=username
         )
         return True

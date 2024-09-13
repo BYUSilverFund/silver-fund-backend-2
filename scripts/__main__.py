@@ -44,6 +44,7 @@ def main() -> None:
         cron_log_string += f"{fund} uploaded to S3.\n"
 
     Database().load_cron_log(cron_log_string)
+    
 if __name__ == "__main__":
     main()
     
