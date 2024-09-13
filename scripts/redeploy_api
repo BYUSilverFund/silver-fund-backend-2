@@ -1,3 +1,0 @@
-#!/bin/bash
-
-sudo systemctl restart 47_fund_web_app
