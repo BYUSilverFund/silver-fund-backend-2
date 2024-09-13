@@ -81,13 +81,17 @@ class Database:
         except Exception as e:
             print(f"Error: {e}")
 
+    def query(self, query_string: str) -> None:
+        self.cursor.execute(query_string)
+        self.connection.commit()
+
     def execute_query(self, query_string: str) -> pd.DataFrame:
         df = pd.read_sql(query_string, self.engine)
         return df
     
     def load_cron_log(self, cron_log_string: str) -> None:
         try:
-            query = f"INSERT INTO \"ETL_Cron_Log\" (date, log_text) VALUES (now(), '{cron_log_string}')"
+            query = f"INSERT INTO \"ETL_Cron_Log\" (date, log_text) VALUES (now(), E'{cron_log_string}')"
             self.cursor.execute(query)
             self.connection.commit()
         except Exception as e:

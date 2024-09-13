@@ -339,3 +339,24 @@ class Service:
         result = df.to_dict(orient='records')
 
         return json.dumps(result)
+    
+
+    ############################# Portfolio Optimizer #############################
+
+    def get_portfolio_defaults(self, fund):
+        df = self.query.get_portfolio_defaults(fund)
+        df = df.fillna('null')
+        result = df.to_dict(orient='records')
+        return json.dumps(result)
+    
+    def upsert_portfolio(self, fund, bmk_return, target_te):
+        self.query.upsert_portfolio(fund,bmk_return,target_te)
+
+    def get_all_holdings(self,fund):
+        df = self.query.get_all_holdings(fund)
+        df = df.fillna('null')
+        result = df.to_dict(orient='records')
+        return json.dumps(result)
+    
+    def upsert_holding(self, fund, ticker, horizon, target):
+        self.query.upsert_holding(fund,ticker,horizon,target)
