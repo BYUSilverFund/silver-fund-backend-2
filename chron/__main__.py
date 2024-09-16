@@ -48,7 +48,7 @@ def main():
 
             except Exception as e:
                 print(f"Error loading {fund} {query_type} data: {e}")
-                cron_log_string += f"Error loading {fund} {query_type} data: {e}\n"
+                cron_log_string += f": Error loading {fund} {query_type} data: {e}\n"
 
     try:
         print("Updating risk free rate")
@@ -59,7 +59,7 @@ def main():
 
     except Exception as e:
         print(f"Error updating risk free rate: {e}")
-        cron_log_string += f"Error updating risk free rate: {e}\n"
+        cron_log_string += f": Error updating risk free rate: {e}\n"
 
     try:
         print("Updating benchmark")
@@ -73,7 +73,7 @@ def main():
 
     except Exception as e:
         print(f"Error updating benchmark: {e}")
-        cron_log_string += f"Error updating benchmark: {e}\n"
+        cron_log_string += f": Error updating benchmark: {e}\n"
 
     try:
         print("Updating calendar")
@@ -83,7 +83,7 @@ def main():
 
     except Exception as e:
         print(f"Error loading calendar")
-        cron_log_string += f"Error loading calendar: {e}\n"
+        cron_log_string += f": Error loading calendar: {e}\n"
 
     cron_log_string = cron_log_string.replace("'", "")
     database.load_cron_log(cron_log_string)

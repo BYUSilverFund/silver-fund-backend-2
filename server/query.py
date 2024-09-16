@@ -173,6 +173,7 @@ class Query:
                      WHERE fund = '{fund}'
                        AND "Symbol" = '{ticker}'
                        AND "AssetClass" != 'OPT'
+                       AND "AssetClass" != 'CASH'
                        AND "Buy/Sell" != 'SELL (Ca.)'
                      GROUP BY date, fund, "Symbol"
                 ),
@@ -346,6 +347,7 @@ class Query:
                     FROM trades
                     WHERE fund = '{fund}'
                         AND "AssetClass" != 'OPT'
+                        AND "AssetClass" != 'CASH'
                         AND "Buy/Sell" != 'SELL (Ca.)'
                         AND "Symbol" != 'VMFXX'
                     GROUP BY date, fund, "Symbol"
@@ -540,6 +542,7 @@ class Query:
             FROM positions
             WHERE fund = '{fund}'
                 AND "AssetClass" != 'OPT'
+                AND "AssetClass" != 'CASH'
                 AND date BETWEEN '{start_date}' AND '{end_date}'
             GROUP BY "Symbol"
             ORDER BY "Symbol";
@@ -555,6 +558,7 @@ class Query:
         FROM positions
         WHERE fund = '{fund}'
             AND "AssetClass" != 'OPT'
+            AND "AssetClass" != 'CASH'
             AND date = (SELECT MAX(date) FROM positions WHERE fund = '{fund}')
         ORDER BY "Symbol";
         '''
