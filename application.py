@@ -121,7 +121,6 @@ def all_portfolios_summary():
     end_date = request.args.get("end")
 
     response = service.all_portfolios_summary(start_date, end_date)
-
     return response
 
 
