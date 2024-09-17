@@ -90,7 +90,6 @@ class Service:
             result.append(
                 self.portfolio_summary(fund, start_date, end_date)
             )
-
         return json.dumps(result)
 
     def holding_summary(self, fund: str, ticker: str, start_date: str, end_date: str) -> json:
