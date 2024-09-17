@@ -1,7 +1,5 @@
 from flask import Flask, request
-from flask_cors import CORS
 from flask_talisman import Talisman
-from waitress import serve
 from server.service import Service
 import json
 import os
@@ -51,7 +49,7 @@ def health_check():
     return response
 
 
-@application.route("/test")
+@application.route("/test", methods=['GET'])
 def test():
     parameter = request.args.get("fund")
     return json.dumps({"fund": parameter})
