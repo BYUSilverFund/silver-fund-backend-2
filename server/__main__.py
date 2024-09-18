@@ -10,9 +10,9 @@ import boto3
 
 app = Flask(__name__)
 service = Service()
+
 CORS(app)
 Talisman(app)
-
 
 def check_user(username):
     cognito = boto3.client("cognito-idp", region_name="us-west-2", aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
