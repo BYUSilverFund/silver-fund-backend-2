@@ -1,0 +1,46 @@
+name: Push-to-EC2-prod
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  continuous-integration:
+    name: Manage dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.11
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+  continuous-deployment:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+    needs: continuous-integration
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout the files
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
+
+      - name: Create CodeDeploy Deployment
+        id: deploy
+        run: |
+          aws deploy create-deployment \
+            --application-name 47-Fund-EC2 \
+            --deployment-group-name 47-Fund-EC2-Instances \
+            --deployment-config-name CodeDeployDefault.OneAtATime \
+            --github-location repository=${{ github.repository }},branch=main,commitId=${{ github.sha }}
