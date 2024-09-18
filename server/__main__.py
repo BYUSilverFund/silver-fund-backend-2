@@ -182,6 +182,34 @@ def cron_log():
     response = service.cron_logs()
     return response
 
+############################# Portfolio Optimizer #############################
+
+@app.route("/portfolio_defaults", methods=["GET"])
+def portfolio_defaults():
+    fund = request.args.get("fund")
+    response = service.get_portfolio_defaults(fund)
+    return response
+
+@app.route("/upsert_portfolio", methods=["POST"])
+def upsert_portfolio():
+    fund = request.args.get("fund")
+    bmk_return = request.args.get("bmk_return")
+    target_te = request.args.get("target_te")
+    service.upsert_portfolio(fund,bmk_return,target_te)
+
+@app.route("/holding_defaults", methods=["GET"])
+def holding_defaults():
+    fund = request.args.get("fund")
+    response = service.get_all_holdings(fund)
+    return response
+
+@app.route("/upsert_holding", methods=["POST"])
+def upsert_holding():
+    fund = request.args.get("fund")
+    ticker = request.args.get("ticker")
+    horizon = request.args.get("horizon")
+    target = request.args.get("target")
+    service.upsert_holding(fund,ticker,horizon,target)
 
 if __name__ == '__main__':
     # Check if the environment is set to production
