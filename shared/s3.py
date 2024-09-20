@@ -1,15 +1,18 @@
 import boto3
 import pandas as pd
 from io import StringIO
+from dotenv import load_dotenv
 import os
 
 class S3:
 
     def __init__(self) -> None:
+        load_dotenv()
+
         self.s3 = boto3.client(
             's3',
-            aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
-            aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
+            aws_access_key_id=os.getenv('COGNITO_ACCESS_KEY_ID'),
+            aws_secret_access_key=os.getenv('COGNITO_SECRET_ACCESS_KEY'),
             region_name='us-west-2' # Should probably make this an environment variable
         )
 
