@@ -1,6 +1,7 @@
 from flask import Flask, request
 from flask_talisman import Talisman
 from server.service import Service
+from waitress import serve
 import json
 import os
 import bcrypt
@@ -213,5 +214,14 @@ def upsert_holding():
     service.upsert_holding(fund,ticker,horizon,target)
 
 if __name__ == "__main__":
-    application.debug = True
-    application.run()
+    environment = os.getenv('ENVIRONMENT')
+    
+    if environment == 'PRODUCTION':
+        serve(application, host="0.0.0.0", port=5000, url_scheme="https")
+
+    elif environment == 'DEVELOPMENT':
+        application.debug = True
+        application.run()
+
+    else:
+        print("You have not set your ENVIRONMENT in .env")
