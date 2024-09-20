@@ -1,5 +1,4 @@
 name: Push-to-EC2-dev
-
 on:
   push:
     branches:
