@@ -130,7 +130,6 @@ def all_holdings_summary():
     end_date = request.args.get("end")
 
     response = service.all_holdings_summary(fund, start_date, end_date)
-
     return response
 
 
