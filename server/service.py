@@ -199,6 +199,12 @@ class Service:
         results['alpha_contribution'] = round(results['alpha_contribution'] * 100, 2)
         results['beta'] = round(results['beta'], 2)
 
+        # print the count of nan values in the dataframe with the column name
+        # print(results.isnull().sum())
+
+        results['initial_weight'] = results['initial_weight'].fillna('null')
+        results['volatility'] = results['volatility'].fillna('null')
+
         results = results.to_dict(orient='records')
 
         return json.dumps(results)
