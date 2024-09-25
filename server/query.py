@@ -639,7 +639,7 @@ class Query:
                 BENCHMARK_RETURN = EXCLUDED.BENCHMARK_RETURN,
                 TARGET_TRACKING_ERROR = EXCLUDED.TARGET_TRACKING_ERROR;
         '''
-        self.db.query(query_string)
+        self.db.execute_sql(query_string)
 
     def get_all_holdings(self, fund):
         query_string = f'''
@@ -703,7 +703,7 @@ class Query:
                 HORIZON_DATE = EXCLUDED.HORIZON_DATE,
                 TARGET_PRICE = EXCLUDED.TARGET_PRICE;
         '''
-        self.db.query(query_string)
+        self.db.execute_sql(query_string)
 
 
 
