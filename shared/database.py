@@ -52,12 +52,19 @@ class Database:
         except Exception as e:
             print(f"Error: {e}")
 
-    def load_dataframe(df: pd.DataFrame, table_name):
-        # Takes a pandas dataframe and loads it into
+    def load_dataframe(self, df: pd.DataFrame, table_name):
+        df.to_sql(table_name, self.engine, if_exists='replace', index=False)
         pass
 
-    def execute_sql(query_string) -> None:
-        # Execute sql
-        # Return response
-
-        pass
+    def execute_sql(self, query_string) -> None:
+        
+        self.cursor.execute(query_string)
+    
+        # Commit the changes for INSERT/UPDATE/DELETE queries
+        self.connection.commit()
+        
+        # Fetch results for SELECT queries (optional)
+        if query_string.lower().strip().startswith('select'):
+            rows = self.cursor.fetchall()
+            for row in rows:
+                print(row)

@@ -1,49 +1,71 @@
-#!/usr/bin/env python3
 from .config import config
 from .extractor import *
-from .utils import clean_ibkr_dataframe, render_template
+from .utils import clean_ibkr_dataframe, render_sql
 from shared.database import Database
 from datetime import datetime
+from .logger import PipelineLogger
 
 def main():
     db = Database()
-    date = datetime.today()
+    date = datetime.today().strftime("%Y-%m-%d")
+    logger = PipelineLogger()
 
-    # Execute ibkr phase for each fund
-    for fund in config.keys():
+    try:
+        # Execute ibkr phase for each fund
+        for fund in config.keys():
 
-        token = config[fund]['token']
+            logger.info(f"Starting pipeline for {fund} fund")
+            token = config[fund]['token']
 
-        for query in config[fund]['queries'].keys():
+            for query in config[fund]['queries'].keys():
 
-            query_id = config[fund]['queries'][query]
+                query_id = config[fund]['queries'][query]
 
-            # Query
-            raw_dataframe = ibkr_query(fund, token, query_id)
+                # Query
+                logger.info(f"Executing {query} query for {fund} fund")
+                raw_dataframe = ibkr_query(fund, token, query_id)
 
-            # Clean
-            clean_dataframe = clean_ibkr_dataframe(raw_dataframe, query, fund)
-            
-            # Load
-            stage_table = f"{date}_{fund}_{query}"
-            db.load_dataframe(clean_dataframe, stage_table)
+                # Clean
+                clean_dataframe = clean_ibkr_dataframe(raw_dataframe, query, fund)
+                logger.info(f"Cleaned raw {query} dataframe")
 
-            # Transform
-            transform_template = f"transform_{query}.sql"
-            transform_values = {'xf_table': f"{stage_table}_xf"}
-            sql = render_template(transform_template, transform_values)
-            db.execute_sql(sql)
+                # Load (this step will create or replace the raw dataframes corresponding stage table)
+                stage_table = f"{date}_{fund}_{query}"
+                logger.info(f"Loading cleaned {query} dataframe into stage table: {stage_table}")
+                db.load_dataframe(clean_dataframe, stage_table)
 
-            # Merge
-            merge_template = f"merge_{query}.sql"
-            merge_vales = {'core_table': query}
-            sql = render_template(merge_template, merge_vales)
-            db.execute_sql(merge_template, merge_vales)
+                # Create core table if it doesn't already exist
+                create_template = f"chron2/sql/create/create_{query}.sql"
+                create_query = render_sql(create_template)
+                logger.info(f"Verifying that {query} table exists")
+                db.execute_sql(create_query)
 
-    # Execute fred phase
+                # Merge
+                merge_template = f"chron2/sql/merge/merge_{query}.sql"
+                merge_params = {'stage_table': stage_table}
+                merge_query = render_sql(merge_template, merge_params)
+                logger.info(f"Merging {stage_table} into {query} table")
+                db.execute_sql(merge_query)
 
-    pass
+                # Clean Up
+                drop_query = f""" 
+                    DROP TABLE "{stage_table}";
+                """
+                logger.info(f"Dropping table {stage_table}")
+                db.execute_sql(drop_query)
 
+        # Record logs in database
+        logger.info("Pipeline execution completed successfully.")
+        logs = logger.get_logs()
+        log_query = f"""
+            INSERT INTO logs (date, fund, logs) 
+            VALUES ('{date}', '{fund}', '{logs}')
+        """
+        db.execute_sql(log_query)
+        logger.info(f"Stored logs for fund: {fund}")
+        
+    except Exception as e:
+        logger.error(f"An error occurred: {str(e)}")
 
 if __name__ == '__main__':
     main()
