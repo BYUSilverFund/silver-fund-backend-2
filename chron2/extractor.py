@@ -25,7 +25,7 @@ def ibkr_query(fund, token, query):
     reference_code = re.findall('(?<=<ReferenceCode>)\d*(?=<\/ReferenceCode>)', response.text)[0]
 
     # Request 2
-    time.sleep(15) # Consider changing this so that it adapts base on which fund is querying
+    time.sleep(10) # Consider changing this so that it adapts base on which fund is querying
     url = f'https://ndcdyn.interactivebrokers.com/AccountManagement/FlexWebService/GetStatement?t={token}&q={reference_code}&v=3'
     response = requests.get(url)
 

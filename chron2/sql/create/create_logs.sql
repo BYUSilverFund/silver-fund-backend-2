@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS logs (
+    id SERIAL PRIMARY KEY,
+    date DATE NOT NULL,
+    fund VARCHAR(255) NOT NULL,
+    logs TEXT NOT NULL
+);
