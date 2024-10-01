@@ -16,7 +16,7 @@ config = {
             "delta_nav": 989561,
             "positions": 989564,
             # "dividends": 989565,
-            # "trades": 989567,
+            "trades": 989567,
         }
     },
     # "quant": {
