@@ -92,5 +92,6 @@ CREATE TABLE IF NOT EXISTS nav (
     "TotalShort" text,
     "IncentiveCouponAccruals" text,
     "IncentiveCouponAccrualsLong" text,
-    "IncentiveCouponAccrualsShort" text
+    "IncentiveCouponAccrualsShort" text,
+    CONSTRAINT date_fund UNIQUE (date, fund)
 );
