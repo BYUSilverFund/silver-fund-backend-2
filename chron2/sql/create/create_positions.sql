@@ -51,5 +51,5 @@ CREATE TABLE IF NOT EXISTS positions (
     "Fineness" text,
     "Weight" text,
     "SerialNumber" text,
-    CONSTRAINT date_fund_symbol UNIQUE (date, fund, "Symbol")
+    CONSTRAINT positions_date_fund_symbol UNIQUE (date, fund, "Symbol")
 );
