@@ -13,7 +13,7 @@ config = {
         "token": 981720897048992989674255,
         "queries": {
             "nav": 989615,
-            # "delta_nav": 989561,
+            "delta_nav": 989561,
             "positions": 989564,
             # "dividends": 989565,
             # "trades": 989567,
