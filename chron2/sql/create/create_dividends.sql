@@ -46,5 +46,5 @@ CREATE TABLE IF NOT EXISTS dividends (
     "Weight" text,
     "ReportDate" text,
     "CommodityType" text,
-    CONSTRAINT dividends_date_fund_symbol UNIQUE (date, fund, "Symbol")
+    CONSTRAINT dividends_date_fund_symbol UNIQUE (date, fund, "Symbol", "ActionID")
 );

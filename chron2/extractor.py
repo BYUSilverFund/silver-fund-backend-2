@@ -10,11 +10,11 @@ import pandas_market_calendars as mcal
 
 def ibkr_query(fund, token, query):
     # Checks
-    if token is None:
+    if not token:
         print('No token specified')
         return
 
-    if query is None:
+    if not query:
         print('No query id specified')
         return
 
@@ -25,7 +25,8 @@ def ibkr_query(fund, token, query):
     reference_code = re.findall('(?<=<ReferenceCode>)\d*(?=<\/ReferenceCode>)', response.text)[0]
 
     # Request 2
-    time.sleep(10) # Consider changing this so that it adapts base on which fund is querying
+    time_to_sleep = 15 if fund == 'quant' else 10
+    time.sleep(time_to_sleep) # Consider changing this so that it adapts base on which fund is querying
     url = f'https://ndcdyn.interactivebrokers.com/AccountManagement/FlexWebService/GetStatement?t={token}&q={reference_code}&v=3'
     response = requests.get(url)
 

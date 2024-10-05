@@ -55,8 +55,6 @@ INSERT INTO delta_nav
     "EndingValue",
     "TWR",
     "CorporateActionProceeds",
-    "ChangeInIncentiveCouponAccruals",
-    "OtherIncome",
     "Other"
     )
 SELECT
@@ -115,8 +113,6 @@ SELECT
     "EndingValue",
     "TWR",
     "CorporateActionProceeds",
-    "ChangeInIncentiveCouponAccruals",
-    "OtherIncome",
     "Other"
 FROM "{{stage_table}}"
 ON CONFLICT (date, fund)
@@ -174,7 +170,5 @@ DO UPDATE SET
     "EndingValue" = EXCLUDED."EndingValue",
     "TWR" = EXCLUDED."TWR",
     "CorporateActionProceeds" = EXCLUDED."CorporateActionProceeds",
-    "ChangeInIncentiveCouponAccruals" = EXCLUDED."ChangeInIncentiveCouponAccruals",
-    "OtherIncome" = EXCLUDED."OtherIncome",
     "Other" = EXCLUDED."Other"
 ;

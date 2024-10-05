@@ -54,8 +54,6 @@ CREATE TABLE IF NOT EXISTS delta_nav (
     "EndingValue" text,
     "TWR" text,
     "CorporateActionProceeds" text,
-    "ChangeInIncentiveCouponAccruals" text,
-    "OtherIncome" text,
     "Other" text,
     CONSTRAINT delta_nav_date_fund UNIQUE (date, fund)
 );
