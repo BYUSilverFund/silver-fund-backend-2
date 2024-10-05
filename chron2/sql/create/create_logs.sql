@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS logs (
-    id SERIAL PRIMARY KEY,
-    date DATE NOT NULL,
-    fund VARCHAR(255) NOT NULL,
-    logs TEXT NOT NULL
+    date DATE,
+    fund VARCHAR(255),
+    logs TEXT,
+    CONSTRAINT logs_constraint UNIQUE (date, fund)
 );

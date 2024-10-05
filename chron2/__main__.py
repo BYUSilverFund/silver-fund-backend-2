@@ -53,6 +53,7 @@ def main():
                     logger.info(f"Dropping table {stage_table}")
                     db.execute_sql(drop_query)
 
+
                 except Exception as query_error:
                     logger.error(f"An error occurred during the {query} query for {fund}: {str(query_error)}")
                     continue  # Continue with the next query
@@ -61,15 +62,16 @@ def main():
             logger.error(f"An error occurred for the {fund} fund: {str(fund_error)}")
             continue  # Continue with the next fund
 
-    # Record logs in database
-    logger.info("Pipeline execution completed with error handling.")
-    logs = logger.get_logs()
-    log_query = f"""
-        INSERT INTO logs (date, fund, logs) 
-        VALUES ('{date}', '{fund}', '{logs}')
-    """
-    db.execute_sql(log_query)
-    logger.info(f"Stored logs for fund: {fund}")
+        # Record logs in database
+        logs = logger.get_logs()
+        logs_template = f"chron2/sql/merge/merge_logs.sql"
+        logs_params = {'fund': fund, 'date': date, 'logs': logs}
+        logs_query = render_sql(logs_template, logs_params)
+        db.execute_sql(logs_query)
+        logger.info(f"Stored logs for fund: {fund}")
+        logger.clear_logs()
+
+
 
 if __name__ == '__main__':
     main()

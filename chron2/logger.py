@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+import os
 
 class PipelineLogger:
     def __init__(self, log_file="pipeline.log"):
@@ -44,3 +44,6 @@ class PipelineLogger:
 
     def get_logs(self):
         return "\n".join(self.log_messages)
+    
+    def clear_logs(self):
+        self.log_messages.clear()
