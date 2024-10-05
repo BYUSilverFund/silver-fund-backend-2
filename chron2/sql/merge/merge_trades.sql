@@ -175,7 +175,7 @@ SELECT
     "Weight",
     "TraderID"
 FROM "{{stage_table}}"
-ON CONFLICT (date, fund, "Symbol")
+ON CONFLICT (date, fund, "Symbol", "TransactionID")
 DO UPDATE SET
     "AccountAlias" = EXCLUDED."AccountAlias",
     "Model" = EXCLUDED."Model",
