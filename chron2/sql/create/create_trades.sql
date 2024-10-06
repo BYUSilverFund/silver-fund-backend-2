@@ -85,5 +85,5 @@ CREATE TABLE IF NOT EXISTS trades (
     "Fineness" text,
     "Weight" text,
     "TraderID" text,
-    CONSTRAINT trades_date_fund_symbol UNIQUE (date, fund, "Symbol", "TransactionID")
+    CONSTRAINT trades_date_fund_symbol UNIQUE (date, fund, "Symbol", "TransactionID", "UnderlyingSymbol")
 );
