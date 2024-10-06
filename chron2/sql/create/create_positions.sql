@@ -17,7 +17,6 @@ CREATE TABLE IF NOT EXISTS positions (
     "FIGI" text,
     "ListingExchange" text,
     "UnderlyingConid" text,
-    "UnderlyingSymbol" text,
     "UnderlyingSecurityID" text,
     "UnderlyingListingExchange" text,
     "Issuer" text,

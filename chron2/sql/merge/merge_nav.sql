@@ -90,10 +90,7 @@ INSERT INTO nav
     "CryptoShort",
     "Total",
     "TotalLong",
-    "TotalShort",
-    "IncentiveCouponAccruals",
-    "IncentiveCouponAccrualsLong",
-    "IncentiveCouponAccrualsShort"
+    "TotalShort"
     )
 SELECT
     date,
@@ -186,10 +183,7 @@ SELECT
     "CryptoShort",
     "Total",
     "TotalLong",
-    "TotalShort",
-    "IncentiveCouponAccruals",
-    "IncentiveCouponAccrualsLong",
-    "IncentiveCouponAccrualsShort"
+    "TotalShort"
 FROM "{{stage_table}}"
 ON CONFLICT (date, fund)
 DO UPDATE SET
@@ -281,8 +275,5 @@ DO UPDATE SET
     "CryptoShort" = EXCLUDED."CryptoShort",
     "Total" = EXCLUDED."Total",
     "TotalLong" = EXCLUDED."TotalLong",
-    "TotalShort" = EXCLUDED."TotalShort",
-    "IncentiveCouponAccruals" = EXCLUDED."IncentiveCouponAccruals",
-    "IncentiveCouponAccrualsLong" = EXCLUDED."IncentiveCouponAccrualsLong",
-    "IncentiveCouponAccrualsShort" = EXCLUDED."IncentiveCouponAccrualsShort"
+    "TotalShort" = EXCLUDED."TotalShort"
 ;

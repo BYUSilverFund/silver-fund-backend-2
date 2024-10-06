@@ -18,7 +18,6 @@ INSERT INTO positions
     "FIGI",
     "ListingExchange",
     "UnderlyingConid",
-    "UnderlyingSymbol",
     "UnderlyingSecurityID",
     "UnderlyingListingExchange",
     "Issuer",
@@ -53,7 +52,7 @@ INSERT INTO positions
     "Weight",
     "SerialNumber"
     )
-SELECT
+SELECT DISTINCT
     date,
     fund,
     "AccountAlias",
@@ -72,7 +71,6 @@ SELECT
     "FIGI",
     "ListingExchange",
     "UnderlyingConid",
-    "UnderlyingSymbol",
     "UnderlyingSecurityID",
     "UnderlyingListingExchange",
     "Issuer",
@@ -125,7 +123,6 @@ DO UPDATE SET
     "FIGI" = EXCLUDED."FIGI",
     "ListingExchange" = EXCLUDED."ListingExchange",
     "UnderlyingConid" = EXCLUDED."UnderlyingConid",
-    "UnderlyingSymbol" = EXCLUDED."UnderlyingSymbol",
     "UnderlyingSecurityID" = EXCLUDED."UnderlyingSecurityID",
     "UnderlyingListingExchange" = EXCLUDED."UnderlyingListingExchange",
     "Issuer" = EXCLUDED."Issuer",

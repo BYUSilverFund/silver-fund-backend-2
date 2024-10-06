@@ -97,7 +97,7 @@ SELECT
     "ReportDate",
     "CommodityType"
 FROM "{{stage_table}}"
-ON CONFLICT (date, fund, "Symbol", "ActionID")
+ON CONFLICT (date, fund, "Symbol", "ActionID", "GrossRate", "GrossAmount", "NetAmount", "UnderlyingSymbol", "PayDate")
 DO UPDATE SET
     "AccountAlias" = EXCLUDED."AccountAlias",
     "Model" = EXCLUDED."Model",
