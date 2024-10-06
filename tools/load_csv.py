@@ -29,12 +29,7 @@ def main(file, table):
     client_account_id = clean_dataframe['ClientAccountID'].iloc[0]
     fund = get_fund(client_account_id)
     clean_dataframe['fund'] = fund
-
-    # if table == 'dividends':
-    #     clean_dataframe['ReportDate'] = clean_dataframe['ExDate']
     
-    clean_dataframe.to_csv(file)
-
     # Load 
     stage_table = f"{date}_{fund}_{table}"
     db.load_dataframe(clean_dataframe, stage_table)
