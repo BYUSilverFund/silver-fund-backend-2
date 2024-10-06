@@ -39,22 +39,20 @@ class Database:
             print(f'Error: {e}')
 
     def __del__(self):
-        # Close the cursor and connection
         self.cursor.close()
         self.connection.close()
         self.engine.dispose()
-    
-    def load_cron_log(self, cron_log_string: str) -> None: # This should turn into an sql file
-        try:
-            query = f"INSERT INTO \"ETL_Cron_Log\" (date, log_text) VALUES (now(), E'{cron_log_string}')"
-            self.cursor.execute(query)
-            self.connection.commit()
-        except Exception as e:
-            print(f"Error: {e}")
 
     def load_dataframe(self, df: pd.DataFrame, table_name):
         df.to_sql(table_name, self.engine, if_exists='replace', index=False)
-        pass
+
+    def get_dataframe(self, query: str) -> pd.DataFrame:
+        try:
+            df = pd.read_sql(query, self.engine)
+            return df
+        except Exception as e:
+            print(f"Error: {e}")
+            return pd.DataFrame() 
 
     def execute_sql(self, query_string) -> None:
         

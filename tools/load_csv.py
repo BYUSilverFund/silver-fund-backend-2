@@ -30,28 +30,30 @@ def main(file, table):
     fund = get_fund(client_account_id)
     clean_dataframe['fund'] = fund
 
-    # Load 
-    stage_table = f"{date}_{fund}_{table}"
-    db.load_dataframe(clean_dataframe, stage_table)
+    print(clean_dataframe)
 
-    # Create core table if it doesn't already exist
-    create_template = f"../chron2/sql/create/create_{table}.sql"
-    create_query = render_sql(create_template)
-    db.execute_sql(create_query)
+    # # Load 
+    # stage_table = f"{date}_{fund}_{table}"
+    # db.load_dataframe(clean_dataframe, stage_table)
 
-    print(f"Merging {file} into {table} table as {fund}.")
+    # # Create core table if it doesn't already exist
+    # create_template = f"../chron2/sql/create/create_{table}.sql"
+    # create_query = render_sql(create_template)
+    # db.execute_sql(create_query)
+
+    # print(f"Merging {file} into {table} table as {fund}.")
     
-    # Merge
-    merge_template = f"../chron2/sql/merge/merge_{table}.sql"
-    merge_params = {'stage_table': stage_table}
-    merge_query = render_sql(merge_template, merge_params)
-    db.execute_sql(merge_query)
+    # # Merge
+    # merge_template = f"../chron2/sql/merge/merge_{table}.sql"
+    # merge_params = {'stage_table': stage_table}
+    # merge_query = render_sql(merge_template, merge_params)
+    # db.execute_sql(merge_query)
 
-    # Clean Up
-    drop_query = f""" 
-        DROP TABLE "{stage_table}";
-    """
-    db.execute_sql(drop_query)
+    # # Clean Up
+    # drop_query = f""" 
+    #     DROP TABLE "{stage_table}";
+    # """
+    # db.execute_sql(drop_query)
 
 if __name__ == "__main__":
     if len(sys.argv) > 2:
