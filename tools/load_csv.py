@@ -1,16 +1,19 @@
-from chron2.utils import clean_ibkr_dataframe, render_sql, get_fund
-from shared.database import Database
-from datetime import datetime
 import sys
+import os
+from datetime import datetime
 import pandas as pd
 
-query = 'positions'
+# Add the parent directory to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from chron2.utils import clean_ibkr_dataframe, render_sql, get_fund
+from shared.database import Database
 
 db = Database()
 date = datetime.today().strftime("%Y-%m-%d")
 
-def main(file):
-    print(f"Loading {file}.")
+def main(file, table):
+    print(f"Loading {file}")
 
     # Raw
     raw_dataframe = pd.read_csv(file)
@@ -28,13 +31,18 @@ def main(file):
     clean_dataframe['fund'] = fund
 
     # Load 
-    stage_table = f"{date}_{fund}_{query}"
+    stage_table = f"{date}_{fund}_{table}"
     db.load_dataframe(clean_dataframe, stage_table)
 
-    print(f"Merging {file} into {query} table as {fund}.")
+    # Create core table if it doesn't already exist
+    create_template = f"../chron2/sql/create/create_{table}.sql"
+    create_query = render_sql(create_template)
+    db.execute_sql(create_query)
+
+    print(f"Merging {file} into {table} table as {fund}.")
     
     # Merge
-    merge_template = f"chron2/sql/merge/merge_{query}.sql"
+    merge_template = f"../chron2/sql/merge/merge_{table}.sql"
     merge_params = {'stage_table': stage_table}
     merge_query = render_sql(merge_template, merge_params)
     db.execute_sql(merge_query)
@@ -46,8 +54,9 @@ def main(file):
     db.execute_sql(drop_query)
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
+    if len(sys.argv) > 2:
         file_path = sys.argv[1]
-        main(file_path)
+        table = sys.argv[2]
+        main(file_path, table)
     else:
-        print("No file path provided.")
+        print("File path or table name missing")
