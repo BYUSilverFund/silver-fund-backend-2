@@ -2,6 +2,7 @@
 *.ipynb
 *.env*
 Archive.zip
+*.csv
 
 Archive.zip
 

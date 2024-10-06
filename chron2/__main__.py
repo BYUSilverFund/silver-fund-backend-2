@@ -25,7 +25,8 @@ def main():
                     raw_dataframe = ibkr_query(fund, token, query_id)
 
                     # Clean
-                    clean_dataframe = clean_ibkr_dataframe(raw_dataframe, query, fund)
+                    clean_dataframe = clean_ibkr_dataframe(raw_dataframe)
+                    clean_dataframe['fund'] = fund
                     logger.info(f"Cleaned raw {query} dataframe")
 
                     # Load (this step will create or replace the raw dataframes corresponding stage table)
