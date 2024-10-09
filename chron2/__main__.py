@@ -2,6 +2,7 @@ from .config import config
 from .extractor import *
 from .utils import clean_ibkr_dataframe, render_sql
 from shared.database import Database
+from shared.s3 import S3
 from datetime import datetime
 from .logger import PipelineLogger
 
@@ -23,6 +24,10 @@ def main():
                     # Query
                     logger.info(f"Executing {query} query for {fund} fund")
                     raw_dataframe = ibkr_query(fund, token, query_id)
+
+                    # Load into S3
+                    file_name = f"{fund}_{query}_{datetime.today().strftime('%Y-%m-%d')}"
+                    S3().drop_file(file_name, 'ibkr-historical-data', raw_dataframe)
 
                     # Clean
                     clean_dataframe = clean_ibkr_dataframe(raw_dataframe)
@@ -71,8 +76,6 @@ def main():
         db.execute_sql(logs_query)
         logger.info(f"Stored logs for fund: {fund}")
         logger.clear_logs()
-
-
 
 if __name__ == '__main__':
     main()
