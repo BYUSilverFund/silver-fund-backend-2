@@ -1,6 +1,6 @@
 from .config import config
 from .extractor import *
-from .utils import clean_ibkr_dataframe, render_sql
+from .utils import render_sql
 from shared.database import Database
 from shared.s3 import S3
 from datetime import datetime
@@ -8,6 +8,7 @@ from .logger import PipelineLogger
 
 def main():
     db = Database()
+    s3 = S3()
     date = datetime.today().strftime("%Y-%m-%d")
     logger = PipelineLogger()
 
@@ -26,18 +27,22 @@ def main():
                     raw_dataframe = ibkr_query(fund, token, query_id)
 
                     # Load into S3
-                    file_name = f"{fund}_{query}_{datetime.today().strftime('%Y-%m-%d')}"
-                    S3().drop_file(file_name, 'ibkr-historical-data', raw_dataframe)
-
-                    # Clean
-                    clean_dataframe = clean_ibkr_dataframe(raw_dataframe)
-                    clean_dataframe['fund'] = fund
-                    logger.info(f"Cleaned raw {query} dataframe")
+                    logger.info(f"Dropping raw {query} file for {fund} fund into S3")
+                    file_name = f"{date}/{query}/{date}_{query}_{fund}.csv"
+                    s3.drop_file(file_name, 'ibkr-historical-data', raw_dataframe)
 
                     # Load (this step will create or replace the raw dataframes corresponding stage table)
-                    stage_table = f"{date}_{fund}_{query}"
-                    logger.info(f"Loading cleaned {query} dataframe into stage table: {stage_table}")
-                    db.load_dataframe(clean_dataframe, stage_table)
+                    stage_table = f"{date}_{fund.upper()}_{query.upper()}"
+                    logger.info(f"Loading raw {query} dataframe into stage table: {stage_table}")
+                    db.load_dataframe(raw_dataframe, stage_table)
+
+                    # Clean table (drop duplicate rows, remove extra headers, add fund, add date)
+                    xf_table = 'XF_' + stage_table
+                    xf_template = f"chron2/sql/transform/transform_{query}.sql"
+                    xf_params = {'stage_table': stage_table, 'xf_table': xf_table, 'fund': fund}
+                    xf_query = render_sql(xf_template, xf_params)
+                    logger.info(f"Creating transform table: {stage_table} -> {xf_table}")
+                    db.execute_sql(xf_query)
 
                     # Create core table if it doesn't already exist
                     create_template = f"chron2/sql/create/create_{query}.sql"
@@ -45,20 +50,20 @@ def main():
                     logger.info(f"Verifying that {query} table exists")
                     db.execute_sql(create_query)
 
-                    # Merge
+                    # Merge xf table into core table
                     merge_template = f"chron2/sql/merge/merge_{query}.sql"
-                    merge_params = {'stage_table': stage_table}
+                    merge_params = {'xf_table': xf_table}
                     merge_query = render_sql(merge_template, merge_params)
-                    logger.info(f"Merging {stage_table} into {query} table")
+                    logger.info(f"Merging {stage_table} into {query.upper()} table")
                     db.execute_sql(merge_query)
 
-                    # Clean Up
+                    # Clean up (drop temporary tables)
                     drop_query = f""" 
                         DROP TABLE "{stage_table}";
+                        DROP TABLE "{xf_table}";
                     """
-                    logger.info(f"Dropping table {stage_table}")
+                    logger.info(f"Dropping {stage_table} and {xf_table} tables ")
                     db.execute_sql(drop_query)
-
 
                 except Exception as query_error:
                     logger.error(f"An error occurred during the {query} query for {fund}: {str(query_error)}")
