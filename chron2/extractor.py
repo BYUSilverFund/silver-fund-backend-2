@@ -8,18 +8,19 @@ from fredapi import Fred
 from dotenv import load_dotenv
 import pandas_market_calendars as mcal
 
-def ibkr_query(fund, token, query):
+def ibkr_query(fund, token, query_id):
+    
     # Checks
     if not token:
         print('No token specified')
         return
 
-    if not query:
+    if not query_id:
         print('No query id specified')
         return
 
     # Request 1
-    url = f'https://ndcdyn.interactivebrokers.com/AccountManagement/FlexWebService/SendRequest?t={token}&q={query}&v=3'
+    url = f'https://ndcdyn.interactivebrokers.com/AccountManagement/FlexWebService/SendRequest?t={token}&q={query_id}&v=3'
     user_agent = {'User-agent': 'Python/3.9'}
     response = requests.get(url, headers=user_agent)
     reference_code = re.findall('(?<=<ReferenceCode>)\d*(?=<\/ReferenceCode>)', response.text)[0]
