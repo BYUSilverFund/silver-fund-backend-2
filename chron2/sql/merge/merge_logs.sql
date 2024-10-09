@@ -1,8 +1,8 @@
 INSERT INTO logs
 (
-    date,
-    fund,
-    logs
+    CALDT,
+    FUND,
+    LOGS
 )
 VALUES
 (
@@ -10,6 +10,6 @@ VALUES
     '{{fund}}',
     '{{logs}}'
 )
-ON CONFLICT (date, fund)
+ON CONFLICT (CALDT, FUND)
 DO UPDATE SET
-    logs = EXCLUDED.logs;
+    LOGS = EXCLUDED.LOGS;
