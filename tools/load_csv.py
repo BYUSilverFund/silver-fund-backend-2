@@ -6,7 +6,7 @@ import pandas as pd
 # Add the parent directory to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from chron2.utils import clean_ibkr_dataframe, render_sql, get_fund
+from shared.utils import clean_ibkr_dataframe, render_sql, get_fund
 from shared.database import Database
 
 db = Database()

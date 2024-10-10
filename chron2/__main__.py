@@ -1,6 +1,6 @@
 from .config import config
 from .extractor import *
-from .utils import render_sql
+from shared.utils import render_sql
 from shared.database import Database
 from shared.s3 import S3
 from datetime import datetime
@@ -73,12 +73,17 @@ def main():
             logger.error(f"An error occurred for the {fund} fund: {str(fund_error)}")
             continue  # Continue with the next fund
 
+        # Create logs table if not exists
+        create_logs_template = f"chron2/sql/create/create_logs.sql"
+        create_logs_query = render_sql(create_logs_template)
+        db.execute_sql(create_logs_query)
+
         # Record logs in database
         logs = logger.get_logs()
-        logs_template = f"chron2/sql/merge/merge_logs.sql"
-        logs_params = {'fund': fund, 'date': date, 'logs': logs}
-        logs_query = render_sql(logs_template, logs_params)
-        db.execute_sql(logs_query)
+        insert_logs_template = f"chron2/sql/merge/merge_logs.sql"
+        insert_logs_params = {'fund': fund, 'date': date, 'logs': logs}
+        insert_logs_query = render_sql(insert_logs_template, insert_logs_params)
+        db.execute_sql(insert_logs_query)
         logger.info(f"Stored logs for fund: {fund}")
         logger.clear_logs()
 
