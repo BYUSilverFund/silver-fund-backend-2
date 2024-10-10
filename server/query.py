@@ -9,57 +9,57 @@ class Query:
     def get_fund_df(self, start_date: str, end_date: str) -> pd.DataFrame:
         query_string = f'''
             WITH
-                fund_query AS(
+                FUND_QUERY AS(
                     SELECT
                         CALDT,
-                        SUM(STARTING_VALUE) as STARTING_VALUE,
-                        SUM(ENDING_VALUE) as ENDING_VALUE
+                        SUM(STARTING_VALUE) AS STARTING_VALUE,
+                        SUM(ENDING_VALUE) AS ENDING_VALUE
                     FROM DELTA_NAV
                     GROUP BY CALDT
                     ORDER BY CALDT
                 ),
-                fund_xf AS(
+                FUND_XF AS(
                     SELECT
                         CALDT,
-                        starting_value,
-                        ending_value,
-                        ending_value / starting_value - 1 AS return
-                    FROM fund_query
-                    WHERE starting_value <> 0
+                        STARTING_VALUE,
+                        ENDING_VALUE,
+                        ENDING_VALUE / STARTING_VALUE - 1 AS RETURN
+                    FROM FUND_QUERY
+                    WHERE STARTING_VALUE <> 0
                 ),
-                dividends_query AS(
+                DIVIDENDS_QUERY AS(
                     SELECT
                         CALDT,
-                        fund,
-                        "Symbol" AS ticker,
-                        AVG("GrossAmount"::DECIMAL) AS div_gross_amount
-                    FROM dividends
-                    GROUP BY CALDT, fund, "Symbol"
+                        FUND,
+                        TICKER,
+                        AVG(GROSS_AMOUNT) AS DIV_GROSS_AMOUNT
+                    FROM DIVIDENDS
+                    GROUP BY CALDT, FUND, TICKER
                 ),
-                dividends_xf AS(
+                DIVIDENDS_XF AS(
                     SELECT
                         CALDT,
-                        SUM(div_gross_amount) AS dividends
-                    FROM dividends_query
+                        SUM(DIV_GROSS_AMOUNT) AS DIVIDENDS
+                    FROM DIVIDENDS_QUERY
                     GROUP BY CALDT
                 ),
-                join_table AS(
+                JOIN_TABLE AS(
                     SELECT
-                        f.CALDT,
-                        f.starting_value,
-                        f.ending_value,
-                        COALESCE(d.dividends, 0) AS dividends,
-                        f.return,
-                        COALESCE(r.return, LAG(r.return) OVER (ORDER BY r.CALDT)) AS rf_return,
-                        f.return - COALESCE(r.return, LAG(r.return) OVER (ORDER BY r.CALDT)) AS xs_return
-                    FROM fund_xf f
-                    LEFT JOIN risk_free_rate r ON f.CALDT = r.CALDT
-                    LEFT JOIN dividends_xf d ON f.CALDT = d.CALDT
-                    WHERE f.return <> 0
-                        AND f.CALDT BETWEEN '{start_date}' AND '{end_date}'
+                        F.CALDT,
+                        F.STARTING_VALUE,
+                        F.ENDING_VALUE,
+                        COALESCE(D.DIVIDENDS, 0) AS DIVIDENDS,
+                        F.RETURN,
+                        COALESCE(R.RETURN, LAG(R.RETURN) OVER (ORDER BY R.CALDT)) AS RF_RETURN,
+                        F.RETURN - COALESCE(R.RETURN, LAG(R.RETURN) OVER (ORDER BY R.CALDT)) AS XS_RETURN
+                    FROM FUND_XF F
+                    LEFT JOIN RISK_FREE_RATE R ON F.CALDT = R.CALDT
+                    LEFT JOIN DIVIDENDS_XF D ON F.CALDT = D.CALDT
+                    WHERE F.RETURN <> 0
+                        AND F.CALDT BETWEEN '{start_date}' AND '{end_date}'
                     ORDER BY CALDT
                 )
-            SELECT * FROM join_table;
+            SELECT * FROM JOIN_TABLE;
         '''
 
         df = self.db.get_dataframe(query_string)
@@ -69,568 +69,568 @@ class Query:
     def get_portfolio_df(self, fund: str, start_date: str, end_date: str) -> pd.DataFrame:
         query_string = f'''
             WITH
-                port_query AS(
+                PORT_QUERY AS(
                     SELECT 
                          CALDT,
-                         fund,
-                         "StartingValue"::DECIMAL AS starting_value,
-                         "EndingValue"::DECIMAL - "DepositsWithdrawals"::DECIMAL AS ending_value
-                    FROM delta_nav
-                    WHERE fund = '{fund}'
+                         FUND,
+                         "STARTINGVALUE"::DECIMAL AS STARTING_VALUE,
+                         "ENDINGVALUE"::DECIMAL - "DEPOSITSWITHDRAWALS"::DECIMAL AS ENDING_VALUE
+                    FROM DELTA_NAV
+                    WHERE FUND = '{fund}'
                 ),
-                port_xf AS(
+                PORT_XF AS(
                     SELECT
-                        p.CALDT,
-                        p.fund,
-                        starting_value,
-                        ending_value,
-                        ending_value / starting_value - 1 AS return
-                    FROM port_query p
+                        P.CALDT,
+                        P.FUND,
+                        STARTING_VALUE,
+                        ENDING_VALUE,
+                        ENDING_VALUE / STARTING_VALUE - 1 AS RETURN
+                    FROM PORT_QUERY P
                 ),
-                dividends_query AS(
-                    SELECT
-                        CALDT,
-                        fund,
-                        "Symbol" AS ticker,
-                        AVG("GrossAmount"::DECIMAL) AS div_gross_amount
-                    FROM dividends
-                    WHERE fund = '{fund}'
-                    GROUP BY CALDT, fund, "Symbol"
-                ),
-                dividends_xf AS(
+                DIVIDENDS_QUERY AS(
                     SELECT
                         CALDT,
-                        fund,
-                        SUM(div_gross_amount) AS dividends
-                    FROM dividends_query
-                    GROUP BY CALDT, fund
+                        FUND,
+                        "SYMBOL" AS TICKER,
+                        AVG("GROSSAMOUNT"::DECIMAL) AS DIV_GROSS_AMOUNT
+                    FROM DIVIDENDS
+                    WHERE FUND = '{fund}'
+                    GROUP BY CALDT, FUND, "SYMBOL"
                 ),
-                join_table AS (
+                DIVIDENDS_XF AS(
+                    SELECT
+                        CALDT,
+                        FUND,
+                        SUM(DIV_GROSS_AMOUNT) AS DIVIDENDS
+                    FROM DIVIDENDS_QUERY
+                    GROUP BY CALDT, FUND
+                ),
+                JOIN_TABLE AS (
                     SELECT 
-                         p.CALDT,
-                         p.fund,
-                         p.starting_value,
-                         p.ending_value,
-                         COALESCE(d.dividends, 0) AS dividends,
-                         p.return,
-                        COALESCE(r.return, LAG(r.return) OVER (ORDER BY r.CALDT)) AS rf_return,
-                        p.return - COALESCE(r.return, LAG(r.return) OVER (ORDER BY r.CALDT)) AS xs_return
-                    FROM port_xf p
-                    LEFT JOIN risk_free_rate r ON p.CALDT = r.CALDT
-                    LEFT JOIN dividends_xf d ON p.CALDT = d.CALDT
-                    WHERE starting_value <> 0
-                        AND p.return <> 0
-                        AND ending_value / starting_value - 1 <> 0
-                        AND p.CALDT BETWEEN '{start_date}' AND '{end_date}'
+                         P.CALDT,
+                         P.FUND,
+                         P.STARTING_VALUE,
+                         P.ENDING_VALUE,
+                         COALESCE(D.DIVIDENDS, 0) AS DIVIDENDS,
+                         P.RETURN,
+                        COALESCE(R.RETURN, LAG(R.RETURN) OVER (ORDER BY R.CALDT)) AS RF_RETURN,
+                        P.RETURN - COALESCE(R.RETURN, LAG(R.RETURN) OVER (ORDER BY R.CALDT)) AS XS_RETURN
+                    FROM PORT_XF P
+                    LEFT JOIN RISK_FREE_RATE R ON P.CALDT = R.CALDT
+                    LEFT JOIN DIVIDENDS_XF D ON P.CALDT = D.CALDT
+                    WHERE STARTING_VALUE <> 0
+                        AND P.RETURN <> 0
+                        AND ENDING_VALUE / STARTING_VALUE - 1 <> 0
+                        AND P.CALDT BETWEEN '{start_date}' AND '{end_date}'
                 )
-            SELECT * FROM join_table
+            SELECT * FROM JOIN_TABLE
         '''
 
-        df = self.db.execute_query(query_string)
+        df = self.db.get_dataframe(query_string)
 
         return df
 
     def get_holding_df(self, fund: str, ticker: str, start_date: str, end_date: str) -> pd.DataFrame:
         query_string = f'''
             WITH
-                positions_query AS (
+                POSITIONS_QUERY AS (
                     SELECT
                         CALDT,
-                        fund,
-                        "Symbol" AS ticker,
-                        CASE WHEN AVG("Quantity"::DECIMAL) > 0 THEN 1 ELSE -1 END AS side,
-                        AVG("Quantity"::DECIMAL) AS shares_1,
-                        AVG("MarkPrice"::DECIMAL) AS price_1,
-                        AVG("FXRateToBase":: DECIMAL) AS fx_rate_1
-                    FROM positions
-                    WHERE fund = '{fund}'
-                        AND "Symbol" = '{ticker}'
-                        AND "AssetClass" != 'OPT'
-                    GROUP BY CALDT, fund, "Symbol"
+                        FUND,
+                        "SYMBOL" AS TICKER,
+                        CASE WHEN AVG("QUANTITY"::DECIMAL) > 0 THEN 1 ELSE -1 END AS SIDE,
+                        AVG("QUANTITY"::DECIMAL) AS SHARES_1,
+                        AVG("MARKPRICE"::DECIMAL) AS PRICE_1,
+                        AVG("FXRATETOBASE":: DECIMAL) AS FX_RATE_1
+                    FROM POSITIONS
+                    WHERE FUND = '{fund}'
+                        AND "SYMBOL" = '{ticker}'
+                        AND "ASSETCLASS" != 'OPT'
+                    GROUP BY CALDT, FUND, "SYMBOL"
                     ORDER BY CALDT
                 ),
-                dividends_query AS (
+                DIVIDENDS_QUERY AS (
                     SELECT
                         CALDT,
-                        fund,
-                        "Symbol" AS ticker,
-                        AVG("GrossRate"::DECIMAL) AS div_gross_rate,
-                        AVG("GrossAmount"::DECIMAL) AS div_gross_amount -- Sometimes dividends gets double counted
-                    FROM dividends
-                    WHERE fund = '{fund}'
-                        AND "Symbol" = '{ticker}'
-                    GROUP BY CALDT, fund, "Symbol"
+                        FUND,
+                        "SYMBOL" AS TICKER,
+                        AVG("GROSSRATE"::DECIMAL) AS DIV_GROSS_RATE,
+                        AVG("GROSSAMOUNT"::DECIMAL) AS DIV_GROSS_AMOUNT -- SOMETIMES DIVIDENDS GETS DOUBLE COUNTED
+                    FROM DIVIDENDS
+                    WHERE FUND = '{fund}'
+                        AND "SYMBOL" = '{ticker}'
+                    GROUP BY CALDT, FUND, "SYMBOL"
                 ),
-                trades_query AS (
+                TRADES_QUERY AS (
                     SELECT
                         CALDT,
-                        fund,
-                        "Symbol" AS ticker,
-                        CASE WHEN SUM("Quantity"::DECIMAL) > 0 THEN 1 ELSE -1 END AS trade_type,
-                        SUM("Quantity"::DECIMAL) AS shares_traded,
-                        AVG("TradePrice"::DECIMAL) AS trade_price
-                     FROM trades
-                     WHERE fund = '{fund}'
-                       AND "Symbol" = '{ticker}'
-                       AND "AssetClass" != 'OPT'
-                       AND "AssetClass" != 'CASH'
-                       AND "Buy/Sell" != 'SELL (Ca.)'
-                     GROUP BY CALDT, fund, "Symbol"
+                        FUND,
+                        "SYMBOL" AS TICKER,
+                        CASE WHEN SUM("QUANTITY"::DECIMAL) > 0 THEN 1 ELSE -1 END AS TRADE_TYPE,
+                        SUM("QUANTITY"::DECIMAL) AS SHARES_TRADED,
+                        AVG("TRADEPRICE"::DECIMAL) AS TRADE_PRICE
+                     FROM TRADES
+                     WHERE FUND = '{fund}'
+                       AND "SYMBOL" = '{ticker}'
+                       AND "ASSETCLASS" != 'OPT'
+                       AND "ASSETCLASS" != 'CASH'
+                       AND "BUY/SELL" != 'SELL (CA.)'
+                     GROUP BY CALDT, FUND, "SYMBOL"
                 ),
-                trades_xf AS(
+                TRADES_XF AS(
                     SELECT
                         CALDT,
-                        fund,
-                        ticker,
-                        trade_type,
-                        shares_traded,
-                        trade_price
-                    FROM trades_query
-                    WHERE shares_traded <> 0
+                        FUND,
+                        TICKER,
+                        TRADE_TYPE,
+                        SHARES_TRADED,
+                        TRADE_PRICE
+                    FROM TRADES_QUERY
+                    WHERE SHARES_TRADED <> 0
                 ),
-                nav_query AS(
+                NAV_QUERY AS(
                     SELECT
                         CALDT,
-                        fund,
-                        "Stock"::DECIMAL AS total_stock_1
-                    FROM nav
-                    WHERE fund = '{fund}'
-                        AND "Stock"::DECIMAL <> 0
+                        FUND,
+                        "STOCK"::DECIMAL AS TOTAL_STOCK_1
+                    FROM NAV
+                    WHERE FUND = '{fund}'
+                        AND "STOCK"::DECIMAL <> 0
                 ),
-                join_table_1 AS( -- Merge trades and dividends into positions
+                JOIN_TABLE_1 AS( -- MERGE TRADES AND DIVIDENDS INTO POSITIONS
                     SELECT
-                           COALESCE(p.CALDT, t.CALDT) AS CALDT,
-                           COALESCE(p.fund, t.fund) AS fund,
-                           COALESCE(p.ticker, t.ticker) AS ticker,
-                           p.side,
-                           p.shares_1,
-                           p.price_1,
-                           p.fx_rate_1,
-                           t.trade_type,
-                           COALESCE(t.shares_traded, 0) AS shares_traded,
-                           t.trade_price,
-                           COALESCE(d.div_gross_rate,0) as div_gross_rate,
-                           COALESCE(d.div_gross_amount, 0) AS dividends
-                    FROM positions_query p
-                    FULL JOIN trades_xf t ON p.CALDT = t.CALDT AND p.ticker = t.ticker AND p.fund = t.fund
-                    LEFT JOIN dividends_query d ON p.CALDT = d.CALDT AND p.ticker = d.ticker AND p.fund = d.fund
-                    ORDER BY COALESCE(p.CALDT, t.CALDT)
+                           COALESCE(P.CALDT, T.CALDT) AS CALDT,
+                           COALESCE(P.FUND, T.FUND) AS FUND,
+                           COALESCE(P.TICKER, T.TICKER) AS TICKER,
+                           P.SIDE,
+                           P.SHARES_1,
+                           P.PRICE_1,
+                           P.FX_RATE_1,
+                           T.TRADE_TYPE,
+                           COALESCE(T.SHARES_TRADED, 0) AS SHARES_TRADED,
+                           T.TRADE_PRICE,
+                           COALESCE(D.DIV_GROSS_RATE,0) AS DIV_GROSS_RATE,
+                           COALESCE(D.DIV_GROSS_AMOUNT, 0) AS DIVIDENDS
+                    FROM POSITIONS_QUERY P
+                    FULL JOIN TRADES_XF T ON P.CALDT = T.CALDT AND P.TICKER = T.TICKER AND P.FUND = T.FUND
+                    LEFT JOIN DIVIDENDS_QUERY D ON P.CALDT = D.CALDT AND P.TICKER = D.TICKER AND P.FUND = D.FUND
+                    ORDER BY COALESCE(P.CALDT, T.CALDT)
                 ),
-                join_table_2 AS( -- Coalesce and lag missing values
+                JOIN_TABLE_2 AS( -- COALESCE AND LAG MISSING VALUES
                     SELECT
                            CALDT,
-                           fund,
-                           ticker,
-                           COALESCE(LAG(side) OVER (PARTITION BY ticker ORDER BY CALDT), side) AS side,
-                           COALESCE(LAG(shares_1) OVER (PARTITION BY ticker ORDER BY CALDT), shares_traded) AS shares_0,
-                           COALESCE(CASE WHEN shares_1 - shares_traded = 0 THEN shares_1 ELSE shares_1 - shares_traded END , shares_traded * -1) AS shares_1,
-                           COALESCE(LAG(price_1) OVER (PARTITION BY ticker ORDER BY CALDT), trade_price) AS price_0,
-                           COALESCE(price_1, trade_price) AS price_1,
-                           COALESCE(LAG(fx_rate_1) OVER (PARTITION BY ticker ORDER BY CALDT), fx_rate_1) AS fx_rate_0,
-                           COALESCE(fx_rate_1, LAG(fx_rate_1) OVER (PARTITION BY ticker ORDER BY CALDT)) AS fx_rate_1,
-                           trade_type,
-                           shares_traded,
-                           trade_price,
-                           div_gross_rate,
-                           dividends
-                    FROM join_table_1
+                           FUND,
+                           TICKER,
+                           COALESCE(LAG(SIDE) OVER (PARTITION BY TICKER ORDER BY CALDT), SIDE) AS SIDE,
+                           COALESCE(LAG(SHARES_1) OVER (PARTITION BY TICKER ORDER BY CALDT), SHARES_TRADED) AS SHARES_0,
+                           COALESCE(CASE WHEN SHARES_1 - SHARES_TRADED = 0 THEN SHARES_1 ELSE SHARES_1 - SHARES_TRADED END , SHARES_TRADED * -1) AS SHARES_1,
+                           COALESCE(LAG(PRICE_1) OVER (PARTITION BY TICKER ORDER BY CALDT), TRADE_PRICE) AS PRICE_0,
+                           COALESCE(PRICE_1, TRADE_PRICE) AS PRICE_1,
+                           COALESCE(LAG(FX_RATE_1) OVER (PARTITION BY TICKER ORDER BY CALDT), FX_RATE_1) AS FX_RATE_0,
+                           COALESCE(FX_RATE_1, LAG(FX_RATE_1) OVER (PARTITION BY TICKER ORDER BY CALDT)) AS FX_RATE_1,
+                           TRADE_TYPE,
+                           SHARES_TRADED,
+                           TRADE_PRICE,
+                           DIV_GROSS_RATE,
+                           DIVIDENDS
+                    FROM JOIN_TABLE_1
                 ),
-                join_table_3 AS(
+                JOIN_TABLE_3 AS(
                     SELECT
                            CALDT,
-                           fund,
-                           ticker,
-                           side,
-                           shares_0,
-                           shares_1,
-                           price_0,
-                           price_1,
-                           fx_rate_0,
-                           fx_rate_1,
-                           shares_0 * price_0 * fx_rate_0 AS value_0,
-                           shares_1 * price_1 * fx_rate_1 AS value_1,
-                           trade_type,
-                           shares_traded,
-                           trade_price,
-                           div_gross_rate,
-                           dividends
-                    FROM join_table_2
+                           FUND,
+                           TICKER,
+                           SIDE,
+                           SHARES_0,
+                           SHARES_1,
+                           PRICE_0,
+                           PRICE_1,
+                           FX_RATE_0,
+                           FX_RATE_1,
+                           SHARES_0 * PRICE_0 * FX_RATE_0 AS VALUE_0,
+                           SHARES_1 * PRICE_1 * FX_RATE_1 AS VALUE_1,
+                           TRADE_TYPE,
+                           SHARES_TRADED,
+                           TRADE_PRICE,
+                           DIV_GROSS_RATE,
+                           DIVIDENDS
+                    FROM JOIN_TABLE_2
                 ),
-                join_table_4 AS( -- Compute weights and returns
+                JOIN_TABLE_4 AS( -- COMPUTE WEIGHTS AND RETURNS
                     SELECT
-                        p.CALDT,
-                        p.fund,
-                        ticker,
-                        p.side,
-                        shares_1,
-                        price_1,
-                        fx_rate_1,
-                        value_1,
-                        n.total_stock_1,
-                        value_1 / n.total_stock_1 AS weight_1,
-                        div_gross_rate,
-                        dividends,
-                        CASE WHEN side = 1 THEN (value_1 / value_0 - 1) ELSE (value_0 / value_1 - 1) END AS return,
-                        CASE WHEN side = 1 THEN ((value_1 + dividends) / value_0 - 1) ELSE (value_0 / (value_1 + dividends) - 1) END AS div_return
-                    FROM join_table_3 p
-                    LEFT JOIN nav_query n ON p.CALDT = n.CALDT AND p.fund = n.fund
+                        P.CALDT,
+                        P.FUND,
+                        TICKER,
+                        P.SIDE,
+                        SHARES_1,
+                        PRICE_1,
+                        FX_RATE_1,
+                        VALUE_1,
+                        N.TOTAL_STOCK_1,
+                        VALUE_1 / N.TOTAL_STOCK_1 AS WEIGHT_1,
+                        DIV_GROSS_RATE,
+                        DIVIDENDS,
+                        CASE WHEN SIDE = 1 THEN (VALUE_1 / VALUE_0 - 1) ELSE (VALUE_0 / VALUE_1 - 1) END AS RETURN,
+                        CASE WHEN SIDE = 1 THEN ((VALUE_1 + DIVIDENDS) / VALUE_0 - 1) ELSE (VALUE_0 / (VALUE_1 + DIVIDENDS) - 1) END AS DIV_RETURN
+                    FROM JOIN_TABLE_3 P
+                    LEFT JOIN NAV_QUERY N ON P.CALDT = N.CALDT AND P.FUND = N.FUND
                 ),
-                join_table_5 AS( -- Compute excess returns
+                JOIN_TABLE_5 AS( -- COMPUTE EXCESS RETURNS
                     SELECT
-                       a.CALDT,
-                       a.fund,
-                       a.ticker,
-                       a.side,
-                       a.price_1 AS price,
-                       a.shares_1 AS shares,
-                       a.fx_rate_1 AS fx_rate,
-                       a.value_1 AS value,
-                       a.weight_1 AS weight,
-                       a.div_gross_rate / a.price_1 AS dividend_yield,
-                       a.dividends,
-                       a.return,
-                       a.div_return,
-                       COALESCE(c.return, LAG(c.return) OVER (ORDER BY c.CALDT)) AS rf_return,
-                       a.return - COALESCE(c.return, LAG(c.return) OVER (ORDER BY c.CALDT)) AS xs_return,
-                       a.div_return - COALESCE(c.return, LAG(c.return) OVER (ORDER BY c.CALDT)) AS xs_div_return
-                    FROM join_table_4 a
-                    LEFT JOIN risk_free_rate c ON a.CALDT = c.CALDT
-                    INNER JOIN calendar d ON a.CALDT = d.CALDT -- remove holidays
-                    WHERE a.CALDT BETWEEN '{start_date}' AND '{end_date}'
+                       A.CALDT,
+                       A.FUND,
+                       A.TICKER,
+                       A.SIDE,
+                       A.PRICE_1 AS PRICE,
+                       A.SHARES_1 AS SHARES,
+                       A.FX_RATE_1 AS FX_RATE,
+                       A.VALUE_1 AS VALUE,
+                       A.WEIGHT_1 AS WEIGHT,
+                       A.DIV_GROSS_RATE / A.PRICE_1 AS DIVIDEND_YIELD,
+                       A.DIVIDENDS,
+                       A.RETURN,
+                       A.DIV_RETURN,
+                       COALESCE(C.RETURN, LAG(C.RETURN) OVER (ORDER BY C.CALDT)) AS RF_RETURN,
+                       A.RETURN - COALESCE(C.RETURN, LAG(C.RETURN) OVER (ORDER BY C.CALDT)) AS XS_RETURN,
+                       A.DIV_RETURN - COALESCE(C.RETURN, LAG(C.RETURN) OVER (ORDER BY C.CALDT)) AS XS_DIV_RETURN
+                    FROM JOIN_TABLE_4 A
+                    LEFT JOIN RISK_FREE_RATE C ON A.CALDT = C.CALDT
+                    INNER JOIN CALENDAR D ON A.CALDT = D.CALDT -- REMOVE HOLIDAYS
+                    WHERE A.CALDT BETWEEN '{start_date}' AND '{end_date}'
                 )
-            SELECT * FROM join_table_5;
+            SELECT * FROM JOIN_TABLE_5;
         '''
 
-        df = self.db.execute_query(query_string)
+        df = self.db.get_dataframe(query_string)
 
         return df
 
-    def get_all_holdings_df(self, fund: str, start: str, end: str):
+    def get_all_holdings_df(self, fund: str, start_date: str, end_date: str):
         query_string = f'''
             WITH
-                positions_query AS (
+                POSITIONS_QUERY AS (
                     SELECT
                         CALDT,
-                        fund,
-                        "Symbol" AS ticker,
-                        CASE WHEN AVG("Quantity"::DECIMAL) > 0 THEN 1 ELSE -1 END AS side,
-                        AVG("Quantity"::DECIMAL) AS shares_1,
-                        AVG("MarkPrice"::DECIMAL) AS price_1,
-                        AVG("FXRateToBase":: DECIMAL) AS fx_rate_1
-                    FROM positions
-                    WHERE fund = '{fund}'
-                        AND "AssetClass" != 'OPT'
-                        AND "Symbol" != 'VMFXX'
-                    GROUP BY CALDT, fund, "Symbol"
-                    ORDER BY ticker, CALDT
+                        FUND,
+                        "SYMBOL" AS TICKER,
+                        CASE WHEN AVG("QUANTITY"::DECIMAL) > 0 THEN 1 ELSE -1 END AS SIDE,
+                        AVG("QUANTITY"::DECIMAL) AS SHARES_1,
+                        AVG("MARKPRICE"::DECIMAL) AS PRICE_1,
+                        AVG("FXRATETOBASE":: DECIMAL) AS FX_RATE_1
+                    FROM POSITIONS
+                    WHERE FUND = '{fund}'
+                        AND "ASSETCLASS" != 'OPT'
+                        AND "SYMBOL" != 'VMFXX'
+                    GROUP BY CALDT, FUND, "SYMBOL"
+                    ORDER BY TICKER, CALDT
                 ),
-                dividends_query AS (
+                DIVIDENDS_QUERY AS (
                     SELECT
                         CALDT,
-                        fund,
-                        "Symbol" AS ticker,
-                        AVG("GrossRate"::DECIMAL) AS div_gross_rate,
-                        AVG("GrossAmount"::DECIMAL) AS div_gross_amount -- Sometimes dividends gets double counted
-                    FROM dividends
-                    WHERE fund = '{fund}'
-                        AND "Symbol" != 'VMFXX'
-                    GROUP BY CALDT, fund, "Symbol"
+                        FUND,
+                        "SYMBOL" AS TICKER,
+                        AVG("GROSSRATE"::DECIMAL) AS DIV_GROSS_RATE,
+                        AVG("GROSSAMOUNT"::DECIMAL) AS DIV_GROSS_AMOUNT -- SOMETIMES DIVIDENDS GETS DOUBLE COUNTED
+                    FROM DIVIDENDS
+                    WHERE FUND = '{fund}'
+                        AND "SYMBOL" != 'VMFXX'
+                    GROUP BY CALDT, FUND, "SYMBOL"
                 ),
-                trades_query AS(
+                TRADES_QUERY AS(
                     SELECT
                         CALDT,
-                        fund,
-                        "Symbol" as ticker,
-                        CASE WHEN SUM("Quantity"::DECIMAL) > 0 THEN 1 ELSE -1 END AS trade_type,
-                        SUM("Quantity"::DECIMAL) AS shares_traded,
-                        AVG("TradePrice"::DECIMAL) as trade_price
-                    FROM trades
-                    WHERE fund = '{fund}'
-                        AND "AssetClass" != 'OPT'
-                        AND "AssetClass" != 'CASH'
-                        AND "Buy/Sell" != 'SELL (Ca.)'
-                        AND "Symbol" != 'VMFXX'
-                    GROUP BY CALDT, fund, "Symbol"
+                        FUND,
+                        "SYMBOL" AS TICKER,
+                        CASE WHEN SUM("QUANTITY"::DECIMAL) > 0 THEN 1 ELSE -1 END AS TRADE_TYPE,
+                        SUM("QUANTITY"::DECIMAL) AS SHARES_TRADED,
+                        AVG("TRADEPRICE"::DECIMAL) AS TRADE_PRICE
+                    FROM TRADES
+                    WHERE FUND = '{fund}'
+                        AND "ASSETCLASS" != 'OPT'
+                        AND "ASSETCLASS" != 'CASH'
+                        AND "BUY/SELL" != 'SELL (CA.)'
+                        AND "SYMBOL" != 'VMFXX'
+                    GROUP BY CALDT, FUND, "SYMBOL"
                 ),
-                trades_xf AS(
+                TRADES_XF AS(
                     SELECT
                         CALDT,
-                        fund,
-                        ticker,
-                        trade_type,
-                        shares_traded,
-                        trade_price
-                    FROM trades_query
-                    WHERE shares_traded <> 0
+                        FUND,
+                        TICKER,
+                        TRADE_TYPE,
+                        SHARES_TRADED,
+                        TRADE_PRICE
+                    FROM TRADES_QUERY
+                    WHERE SHARES_TRADED <> 0
                 ),
-                nav_query AS(
+                NAV_QUERY AS(
                     SELECT
                         CALDT,
-                        fund,
-                        "Stock"::DECIMAL AS total_stock_1
-                    FROM nav
-                    WHERE fund = '{fund}'
-                        AND "Stock"::DECIMAL <> 0
+                        FUND,
+                        "STOCK"::DECIMAL AS TOTAL_STOCK_1
+                    FROM NAV
+                    WHERE FUND = '{fund}'
+                        AND "STOCK"::DECIMAL <> 0
                 ),
-                join_table_1 AS( -- Merge trades and dividends into positions
+                JOIN_TABLE_1 AS( -- MERGE TRADES AND DIVIDENDS INTO POSITIONS
                     SELECT
-                        COALESCE(p.CALDT, t.CALDT) AS CALDT,
-                        COALESCE(p.fund, t.fund) AS fund,
-                        COALESCE(p.ticker, t.ticker) AS ticker,
-                        p.side,
-                        p.shares_1,
-                        p.price_1,
-                        p.fx_rate_1,
-                        t.trade_type,
-                        COALESCE(t.shares_traded, 0) AS shares_traded,
-                        t.trade_price,
-                        COALESCE(d.div_gross_rate,0) as div_gross_rate,
-                        COALESCE(d.div_gross_amount, 0) AS dividends
-                    FROM positions_query p
-                    FULL JOIN trades_xf t ON p.CALDT = t.CALDT AND p.ticker = t.ticker AND p.fund = t.fund
-                    LEFT JOIN dividends_query d ON p.CALDT = d.CALDT AND p.ticker = d.ticker AND p.fund = d.fund
-                    ORDER BY ticker, COALESCE(p.CALDT, t.CALDT)
+                        COALESCE(P.CALDT, T.CALDT) AS CALDT,
+                        COALESCE(P.FUND, T.FUND) AS FUND,
+                        COALESCE(P.TICKER, T.TICKER) AS TICKER,
+                        P.SIDE,
+                        P.SHARES_1,
+                        P.PRICE_1,
+                        P.FX_RATE_1,
+                        T.TRADE_TYPE,
+                        COALESCE(T.SHARES_TRADED, 0) AS SHARES_TRADED,
+                        T.TRADE_PRICE,
+                        COALESCE(D.DIV_GROSS_RATE,0) AS DIV_GROSS_RATE,
+                        COALESCE(D.DIV_GROSS_AMOUNT, 0) AS DIVIDENDS
+                    FROM POSITIONS_QUERY P
+                    FULL JOIN TRADES_XF T ON P.CALDT = T.CALDT AND P.TICKER = T.TICKER AND P.FUND = T.FUND
+                    LEFT JOIN DIVIDENDS_QUERY D ON P.CALDT = D.CALDT AND P.TICKER = D.TICKER AND P.FUND = D.FUND
+                    ORDER BY TICKER, COALESCE(P.CALDT, T.CALDT)
                 ),
-                join_table_2 AS( -- Coalesce and lag missing values
-                    SELECT
-                        CALDT,
-                        fund,
-                        ticker,
-                        COALESCE(LAG(side) OVER (PARTITION BY ticker ORDER BY CALDT), side) AS side,
-                        COALESCE(LAG(shares_1) OVER (PARTITION BY ticker ORDER BY CALDT), shares_traded) AS shares_0,
-                        COALESCE(CASE WHEN shares_1 - shares_traded = 0 THEN shares_1 ELSE shares_1 - shares_traded END , shares_traded * -1) AS shares_1,
-                        COALESCE(LAG(price_1) OVER (PARTITION BY ticker ORDER BY CALDT), trade_price) AS price_0,
-                        COALESCE(price_1, trade_price) AS price_1,
-                        COALESCE(LAG(fx_rate_1) OVER (PARTITION BY ticker ORDER BY CALDT), fx_rate_1) AS fx_rate_0,
-                        COALESCE(fx_rate_1, LAG(fx_rate_1) OVER (PARTITION BY ticker ORDER BY CALDT)) AS fx_rate_1,
-                        trade_type,
-                        shares_traded,
-                        trade_price,
-                        div_gross_rate,
-                        dividends
-                    FROM join_table_1
-                ),
-                join_table_3 AS(
+                JOIN_TABLE_2 AS( -- COALESCE AND LAG MISSING VALUES
                     SELECT
                         CALDT,
-                        fund,
-                        ticker,
-                        side,
-                        shares_0,
-                        shares_1,
-                        price_0,
-                        price_1,
-                        fx_rate_0,
-                        fx_rate_1,
-                        shares_0 * price_0 * fx_rate_0 AS value_0,
-                        shares_1 * price_1 * fx_rate_1 AS value_1,
-                        trade_type,
-                        shares_traded,
-                        trade_price,
-                        div_gross_rate,
-                        dividends
-                    FROM join_table_2
+                        FUND,
+                        TICKER,
+                        COALESCE(LAG(SIDE) OVER (PARTITION BY TICKER ORDER BY CALDT), SIDE) AS SIDE,
+                        COALESCE(LAG(SHARES_1) OVER (PARTITION BY TICKER ORDER BY CALDT), SHARES_TRADED) AS SHARES_0,
+                        COALESCE(CASE WHEN SHARES_1 - SHARES_TRADED = 0 THEN SHARES_1 ELSE SHARES_1 - SHARES_TRADED END , SHARES_TRADED * -1) AS SHARES_1,
+                        COALESCE(LAG(PRICE_1) OVER (PARTITION BY TICKER ORDER BY CALDT), TRADE_PRICE) AS PRICE_0,
+                        COALESCE(PRICE_1, TRADE_PRICE) AS PRICE_1,
+                        COALESCE(LAG(FX_RATE_1) OVER (PARTITION BY TICKER ORDER BY CALDT), FX_RATE_1) AS FX_RATE_0,
+                        COALESCE(FX_RATE_1, LAG(FX_RATE_1) OVER (PARTITION BY TICKER ORDER BY CALDT)) AS FX_RATE_1,
+                        TRADE_TYPE,
+                        SHARES_TRADED,
+                        TRADE_PRICE,
+                        DIV_GROSS_RATE,
+                        DIVIDENDS
+                    FROM JOIN_TABLE_1
                 ),
-                join_table_4 AS( -- Compute weights and returns
+                JOIN_TABLE_3 AS(
                     SELECT
-                        p.CALDT,
-                        p.fund,
-                        ticker,
-                        p.side,
-                        shares_1,
-                        price_1,
-                        fx_rate_1,
-                        value_1,
-                        n.total_stock_1,
-                        value_1 / n.total_stock_1 AS weight_1,
-                        div_gross_rate,
-                        dividends,
-                        CASE WHEN side = 1 THEN (value_1 / value_0 - 1) ELSE (value_0 / value_1 - 1) END AS return,
-                        CASE WHEN side = 1 THEN ((value_1 + dividends) / value_0 - 1) ELSE (value_0 / (value_1 + dividends) - 1) END AS div_return
-                    FROM join_table_3 p
-                    LEFT JOIN nav_query n ON p.CALDT = n.CALDT AND p.fund = n.fund
-                    ORDER BY ticker, p.CALDT
+                        CALDT,
+                        FUND,
+                        TICKER,
+                        SIDE,
+                        SHARES_0,
+                        SHARES_1,
+                        PRICE_0,
+                        PRICE_1,
+                        FX_RATE_0,
+                        FX_RATE_1,
+                        SHARES_0 * PRICE_0 * FX_RATE_0 AS VALUE_0,
+                        SHARES_1 * PRICE_1 * FX_RATE_1 AS VALUE_1,
+                        TRADE_TYPE,
+                        SHARES_TRADED,
+                        TRADE_PRICE,
+                        DIV_GROSS_RATE,
+                        DIVIDENDS
+                    FROM JOIN_TABLE_2
                 ),
-                join_table_5 AS( -- Compute excess returns
+                JOIN_TABLE_4 AS( -- COMPUTE WEIGHTS AND RETURNS
                     SELECT
-                        a.CALDT,
-                        a.fund,
-                        a.ticker,
-                        a.side,
-                        a.price_1 AS price,
-                        a.shares_1 AS shares,
-                        a.fx_rate_1 AS fx_rate,
-                        a.value_1 AS value,
-                        a.weight_1 AS weight,
-                        a.div_gross_rate / a.price_1 AS dividend_yield,
-                        a.dividends,
-                        a.return,
-                        a.div_return,
-                        COALESCE(c.return, LAG(c.return) OVER (PARTITION BY a.ticker ORDER BY c.CALDT)) AS rf_return,
-                        a.return - COALESCE(c.return, LAG(c.return) OVER (PARTITION BY a.ticker ORDER BY c.CALDT)) AS xs_return,
-                        a.div_return - COALESCE(c.return, LAG(c.return) OVER (PARTITION BY a.ticker ORDER BY c.CALDT)) AS xs_div_return
-                    FROM join_table_4 a
-                    LEFT JOIN risk_free_rate c ON a.CALDT = c.CALDT
-                    INNER JOIN calendar d ON a.CALDT = d.CALDT -- remove holidays
-                    WHERE a.CALDT BETWEEN '{start}' AND '{end}'
-                    ORDER BY ticker, a.CALDT
+                        P.CALDT,
+                        P.FUND,
+                        TICKER,
+                        P.SIDE,
+                        SHARES_1,
+                        PRICE_1,
+                        FX_RATE_1,
+                        VALUE_1,
+                        N.TOTAL_STOCK_1,
+                        VALUE_1 / N.TOTAL_STOCK_1 AS WEIGHT_1,
+                        DIV_GROSS_RATE,
+                        DIVIDENDS,
+                        CASE WHEN SIDE = 1 THEN (VALUE_1 / VALUE_0 - 1) ELSE (VALUE_0 / VALUE_1 - 1) END AS RETURN,
+                        CASE WHEN SIDE = 1 THEN ((VALUE_1 + DIVIDENDS) / VALUE_0 - 1) ELSE (VALUE_0 / (VALUE_1 + DIVIDENDS) - 1) END AS DIV_RETURN
+                    FROM JOIN_TABLE_3 P
+                    LEFT JOIN NAV_QUERY N ON P.CALDT = N.CALDT AND P.FUND = N.FUND
+                    ORDER BY TICKER, P.CALDT
+                ),
+                JOIN_TABLE_5 AS( -- COMPUTE EXCESS RETURNS
+                    SELECT
+                        A.CALDT,
+                        A.FUND,
+                        A.TICKER,
+                        A.SIDE,
+                        A.PRICE_1 AS PRICE,
+                        A.SHARES_1 AS SHARES,
+                        A.FX_RATE_1 AS FX_RATE,
+                        A.VALUE_1 AS VALUE,
+                        A.WEIGHT_1 AS WEIGHT,
+                        A.DIV_GROSS_RATE / A.PRICE_1 AS DIVIDEND_YIELD,
+                        A.DIVIDENDS,
+                        A.RETURN,
+                        A.DIV_RETURN,
+                        COALESCE(C.RETURN, LAG(C.RETURN) OVER (PARTITION BY A.TICKER ORDER BY C.CALDT)) AS RF_RETURN,
+                        A.RETURN - COALESCE(C.RETURN, LAG(C.RETURN) OVER (PARTITION BY A.TICKER ORDER BY C.CALDT)) AS XS_RETURN,
+                        A.DIV_RETURN - COALESCE(C.RETURN, LAG(C.RETURN) OVER (PARTITION BY A.TICKER ORDER BY C.CALDT)) AS XS_DIV_RETURN
+                    FROM JOIN_TABLE_4 A
+                    LEFT JOIN RISK_FREE_RATE C ON A.CALDT = C.CALDT
+                    INNER JOIN CALENDAR D ON A.CALDT = D.CALDT -- REMOVE HOLIDAYS
+                    WHERE A.CALDT BETWEEN '{start_date}' AND '{end_date}'
+                    ORDER BY TICKER, A.CALDT
                 )
-                SELECT * FROM join_table_5;
+                SELECT * FROM JOIN_TABLE_5;
         '''
 
-        df = self.db.execute_query(query_string)
+        df = self.db.get_dataframe(query_string)
 
         return df
 
-    def get_benchmark_df(self, start: str, end: str):
+    def get_benchmark_df(self, start_date: str, end_date: str):
         query_string = f"""
             WITH
-            bmk_query AS(
+            BMK_QUERY AS(
                 SELECT
                     CALDT,
-                    LAG(ending_value) OVER (ORDER BY CALDT) AS starting_value,
-                    ending_value
-                FROM benchmark
+                    LAG(ENDING_VALUE) OVER (ORDER BY CALDT) AS STARTING_VALUE,
+                    ENDING_VALUE
+                FROM BENCHMARK
             ),
-            dividend_query AS(
+            DIVIDEND_QUERY AS(
                 SELECT
                     CALDT,
-                    AVG("GrossRate"::DECIMAL) AS div_gross_rate
-                FROM dividends
-                WHERE fund = 'undergrad' AND "Symbol" = 'IWV'
+                    AVG("GROSSRATE"::DECIMAL) AS DIV_GROSS_RATE
+                FROM DIVIDENDS
+                WHERE FUND = 'UNDERGRAD' AND "SYMBOL" = 'IWV'
                 GROUP BY CALDT
             ),
-            bmk_xf AS(
+            BMK_XF AS(
                 SELECT
-                    b.CALDT,
-                    b.starting_value,
-                    b.ending_value,
-                    d.div_gross_rate AS dividends,
-                    d.div_gross_rate / b.ending_value AS dividend_yield,
-                    b.ending_value / b.starting_value - 1 AS return,
-                    (b.ending_value + COALESCE(d.div_gross_rate,0)) / b.starting_value - 1 AS div_return
-                FROM bmk_query b
-                LEFT JOIN dividend_query d ON d.CALDT = b.CALDT
+                    B.CALDT,
+                    B.STARTING_VALUE,
+                    B.ENDING_VALUE,
+                    D.DIV_GROSS_RATE AS DIVIDENDS,
+                    D.DIV_GROSS_RATE / B.ENDING_VALUE AS DIVIDEND_YIELD,
+                    B.ENDING_VALUE / B.STARTING_VALUE - 1 AS RETURN,
+                    (B.ENDING_VALUE + COALESCE(D.DIV_GROSS_RATE,0)) / B.STARTING_VALUE - 1 AS DIV_RETURN
+                FROM BMK_QUERY B
+                LEFT JOIN DIVIDEND_QUERY D ON D.CALDT = B.CALDT
             ),
-            join_table AS(
+            JOIN_TABLE AS(
                 SELECT
-                    b.CALDT,
-                    b.starting_value,
-                    b.ending_value,
-                    b.dividends,
-                    b.dividend_yield,
-                    b.return,
-                    b.div_return,
-                    COALESCE(r.return, LAG(r.return) OVER (ORDER BY r.CALDT)) AS rf_return,
-                    b.return - COALESCE(r.return, LAG(r.return) OVER (ORDER BY r.CALDT)) AS xs_return,
-                    b.div_return - COALESCE(r.return, LAG(r.return) OVER (ORDER BY r.CALDT)) AS xs_div_return
-                FROM bmk_xf b
-                LEFT JOIN risk_free_rate r ON r.CALDT = b.CALDT
-                WHERE b.ending_value / b.starting_value <> 1
-                    AND b.CALDT BETWEEN '{start}' AND '{end}'
+                    B.CALDT,
+                    B.STARTING_VALUE,
+                    B.ENDING_VALUE,
+                    B.DIVIDENDS,
+                    B.DIVIDEND_YIELD,
+                    B.RETURN,
+                    B.DIV_RETURN,
+                    COALESCE(R.RETURN, LAG(R.RETURN) OVER (ORDER BY R.CALDT)) AS RF_RETURN,
+                    B.RETURN - COALESCE(R.RETURN, LAG(R.RETURN) OVER (ORDER BY R.CALDT)) AS XS_RETURN,
+                    B.DIV_RETURN - COALESCE(R.RETURN, LAG(R.RETURN) OVER (ORDER BY R.CALDT)) AS XS_DIV_RETURN
+                FROM BMK_XF B
+                LEFT JOIN RISK_FREE_RATE R ON R.CALDT = B.CALDT
+                WHERE B.ENDING_VALUE / B.STARTING_VALUE <> 1
+                    AND B.CALDT BETWEEN '{start_date}' AND '{end_date}'
             )
-            SELECT * FROM join_table;
+            SELECT * FROM JOIN_TABLE;
         """
 
-        df = self.db.execute_query(query_string)
+        df = self.db.get_dataframe(query_string)
 
         return df
 
     def get_tickers(self, fund, start_date, end_date) -> np.ndarray:
         query_string = f'''
-            SELECT "Symbol"
-            FROM positions
-            WHERE fund = '{fund}'
-                AND "AssetClass" != 'OPT'
-                AND "AssetClass" != 'CASH'
+            SELECT "SYMBOL"
+            FROM POSITIONS
+            WHERE FUND = '{fund}'
+                AND "ASSETCLASS" != 'OPT'
+                AND "ASSETCLASS" != 'CASH'
                 AND CALDT BETWEEN '{start_date}' AND '{end_date}'
-            GROUP BY "Symbol"
-            ORDER BY "Symbol";
+            GROUP BY "SYMBOL"
+            ORDER BY "SYMBOL";
         '''
 
-        df = self.db.execute_query(query_string)
+        df = self.db.get_dataframe(query_string)
 
         return df['Symbol'].tolist()
 
     def get_current_tickers(self, fund):
         query_string = f'''
-        SELECT "Symbol"
-        FROM positions
-        WHERE fund = '{fund}'
-            AND "AssetClass" != 'OPT'
-            AND "AssetClass" != 'CASH'
-            AND CALDT = (SELECT MAX(CALDT) FROM positions WHERE fund = '{fund}')
-        ORDER BY "Symbol";
+        SELECT "SYMBOL"
+        FROM POSITIONS
+        WHERE FUND = '{fund}'
+            AND "ASSETCLASS" != 'OPT'
+            AND "ASSETCLASS" != 'CASH'
+            AND CALDT = (SELECT MAX(CALDT) FROM POSITIONS WHERE FUND = '{fund}')
+        ORDER BY "SYMBOL";
         '''
 
-        df = self.db.execute_query(query_string)
+        df = self.db.get_dataframe(query_string)
 
         return df['Symbol'].tolist()
 
-    def get_dividends(self, fund, ticker, start, end):
+    def get_dividends(self, fund, ticker, start_date, end_date):
         query_string = f'''
         SELECT
-            fund,
+            FUND,
             CALDT,
-            "Symbol" AS ticker,
-            AVG("GrossRate"::DECIMAL) AS gross_rate,
-            AVG("GrossAmount"::DECIMAL) AS gross_amount
-        FROM dividends
-        WHERE "Symbol" = '{ticker}'
-            AND fund = '{fund}'
-            AND CALDT BETWEEN '{start}' AND '{end}'
-        GROUP BY fund, CALDT, "Symbol"
+            "SYMBOL" AS TICKER,
+            AVG("GROSSRATE"::DECIMAL) AS GROSS_RATE,
+            AVG("GROSSAMOUNT"::DECIMAL) AS GROSS_AMOUNT
+        FROM DIVIDENDS
+        WHERE "SYMBOL" = '{ticker}'
+            AND FUND = '{fund}'
+            AND CALDT BETWEEN '{start_date}' AND '{end_date}'
+        GROUP BY FUND, CALDT, "SYMBOL"
         ORDER BY CALDT;
         '''
 
-        df = self.db.execute_query(query_string)
+        df = self.db.get_dataframe(query_string)
 
         return df
 
-    def get_trades(self, fund, ticker, start, end):
+    def get_trades(self, fund, ticker, start_date, end_date):
         query_string = f'''
         SELECT
             CALDT,
-            fund,
-            "Symbol" AS ticker,
-            SUM("Quantity"::DECIMAL) AS shares,
-            AVG("TradePrice"::DECIMAL) AS price,
-            SUM("TradeMoney"::DECIMAL) AS value,
-            "Buy/Sell" AS side
-        FROM trades
-        WHERE fund = '{fund}'
-            AND "Symbol" = '{ticker}'
-            AND CALDT BETWEEN '{start}' AND '{end}'
-        GROUP BY CALDT, fund, "Symbol", "Buy/Sell"
+            FUND,
+            "SYMBOL" AS TICKER,
+            SUM("QUANTITY"::DECIMAL) AS SHARES,
+            AVG("TRADEPRICE"::DECIMAL) AS PRICE,
+            SUM("TRADEMONEY"::DECIMAL) AS VALUE,
+            "BUY/SELL" AS SIDE
+        FROM TRADES
+        WHERE FUND = '{fund}'
+            AND "SYMBOL" = '{ticker}'
+            AND CALDT BETWEEN '{start_date}' AND '{end_date}'
+        GROUP BY CALDT, FUND, "SYMBOL", "BUY/SELL"
         ;
         '''
 
-        df = self.db.execute_query(query_string)
+        df = self.db.get_dataframe(query_string)
 
         return df
     
     def get_cron_log(self) -> pd.DataFrame:
         query_string = f'''
-        SELECT * FROM "ETL_Cron_Log"
+        SELECT * FROM "ETL_CRON_LOG"
         ORDER BY CALDT DESC
         LIMIT 8
         ;
         '''
 
-        df = self.db.execute_query(query_string)
+        df = self.db.get_dataframe(query_string)
 
         return df
     
     def get_portfolio_defaults(self, fund) -> pd.DataFrame:
         query_string = f'''
-            SELECT * FROM portfolio WHERE fund = '{fund}';
+            SELECT * FROM PORTFOLIO WHERE FUND = '{fund}';
         '''
-        df = self.db.execute_query(query_string)
+        df = self.db.get_dataframe(query_string)
         return df
     
     def upsert_portfolio(self, fund, bmk_return, target_te) -> None:
         query_string = f'''
-            INSERT INTO portfolio
+            INSERT INTO PORTFOLIO
             (FUND, BENCHMARK_RETURN, TARGET_TRACKING_ERROR)
             VALUES
             ('{fund}',{bmk_return},{target_te})
@@ -644,59 +644,59 @@ class Query:
     def get_all_holdings(self, fund):
         query_string = f'''
         WITH
-        positions_query AS(
+        POSITIONS_QUERY AS(
             SELECT
                 CALDT,
-                fund,
-                "Symbol" AS ticker,
-                "Quantity"::DECIMAL AS shares,
-                "MarkPrice"::DECIMAL AS price,
-                "PositionValue"::DECIMAL AS value
-            FROM positions
-            WHERE CALDT = (SELECT MAX(CALDT) FROM positions WHERE fund = '{fund}')
-                AND fund = '{fund}'
+                FUND,
+                "SYMBOL" AS TICKER,
+                "QUANTITY"::DECIMAL AS SHARES,
+                "MARKPRICE"::DECIMAL AS PRICE,
+                "POSITIONVALUE"::DECIMAL AS VALUE
+            FROM POSITIONS
+            WHERE CALDT = (SELECT MAX(CALDT) FROM POSITIONS WHERE FUND = '{fund}')
+                AND FUND = '{fund}'
         ),
-        nav_query AS (
+        NAV_QUERY AS (
             SELECT
                 CALDT,
-                fund,
-                "Stock"::DECIMAL AS total_stock
-            FROM nav
-            WHERE fund = '{fund}'
+                FUND,
+                "STOCK"::DECIMAL AS TOTAL_STOCK
+            FROM NAV
+            WHERE FUND = '{fund}'
         ),
-        positions_xf AS(
+        POSITIONS_XF AS(
             SELECT
-                p.CALDT,
-                p.fund,
-                p.ticker,
-                p.shares,
-                p.price,
-                p.value,
-                p.value / n.total_stock AS weight
-            FROM positions_query p
-            JOIN nav_query n ON n.CALDT = p.CALDT
+                P.CALDT,
+                P.FUND,
+                P.TICKER,
+                P.SHARES,
+                P.PRICE,
+                P.VALUE,
+                P.VALUE / N.TOTAL_STOCK AS WEIGHT
+            FROM POSITIONS_QUERY P
+            JOIN NAV_QUERY N ON N.CALDT = P.CALDT
         )
         SELECT
-            p.fund,
-            p.ticker,
-            p.shares,
-            p.price,
-            p.value,
-            COALESCE(h.horizon_date, NULL) AS horizon_date,
-            COALESCE(h.target_price, NULL) AS target_price,
-            p.weight
-        FROM positions_xf p
-        FULL OUTER JOIN holding h ON h.ticker = p.ticker AND h.fund = p.fund
-        WHERE p.fund = '{fund}';
+            P.FUND,
+            P.TICKER,
+            P.SHARES,
+            P.PRICE,
+            P.VALUE,
+            COALESCE(H.HORIZON_DATE, NULL) AS HORIZON_DATE,
+            COALESCE(H.TARGET_PRICE, NULL) AS TARGET_PRICE,
+            P.WEIGHT
+        FROM POSITIONS_XF P
+        FULL OUTER JOIN HOLDING H ON H.TICKER = P.TICKER AND H.FUND = P.FUND
+        WHERE P.FUND = '{fund}';
         '''
 
-        df = self.db.execute_query(query_string)
+        df = self.db.get_dataframe(query_string)
 
         return df
     
     def upsert_holding(self, fund, ticker, horizon, target) -> None:
         query_string = f'''
-            INSERT INTO holding (FUND, TICKER, HORIZON_DATE, TARGET_PRICE)
+            INSERT INTO HOLDING (FUND, TICKER, HORIZON_DATE, TARGET_PRICE)
             VALUES ('{fund}','{ticker}','{horizon}',{target})
             ON CONFLICT (FUND, TICKER)
             DO UPDATE SET
