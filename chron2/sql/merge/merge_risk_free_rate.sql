@@ -1,0 +1,16 @@
+INSERT INTO RISK_FREE_RATE
+    (
+        CALDT,
+        YIELD,
+        RETURN
+    )
+SELECT
+    CALDT,
+    YIELD,
+    RETURN
+FROM "{{xf_table}}"
+ON CONFLICT (CALDT)
+DO UPDATE SET
+    YIELD = EXCLUDED.YIELD,
+    RETURN = EXCLUDED.RETURN
+;

@@ -50,7 +50,7 @@ def fred_query() -> pd.DataFrame:
     data.reset_index(inplace=True)
     data.rename(columns={'index': 'date'}, inplace=True)
 
-    return data
+    return transform_rf(data)
 
 def calendar_query():
     today = pd.Timestamp.today()
@@ -59,6 +59,26 @@ def calendar_query():
 
     nyse = mcal.get_calendar('NYSE')
     df = nyse.schedule(start_date,end_date)
-    df = df.reset_index().rename(columns={'index':'date'})
+    df = df.reset_index().rename(columns={'index':'caldt'})
+
+    return df
+
+def transform_rf(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+    df = df.rename(columns={'date': 'caldt'})
+
+    df.loc[:, 'yield'] = df['yield'] * .01
+
+    df['yield'] = df['yield'].fillna(df['yield'].shift(1))
+
+    df['yield_lag'] = df['yield'].shift(1)
+
+    df['P0'] = 100 / (1 + df['yield_lag'] * 30 / 360)
+    df['P1'] = 100 / (1 + df['yield'] * 29 / 360)
+
+    df['return'] = df['P1'] / df['P0'] - 1
+    df['yield'] = df['yield'] / 360
+
+    df = df[['caldt', 'yield', 'return']]
 
     return df
