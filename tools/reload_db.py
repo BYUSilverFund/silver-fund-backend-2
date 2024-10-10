@@ -19,7 +19,7 @@ files = s3.list_files('ibkr-historical-data')
 
 for file in files:
 
-    # Pull details from file name
+    # Split file path
     [bucket, date, query, file_name] = file.split("/")
     fund = file_name.split('_')[-1].split('.')[0]
     fund = 'brigham_' + fund if fund == 'capital' else fund
