@@ -41,6 +41,9 @@ class S3:
 
         for object in response['Contents']:
             file_path = bucket_name + "/" + object['Key']
-            file_paths.append(file_path)
+
+            # Only append .csv files
+            if file_path[-4:] == '.csv':
+                file_paths.append(file_path)
 
         return file_paths
