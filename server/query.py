@@ -73,8 +73,8 @@ class Query:
                     SELECT 
                          CALDT,
                          FUND,
-                         "STARTINGVALUE"::DECIMAL AS STARTING_VALUE,
-                         "ENDINGVALUE"::DECIMAL - "DEPOSITSWITHDRAWALS"::DECIMAL AS ENDING_VALUE
+                         STARTING_VALUE,
+                         ENDING_VALUE - DEPOSITS_WITHDRAWALS AS ENDING_VALUE
                     FROM DELTA_NAV
                     WHERE FUND = '{fund}'
                 ),
@@ -92,7 +92,7 @@ class Query:
                         CALDT,
                         FUND,
                         "SYMBOL" AS TICKER,
-                        AVG("GROSSAMOUNT"::DECIMAL) AS DIV_GROSS_AMOUNT
+                        AVG(GROSS_AMOUNT) AS DIV_GROSS_AMOUNT
                     FROM DIVIDENDS
                     WHERE FUND = '{fund}'
                     GROUP BY CALDT, FUND, "SYMBOL"
@@ -137,45 +137,45 @@ class Query:
                     SELECT
                         CALDT,
                         FUND,
-                        "SYMBOL" AS TICKER,
-                        CASE WHEN AVG("QUANTITY"::DECIMAL) > 0 THEN 1 ELSE -1 END AS SIDE,
-                        AVG("QUANTITY"::DECIMAL) AS SHARES_1,
-                        AVG("MARKPRICE"::DECIMAL) AS PRICE_1,
-                        AVG("FXRATETOBASE":: DECIMAL) AS FX_RATE_1
+                        TICKER,
+                        CASE WHEN AVG(SHARES) > 0 THEN 1 ELSE -1 END AS SIDE,
+                        AVG(SHARES) AS SHARES_1,
+                        AVG(PRICE) AS PRICE_1,
+                        AVG(FX_RATE) AS FX_RATE_1
                     FROM POSITIONS
                     WHERE FUND = '{fund}'
-                        AND "SYMBOL" = '{ticker}'
-                        AND "ASSETCLASS" != 'OPT'
-                    GROUP BY CALDT, FUND, "SYMBOL"
+                        AND TICKER = '{ticker}'
+                        AND ASSET_CLASS != 'OPT'
+                    GROUP BY CALDT, FUND, TICKER
                     ORDER BY CALDT
                 ),
                 DIVIDENDS_QUERY AS (
                     SELECT
                         CALDT,
                         FUND,
-                        "SYMBOL" AS TICKER,
-                        AVG("GROSSRATE"::DECIMAL) AS DIV_GROSS_RATE,
-                        AVG("GROSSAMOUNT"::DECIMAL) AS DIV_GROSS_AMOUNT -- SOMETIMES DIVIDENDS GETS DOUBLE COUNTED
+                        TICKER,
+                        AVG(GROSS_RATE) AS DIV_GROSS_RATE,
+                        AVG(GROSS_AMOUNT) AS DIV_GROSS_AMOUNT
                     FROM DIVIDENDS
                     WHERE FUND = '{fund}'
                         AND "SYMBOL" = '{ticker}'
-                    GROUP BY CALDT, FUND, "SYMBOL"
+                    GROUP BY CALDT, FUND, TICKER
                 ),
                 TRADES_QUERY AS (
                     SELECT
                         CALDT,
                         FUND,
-                        "SYMBOL" AS TICKER,
-                        CASE WHEN SUM("QUANTITY"::DECIMAL) > 0 THEN 1 ELSE -1 END AS TRADE_TYPE,
-                        SUM("QUANTITY"::DECIMAL) AS SHARES_TRADED,
-                        AVG("TRADEPRICE"::DECIMAL) AS TRADE_PRICE
+                        TICKER,
+                        CASE WHEN SUM(SHARES_TRADED) > 0 THEN 1 ELSE -1 END AS TRADE_TYPE,
+                        SUM(SHARED_TRADED) AS SHARES_TRADED,
+                        AVG(PRICE_TRADED) AS TRADE_PRICE
                      FROM TRADES
                      WHERE FUND = '{fund}'
-                       AND "SYMBOL" = '{ticker}'
-                       AND "ASSETCLASS" != 'OPT'
-                       AND "ASSETCLASS" != 'CASH'
-                       AND "BUY/SELL" != 'SELL (CA.)'
-                     GROUP BY CALDT, FUND, "SYMBOL"
+                       AND TICKER = '{ticker}'
+                       AND ASSET_CLASS != 'OPT'
+                       AND ASSET_CLASS != 'CASH'
+                       AND BUY_SELL != 'SELL (CA.)'
+                     GROUP BY CALDT, FUND, TICKER
                 ),
                 TRADES_XF AS(
                     SELECT
@@ -192,10 +192,10 @@ class Query:
                     SELECT
                         CALDT,
                         FUND,
-                        "STOCK"::DECIMAL AS TOTAL_STOCK_1
+                        STOCKER AS TOTAL_STOCK_1
                     FROM NAV
                     WHERE FUND = '{fund}'
-                        AND "STOCK"::DECIMAL <> 0
+                        AND STOCK <> 0
                 ),
                 JOIN_TABLE_1 AS( -- MERGE TRADES AND DIVIDENDS INTO POSITIONS
                     SELECT
@@ -312,45 +312,45 @@ class Query:
                     SELECT
                         CALDT,
                         FUND,
-                        "SYMBOL" AS TICKER,
-                        CASE WHEN AVG("QUANTITY"::DECIMAL) > 0 THEN 1 ELSE -1 END AS SIDE,
-                        AVG("QUANTITY"::DECIMAL) AS SHARES_1,
-                        AVG("MARKPRICE"::DECIMAL) AS PRICE_1,
-                        AVG("FXRATETOBASE":: DECIMAL) AS FX_RATE_1
+                        TICKER,
+                        CASE WHEN AVG(SHARES) > 0 THEN 1 ELSE -1 END AS SIDE,
+                        AVG(SHARES) AS SHARES_1,
+                        AVG(PRICE) AS PRICE_1,
+                        AVG(FX_RATE) AS FX_RATE_1
                     FROM POSITIONS
                     WHERE FUND = '{fund}'
-                        AND "ASSETCLASS" != 'OPT'
-                        AND "SYMBOL" != 'VMFXX'
-                    GROUP BY CALDT, FUND, "SYMBOL"
+                        AND ASSET_CLASS != 'OPT'
+                        AND TICKER != 'VMFXX'
+                    GROUP BY CALDT, FUND, TICKER
                     ORDER BY TICKER, CALDT
                 ),
                 DIVIDENDS_QUERY AS (
                     SELECT
                         CALDT,
                         FUND,
-                        "SYMBOL" AS TICKER,
-                        AVG("GROSSRATE"::DECIMAL) AS DIV_GROSS_RATE,
-                        AVG("GROSSAMOUNT"::DECIMAL) AS DIV_GROSS_AMOUNT -- SOMETIMES DIVIDENDS GETS DOUBLE COUNTED
+                        TICKER,
+                        AVG(GROSS_RATE) AS DIV_GROSS_RATE,
+                        AVG(GROSS_AMOUNT) AS DIV_GROSS_AMOUNT
                     FROM DIVIDENDS
                     WHERE FUND = '{fund}'
-                        AND "SYMBOL" != 'VMFXX'
-                    GROUP BY CALDT, FUND, "SYMBOL"
+                        AND TICKER != 'VMFXX'
+                    GROUP BY CALDT, FUND, TICKER
                 ),
                 TRADES_QUERY AS(
                     SELECT
                         CALDT,
                         FUND,
-                        "SYMBOL" AS TICKER,
-                        CASE WHEN SUM("QUANTITY"::DECIMAL) > 0 THEN 1 ELSE -1 END AS TRADE_TYPE,
-                        SUM("QUANTITY"::DECIMAL) AS SHARES_TRADED,
-                        AVG("TRADEPRICE"::DECIMAL) AS TRADE_PRICE
+                        TICKER,
+                        CASE WHEN SUM(SHARES_TRADED) > 0 THEN 1 ELSE -1 END AS TRADE_TYPE,
+                        SUM(SHARES_TRADED) AS SHARES_TRADED,
+                        AVG(PRICE_TRADED) AS TRADE_PRICE
                     FROM TRADES
                     WHERE FUND = '{fund}'
-                        AND "ASSETCLASS" != 'OPT'
-                        AND "ASSETCLASS" != 'CASH'
-                        AND "BUY/SELL" != 'SELL (CA.)'
-                        AND "SYMBOL" != 'VMFXX'
-                    GROUP BY CALDT, FUND, "SYMBOL"
+                        AND ASSET_CLASS != 'OPT'
+                        AND ASSET_CLASS != 'CASH'
+                        AND BUY_SELL != 'SELL (CA.)'
+                        AND TICKER != 'VMFXX'
+                    GROUP BY CALDT, FUND, TICKER
                 ),
                 TRADES_XF AS(
                     SELECT
@@ -367,10 +367,10 @@ class Query:
                     SELECT
                         CALDT,
                         FUND,
-                        "STOCK"::DECIMAL AS TOTAL_STOCK_1
+                        STOCK AS TOTAL_STOCK_1
                     FROM NAV
                     WHERE FUND = '{fund}'
-                        AND "STOCK"::DECIMAL <> 0
+                        AND STOCK <> 0
                 ),
                 JOIN_TABLE_1 AS( -- MERGE TRADES AND DIVIDENDS INTO POSITIONS
                     SELECT
@@ -495,9 +495,9 @@ class Query:
             DIVIDEND_QUERY AS(
                 SELECT
                     CALDT,
-                    AVG("GROSSRATE"::DECIMAL) AS DIV_GROSS_RATE
+                    AVG(GROSS_RATE) AS DIV_GROSS_RATE
                 FROM DIVIDENDS
-                WHERE FUND = 'UNDERGRAD' AND "SYMBOL" = 'IWV'
+                WHERE FUND = 'UNDERGRAD' AND TICKER = 'IWV'
                 GROUP BY CALDT
             ),
             BMK_XF AS(
@@ -538,14 +538,14 @@ class Query:
 
     def get_tickers(self, fund, start_date, end_date) -> np.ndarray:
         query_string = f'''
-            SELECT "SYMBOL"
+            SELECT TICKER
             FROM POSITIONS
             WHERE FUND = '{fund}'
-                AND "ASSETCLASS" != 'OPT'
-                AND "ASSETCLASS" != 'CASH'
+                AND ASSET_CLASS != 'OPT'
+                AND ASSET_CLASS != 'CASH'
                 AND CALDT BETWEEN '{start_date}' AND '{end_date}'
-            GROUP BY "SYMBOL"
-            ORDER BY "SYMBOL";
+            GROUP BY TICKER
+            ORDER BY TICKER;
         '''
 
         df = self.db.get_dataframe(query_string)
@@ -554,13 +554,13 @@ class Query:
 
     def get_current_tickers(self, fund):
         query_string = f'''
-        SELECT "SYMBOL"
+        SELECT TICKER
         FROM POSITIONS
         WHERE FUND = '{fund}'
-            AND "ASSETCLASS" != 'OPT'
-            AND "ASSETCLASS" != 'CASH'
+            AND ASSET_CLASS != 'OPT'
+            AND ASSET_CLASS != 'CASH'
             AND CALDT = (SELECT MAX(CALDT) FROM POSITIONS WHERE FUND = '{fund}')
-        ORDER BY "SYMBOL";
+        ORDER BY TICKER;
         '''
 
         df = self.db.get_dataframe(query_string)
@@ -572,14 +572,14 @@ class Query:
         SELECT
             FUND,
             CALDT,
-            "SYMBOL" AS TICKER,
-            AVG("GROSSRATE"::DECIMAL) AS GROSS_RATE,
-            AVG("GROSSAMOUNT"::DECIMAL) AS GROSS_AMOUNT
+            TICKER AS TICKER,
+            AVG(GROSS_RATE) AS GROSS_RATE,
+            AVG(GROSS_AMOUNT) AS GROSS_AMOUNT
         FROM DIVIDENDS
-        WHERE "SYMBOL" = '{ticker}'
+        WHERE TICKER = '{ticker}'
             AND FUND = '{fund}'
             AND CALDT BETWEEN '{start_date}' AND '{end_date}'
-        GROUP BY FUND, CALDT, "SYMBOL"
+        GROUP BY FUND, CALDT, TICKER
         ORDER BY CALDT;
         '''
 
@@ -592,16 +592,16 @@ class Query:
         SELECT
             CALDT,
             FUND,
-            "SYMBOL" AS TICKER,
-            SUM("QUANTITY"::DECIMAL) AS SHARES,
-            AVG("TRADEPRICE"::DECIMAL) AS PRICE,
-            SUM("TRADEMONEY"::DECIMAL) AS VALUE,
-            "BUY/SELL" AS SIDE
+            TICKER AS TICKER,
+            SUM(SHARES_TRADED) AS SHARES,
+            AVG(PRICE_TRADED) AS PRICE,
+            SUM(SHARES_TRADED) * AVG(PRICE_TRADED) AS VALUE,
+            BUY_SELL AS SIDE
         FROM TRADES
         WHERE FUND = '{fund}'
-            AND "SYMBOL" = '{ticker}'
+            AND TICKER = '{ticker}'
             AND CALDT BETWEEN '{start_date}' AND '{end_date}'
-        GROUP BY CALDT, FUND, "SYMBOL", "BUY/SELL"
+        GROUP BY CALDT, FUND, TICKER, BUY_SELL
         ;
         '''
 
@@ -648,10 +648,10 @@ class Query:
             SELECT
                 CALDT,
                 FUND,
-                "SYMBOL" AS TICKER,
-                "QUANTITY"::DECIMAL AS SHARES,
-                "MARKPRICE"::DECIMAL AS PRICE,
-                "POSITIONVALUE"::DECIMAL AS VALUE
+                TICKER,
+                SHARES,
+                PRICE,
+                PRICE * SHARES AS VALUE
             FROM POSITIONS
             WHERE CALDT = (SELECT MAX(CALDT) FROM POSITIONS WHERE FUND = '{fund}')
                 AND FUND = '{fund}'
@@ -660,7 +660,7 @@ class Query:
             SELECT
                 CALDT,
                 FUND,
-                "STOCK"::DECIMAL AS TOTAL_STOCK
+                STOCK AS TOTAL_STOCK
             FROM NAV
             WHERE FUND = '{fund}'
         ),
