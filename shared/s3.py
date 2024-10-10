@@ -33,3 +33,14 @@ class S3:
         csv_bytes = BytesIO(csv_buffer.getvalue().encode())
 
         self.s3.upload_fileobj(csv_bytes, bucket_name, file_name)
+
+    def list_files(self, bucket_name: str):
+        file_paths = []
+
+        response = self.s3.list_objects_v2(Bucket=bucket_name)
+
+        for object in response['Contents']:
+            file_path = bucket_name + "/" + object['Key']
+            file_paths.append(file_path)
+
+        return file_paths
