@@ -54,7 +54,7 @@ def fred_query() -> pd.DataFrame:
 
 def calendar_query():
     today = pd.Timestamp.today()
-    start_date = today - pd.Timedelta(days=7)
+    start_date = '2020-01-01'
     end_date = today + pd.Timedelta(days=7)
 
     nyse = mcal.get_calendar('NYSE')

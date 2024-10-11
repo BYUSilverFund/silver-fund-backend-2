@@ -550,7 +550,7 @@ class Query:
 
         df = self.db.get_dataframe(query_string)
 
-        return df['Symbol'].tolist()
+        return df['ticker'].tolist()
 
     def get_current_tickers(self, fund):
         query_string = f'''
@@ -565,7 +565,7 @@ class Query:
 
         df = self.db.get_dataframe(query_string)
 
-        return df['Symbol'].tolist()
+        return df['ticker'].tolist()
 
     def get_dividends(self, fund, ticker, start_date, end_date):
         query_string = f'''
