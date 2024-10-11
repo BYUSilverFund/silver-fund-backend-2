@@ -91,11 +91,11 @@ class Query:
                     SELECT
                         CALDT,
                         FUND,
-                        "SYMBOL" AS TICKER,
+                        TICKER,
                         AVG(GROSS_AMOUNT) AS DIV_GROSS_AMOUNT
                     FROM DIVIDENDS
                     WHERE FUND = '{fund}'
-                    GROUP BY CALDT, FUND, "SYMBOL"
+                    GROUP BY CALDT, FUND, TICKER
                 ),
                 DIVIDENDS_XF AS(
                     SELECT
@@ -158,7 +158,7 @@ class Query:
                         AVG(GROSS_AMOUNT) AS DIV_GROSS_AMOUNT
                     FROM DIVIDENDS
                     WHERE FUND = '{fund}'
-                        AND "SYMBOL" = '{ticker}'
+                        AND TICKER = '{ticker}'
                     GROUP BY CALDT, FUND, TICKER
                 ),
                 TRADES_QUERY AS (
@@ -167,7 +167,7 @@ class Query:
                         FUND,
                         TICKER,
                         CASE WHEN SUM(SHARES_TRADED) > 0 THEN 1 ELSE -1 END AS TRADE_TYPE,
-                        SUM(SHARED_TRADED) AS SHARES_TRADED,
+                        SUM(SHARES_TRADED) AS SHARES_TRADED,
                         AVG(PRICE_TRADED) AS TRADE_PRICE
                      FROM TRADES
                      WHERE FUND = '{fund}'
@@ -192,7 +192,7 @@ class Query:
                     SELECT
                         CALDT,
                         FUND,
-                        STOCKER AS TOTAL_STOCK_1
+                        STOCK AS TOTAL_STOCK_1
                     FROM NAV
                     WHERE FUND = '{fund}'
                         AND STOCK <> 0
