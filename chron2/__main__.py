@@ -124,45 +124,11 @@ def main():
 
     try:
 
-        # Extract
-        logger.info("Extracting benchmark data")
-        bmk_token = config['undergrad']['token']
-        bmk_query_id = config['undergrad']['queries']['positions']
-        bmk_dataframe = ibkr_query('undergrad', bmk_token, bmk_query_id)
-
         # Create
         logger.info("Verifying that benchmark table exists")
         create_rf_template = f"chron2/sql/create/create_benchmark.sql"
         create_rf_query = render_sql(create_rf_template)
         db.execute_sql(create_rf_query)
-
-        # Stage
-        stage_table = f'{date}_benchmark'
-        logger.info(f"Loading raw benchmark into {stage_table}")
-        db.load_dataframe(bmk_dataframe, stage_table)
-
-        # Transform
-        xf_table = f'XF_{stage_table}'
-        logger.info(f"Transforming stage table: {stage_table} -> {xf_table}")
-        xf_template = "chron2/sql/transform/transform_benchmark.sql"
-        xf_params = {'stage_table': stage_table, 'xf_table': xf_table}
-        xf_query = render_sql(xf_template, xf_params)
-        db.execute_sql(xf_query)
-
-        # Merge
-        logger.info(f"Mering {xf_table} into BENCHMARK")
-        merge_rf_template = f"chron2/sql/merge/merge_benchmark.sql"
-        merge_rf_params = {'xf_table': xf_table}
-        merge_rf_query = render_sql(merge_rf_template, merge_rf_params)
-        db.execute_sql(merge_rf_query)
-
-        # Clean Up
-        logger.info(f"Dropping table: {stage_table}")
-        sql = f'''
-        DROP TABLE "{stage_table}";
-        DROP TABLE "{xf_table}";
-        '''
-        db.execute_sql(sql)
 
     except Exception as e:
         logger.error(f"An error occurred during the benchmark step: {str(e)}")
