@@ -14,10 +14,10 @@ class Service:
         bmk = self.query.get_benchmark_df(start_date, end_date)
 
         with pd.option_context('future.no_silent_downcasting', True):  # This just prevents a future warning from printing
-            left = pd.merge(left=df, right=bmk, how='left', on='date', suffixes=('_port', '_bmk')).fillna(0)
+            left = pd.merge(left=df, right=bmk, how='left', on='caldt', suffixes=('_port', '_bmk')).fillna(0)
 
-        true_start = str(df['date'].iloc[0]).split(" ")[0]
-        true_end = str(df['date'].iloc[-1]).split(" ")[0]
+        true_start = str(df['caldt'].iloc[0]).split(" ")[0]
+        true_end = str(df['caldt'].iloc[-1]).split(" ")[0]
         fund_value = df['ending_value'].iloc[-1]
         fund_return = total_return(df['return'], annualized=False)
         fund_volatility = volatility((df['return']))
@@ -50,10 +50,10 @@ class Service:
         bmk = self.query.get_benchmark_df(start_date, end_date)
 
         with pd.option_context('future.no_silent_downcasting', True):  # This just prevents a future warning from printing
-            left = pd.merge(left=df, right=bmk, how='left', on='date', suffixes=('_port', '_bmk')).fillna(0)
+            left = pd.merge(left=df, right=bmk, how='left', on='caldt', suffixes=('_port', '_bmk')).fillna(0)
 
-        true_start = str(df['date'].iloc[0]).split(" ")[0]
-        true_end = str(df['date'].iloc[-1]).split(" ")[0]
+        true_start = str(df['caldt'].iloc[0]).split(" ")[0]
+        true_end = str(df['caldt'].iloc[-1]).split(" ")[0]
         port_value = df['ending_value'].iloc[-1]
         port_return = total_return(df['return'], annualized=False)
         port_volatility = volatility((df['return']))
@@ -98,11 +98,11 @@ class Service:
         current_tickers = self.query.get_current_tickers(fund)
 
         with pd.option_context('future.no_silent_downcasting', True):  # This just prevents a future warning from printing
-            left = pd.merge(left=df, right=bmk, how='left', on='date', suffixes=('_port', '_bmk')).fillna(0)
-            outer = pd.merge(left=df, right=bmk, how='outer', on='date', suffixes=('_port', '_bmk')).fillna(0)
+            left = pd.merge(left=df, right=bmk, how='left', on='caldt', suffixes=('_port', '_bmk')).fillna(0)
+            outer = pd.merge(left=df, right=bmk, how='outer', on='caldt', suffixes=('_port', '_bmk')).fillna(0)
 
-        true_start = str(df['date'].iloc[0]).split(" ")[0]
-        true_end = str(df['date'].iloc[-1]).split(" ")[0]
+        true_start = str(df['caldt'].iloc[0]).split(" ")[0]
+        true_end = str(df['caldt'].iloc[-1]).split(" ")[0]
         shares = df['shares'].iloc[-1] if (ticker in current_tickers) else 0
         price = df['price'].iloc[-1]
         value = df['value'].iloc[-1]
@@ -149,8 +149,8 @@ class Service:
 
         results = pd.DataFrame()
         with pd.option_context('future.no_silent_downcasting', True):  # This just prevents a future warning from printing
-            left = pd.merge(left=df, right=bmk, how='left', on='date', suffixes=('_port', '_bmk')).fillna(0)
-            outer = pd.merge(left=df, right=bmk, how='outer', on='date', suffixes=('_port', '_bmk')).fillna(0)
+            left = pd.merge(left=df, right=bmk, how='left', on='caldt', suffixes=('_port', '_bmk')).fillna(0)
+            outer = pd.merge(left=df, right=bmk, how='outer', on='caldt', suffixes=('_port', '_bmk')).fillna(0)
 
         # DF metrics
         results['ticker'] = df['ticker'].unique()
@@ -224,7 +224,7 @@ class Service:
         df = self.query.get_benchmark_df(start_date, end_date)
         bmk = self.query.get_benchmark_df(start_date, end_date)
 
-        left = pd.merge(left=df, right=bmk, how='left', on='date', suffixes=('_port', '_bmk')).fillna(0)
+        left = pd.merge(left=df, right=bmk, how='left', on='caldt', suffixes=('_port', '_bmk')).fillna(0)
 
         bmk_volatility = volatility((df['return']))
         bmk_return = total_return(df['return'], annualized=False)
@@ -254,18 +254,20 @@ class Service:
         bmk = self.query.get_benchmark_df(start_date, end_date)
 
         with pd.option_context('future.no_silent_downcasting', True):  # This just prevents a future warning from printing
-            left = pd.merge(left=df, right=bmk, how='left', on='date', suffixes=('_port', '_bmk')).fillna(0)
+            left = pd.merge(left=df, right=bmk, how='left', on='caldt', suffixes=('_port', '_bmk')).fillna(0)
 
-        result = cumulative_return_vector(left, 'date', 'ending_value_port', 'return_port', 'div_return')
+        result = cumulative_return_vector(left, 'caldt', 'ending_value_port', 'return_port', 'div_return')
 
         day_zero = pd.DataFrame({
-            'date': (pd.to_datetime(result.iloc[0,0]) - pd.Timedelta(days=1)).strftime('%Y-%m-%d'),
+            'caldt': (pd.to_datetime(result.iloc[0,0]) - pd.Timedelta(days=1)).strftime('%Y-%m-%d'),
             'ending_value_port': result.iloc[0,1] / (1 + result.iloc[0,2] / 100),
             'cumulative_return_port': [0],
             'cumulative_return_bmk': [0]
         })
 
         result = pd.concat([day_zero, result]).reset_index(drop=True)
+
+        result = result.rename(columns={'caldt': 'date'})
 
         result = result.to_dict(orient='records')
 
@@ -276,18 +278,20 @@ class Service:
         bmk = self.query.get_benchmark_df(start_date, end_date)
 
         with pd.option_context('future.no_silent_downcasting', True):  # This just prevents a future warning from printing
-            left = pd.merge(left=df, right=bmk, how='left', on='date', suffixes=('_port', '_bmk')).fillna(0)
+            left = pd.merge(left=df, right=bmk, how='left', on='caldt', suffixes=('_port', '_bmk')).fillna(0)
 
-        result = cumulative_return_vector(left, 'date', 'ending_value_port', 'return_port', 'div_return')
+        result = cumulative_return_vector(left, 'caldt', 'ending_value_port', 'return_port', 'div_return')
 
         day_zero = pd.DataFrame({
-            'date': (pd.to_datetime(result.iloc[0,0]) - pd.Timedelta(days=1)).strftime('%Y-%m-%d'),
+            'caldt': (pd.to_datetime(result.iloc[0,0]) - pd.Timedelta(days=1)).strftime('%Y-%m-%d'),
             'ending_value_port': result.iloc[0,1] / (1 + result.iloc[0,2] / 100),
             'cumulative_return_port': [0],
             'cumulative_return_bmk': [0]
         })
 
         result = pd.concat([day_zero, result]).reset_index(drop=True)
+
+        result = result.rename(columns={'caldt': 'date'})
 
         result = result.to_dict(orient='records')
 
@@ -299,18 +303,20 @@ class Service:
         bmk = self.query.get_benchmark_df(start_date, end_date)
 
         with pd.option_context('future.no_silent_downcasting', True):  # This just prevents a future warning from printing
-            left = pd.merge(left=df, right=bmk, how='left', on='date', suffixes=('_port', '_bmk')).fillna(0)
+            left = pd.merge(left=df, right=bmk, how='left', on='caldt', suffixes=('_port', '_bmk')).fillna(0)
 
-        result = cumulative_return_vector(left, 'date', 'price', 'div_return_port', 'div_return_bmk')
+        result = cumulative_return_vector(left, 'caldt', 'price', 'div_return_port', 'div_return_bmk')
 
         day_zero = pd.DataFrame({
-            'date': (pd.to_datetime(result.iloc[0,0]) - pd.Timedelta(days=1)).strftime('%Y-%m-%d'),
+            'caldt': (pd.to_datetime(result.iloc[0,0]) - pd.Timedelta(days=1)).strftime('%Y-%m-%d'),
             'price': result.iloc[0,1] / (1 + result.iloc[0,2] / 100),
             'cumulative_return_port': [0],
             'cumulative_return_bmk': [0]
         })
 
         result = pd.concat([day_zero, result]).reset_index(drop=True)
+
+        result = result.rename(columns={'caldt': 'date'})
 
         result = result.to_dict(orient='records')
 
@@ -320,7 +326,7 @@ class Service:
 
         df = self.query.get_dividends(fund, ticker, start_date, end_date)
 
-        df['date'] = pd.to_datetime(df['date']).dt.strftime("%Y-%m-%d")
+        df['caldt'] = pd.to_datetime(df['caldt']).dt.strftime("%Y-%m-%d")
 
         result = df.to_dict(orient='records')
 
@@ -330,7 +336,7 @@ class Service:
 
         df = self.query.get_trades(fund, ticker, start_date, end_date)
 
-        df['date'] = pd.to_datetime(df['date']).dt.strftime("%Y-%m-%d")
+        df['caldt'] = pd.to_datetime(df['caldt']).dt.strftime("%Y-%m-%d")
 
         result = df.to_dict(orient='records')
 
@@ -339,7 +345,7 @@ class Service:
     def cron_logs(self):
         df = self.query.get_cron_log()
 
-        df['date'] = pd.to_datetime(df['date']).dt.strftime("%Y-%m-%d")
+        df['caldt'] = pd.to_datetime(df['caldt']).dt.strftime("%Y-%m-%d")
 
         result = df.to_dict(orient='records')
 
