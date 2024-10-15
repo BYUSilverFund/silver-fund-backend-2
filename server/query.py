@@ -602,6 +602,7 @@ class Query:
             AND TICKER = '{ticker}'
             AND CALDT BETWEEN '{start_date}' AND '{end_date}'
         GROUP BY CALDT, FUND, TICKER, BUY_SELL
+        ORDER BY CALDT
         ;
         '''
 
