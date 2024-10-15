@@ -11,13 +11,13 @@ def query_fund_positions(fund: str) -> pd.DataFrame:
 
     query = f"""
             WITH latest_date AS (
-                SELECT MAX(date) as max_date
+                SELECT MAX(CADL) as max_date
                 FROM positions
                 WHERE fund = '{fund}'
             )
-            SELECT "Symbol", "Description", CAST("PositionValue" AS DECIMAL) AS PositionValue, date, "fund"
+            SELECT "Symbol", "Description", CAST("PositionValue" AS DECIMAL) AS PositionValue, CADL, "fund"
             FROM positions
-            WHERE fund = '{fund}' AND date = (SELECT max_date FROM latest_date)
+            WHERE fund = '{fund}' AND CADL = (SELECT max_date FROM latest_date)
             ORDER BY PositionValue DESC
             LIMIT 10
             """
