@@ -497,7 +497,7 @@ class Query:
                     CALDT,
                     AVG(GROSS_RATE) AS DIV_GROSS_RATE
                 FROM DIVIDENDS
-                WHERE FUND = 'UNDERGRAD' AND TICKER = 'IWV'
+                WHERE FUND = 'undergrad' AND TICKER = 'IWV'
                 GROUP BY CALDT
             ),
             BMK_XF AS(
