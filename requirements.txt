@@ -14,3 +14,4 @@ SQLAlchemy
 statsmodels
 waitress
 pandas-market-calendars
+Jinja2

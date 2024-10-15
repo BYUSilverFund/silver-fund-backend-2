@@ -39,60 +39,30 @@ class Database:
             print(f'Error: {e}')
 
     def __del__(self):
-        # Close the cursor and connection
         self.cursor.close()
         self.connection.close()
         self.engine.dispose()
 
-    def get_df(self, table_name: str) -> pd.DataFrame:
+    def load_dataframe(self, df: pd.DataFrame, table_name):
+        df.to_sql(table_name, self.engine, if_exists='replace', index=False)
 
-        query = f"SELECT * FROM {table_name}"
-        df = pd.read_sql(query, self.engine)
-        return df
-
-    def load_df(self, df: pd.DataFrame, table_name: str):
-
+    def get_dataframe(self, query: str) -> pd.DataFrame:
         try:
-            # Use SQLAlchemy inspector to check if the table exists
-            inspector = inspect(self.engine)
-            table_exists = table_name in inspector.get_table_names()
-
-            if table_exists:
-                # Drop all duplicate rows
-                original = self.get_df(table_name)
-
-                # Validate schema
-                original_columns = set(original.columns)
-                new_columns = set(df.columns)
-                if original_columns != new_columns:
-                    print("Orginial: ", original_columns)
-                    print("New: ", new_columns)
-                    raise ValueError("Schema mismatch between existing table and DataFrame.")
-
-                combined = pd.concat([original, df])
-                combined = combined.drop_duplicates()
-
-                df = combined
-
-            # Store the DataFrame in the table sorted from oldest(top) to newest (bottom)
-            df = df.sort_values(by='date', ascending=True)
-            df.to_sql(table_name, self.engine, if_exists='replace', index=False)
-
+            df = pd.read_sql(query, self.engine)
+            return df
         except Exception as e:
             print(f"Error: {e}")
+            return pd.DataFrame() 
 
-    def query(self, query_string: str) -> None:
+    def execute_sql(self, query_string) -> None:
+        
         self.cursor.execute(query_string)
-        self.connection.commit()
-
-    def execute_query(self, query_string: str) -> pd.DataFrame:
-        df = pd.read_sql(query_string, self.engine)
-        return df
     
-    def load_cron_log(self, cron_log_string: str) -> None:
-        try:
-            query = f"INSERT INTO \"ETL_Cron_Log\" (date, log_text) VALUES (now(), E'{cron_log_string}')"
-            self.cursor.execute(query)
-            self.connection.commit()
-        except Exception as e:
-            print(f"Error: {e}")
+        # Commit the changes for INSERT/UPDATE/DELETE queries
+        self.connection.commit()
+        
+        # Fetch results for SELECT queries (optional)
+        if query_string.lower().strip().startswith('select'):
+            rows = self.cursor.fetchall()
+            for row in rows:
+                print(row)

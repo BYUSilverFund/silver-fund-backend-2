@@ -50,7 +50,7 @@ def holding_period_return(values: pd.Series, dividends: pd.Series, annualized: b
 def cumulative_return_vector(df: pd.DataFrame, date_col: str, value_col: str, return_col: str, bmk_col: str) -> pd.DataFrame:
     xf = df[[date_col, value_col, return_col, bmk_col]].copy()
 
-    xf[date_col] = xf[date_col].dt.strftime('%Y-%m-%d')
+    xf[date_col] = pd.to_datetime(xf[date_col]).dt.strftime('%Y-%m-%d')
 
     # Portfolio
     xf['cumulative_return_port'] = (1 + xf[return_col]).cumprod() - 1
