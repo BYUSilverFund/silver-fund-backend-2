@@ -328,6 +328,8 @@ class Service:
 
         df['caldt'] = pd.to_datetime(df['caldt']).dt.strftime("%Y-%m-%d")
 
+        df = df.rename(columns={'caldt': 'date'})
+
         result = df.to_dict(orient='records')
 
         return json.dumps(result)
@@ -337,6 +339,8 @@ class Service:
         df = self.query.get_trades(fund, ticker, start_date, end_date)
 
         df['caldt'] = pd.to_datetime(df['caldt']).dt.strftime("%Y-%m-%d")
+
+        df = df.rename(columns={'caldt': 'date'})
 
         result = df.to_dict(orient='records')
 
