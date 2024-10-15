@@ -49,7 +49,7 @@ def main() -> None:
         upload_fund_positions(df, fund)
         cron_log_string += f"{fund} uploaded to S3.\n"
 
-    Database().load_cron_log(cron_log_string)
+    # Database().load_cron_log(cron_log_string)
     
 if __name__ == "__main__":
     main()
