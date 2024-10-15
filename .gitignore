@@ -1,6 +1,8 @@
 # Andrew's test files
 *.ipynb
+*.env*
 Archive.zip
+*.csv
 
 Archive.zip
 

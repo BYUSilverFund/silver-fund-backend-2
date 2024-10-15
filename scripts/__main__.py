@@ -10,11 +10,17 @@ def query_fund_positions(fund: str) -> pd.DataFrame:
     db = Database()
 
     query = f"""
-        SELECT "Symbol", "Description", cast("PositionValue" as decimal) as PositionValue, date, "fund" FROM positions
-        WHERE fund = '{fund}'
-        ORDER BY date DESC, PositionValue DESC
-        LIMIT 10;
-    """
+            WITH latest_date AS (
+                SELECT MAX(date) as max_date
+                FROM positions
+                WHERE fund = '{fund}'
+            )
+            SELECT "Symbol", "Description", CAST("PositionValue" AS DECIMAL) AS PositionValue, date, "fund"
+            FROM positions
+            WHERE fund = '{fund}' AND date = (SELECT max_date FROM latest_date)
+            ORDER BY PositionValue DESC
+            LIMIT 10
+            """
 
     df = pd.read_sql(query, db.engine)
 

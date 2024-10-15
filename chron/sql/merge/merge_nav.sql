@@ -1,0 +1,17 @@
+INSERT INTO NAV
+    (
+        CALDT,
+        FUND,
+        STOCK
+    )
+SELECT
+    CALDT,
+    FUND,
+    STOCK
+FROM "{{xf_table}}"
+ON CONFLICT (CALDT, FUND)
+DO UPDATE SET
+    CALDT = EXCLUDED.CALDT,
+    FUND = EXCLUDED.FUND,
+    STOCK = EXCLUDED.STOCK
+;
