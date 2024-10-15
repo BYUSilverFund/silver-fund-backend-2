@@ -7,7 +7,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from shared.utils import render_sql
 from shared.database import Database
 from shared.s3 import S3
-from chron2.logger import PipelineLogger
+from chron.logger import PipelineLogger
 
 # Initialize database, s3 bucket, and logger
 db = Database()
@@ -35,20 +35,20 @@ for file in files:
 
     # Create clean table from stage table
     xf_table = 'XF_' + stage_table
-    xf_template = f"chron2/sql/transform/transform_{query}.sql"
+    xf_template = f"chron/sql/transform/transform_{query}.sql"
     xf_params = {'stage_table': stage_table, 'xf_table': xf_table, 'fund': fund}
     xf_query = render_sql(xf_template, xf_params)
     logger.info(f"Creating transform table: {stage_table} -> {xf_table}")
     db.execute_sql(xf_query)
 
     # Create core table if it doesn't already exist
-    create_template = f"chron2/sql/create/create_{query}.sql"
+    create_template = f"chron/sql/create/create_{query}.sql"
     create_query = render_sql(create_template)
     logger.info(f"Verifying that {query} table exists")
     db.execute_sql(create_query)
 
     # Merge transform table into core table
-    merge_template = f"chron2/sql/merge/merge_{query}.sql"
+    merge_template = f"chron/sql/merge/merge_{query}.sql"
     merge_params = {'xf_table': xf_table}
     merge_query = render_sql(merge_template, merge_params)
     logger.info(f"Merging {stage_table} into {query.upper()} table")
