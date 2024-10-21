@@ -37,8 +37,6 @@ def ibkr_query(fund, token, query_id):
 
     return df
 
-# Redeploy
-
 
 def fred_query() -> pd.DataFrame:
     load_dotenv()
