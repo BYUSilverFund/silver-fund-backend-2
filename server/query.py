@@ -625,6 +625,26 @@ class Query:
 
         return df
     
+    def get_user_cron_logs(self, start_date: str, end_date: str, funds: tuple) -> pd.DataFrame:
+
+        if len(funds) == 1:
+            query_string = f'''
+            SELECT * FROM LOGS
+            WHERE CALDT BETWEEN '{start_date}' AND '{end_date}'
+            AND FUND = '{funds[0]}';
+            '''
+
+        else:
+            query_string = f'''
+            SELECT * FROM LOGS
+            WHERE CALDT BETWEEN '{start_date}' AND '{end_date}'
+            AND FUND IN {funds};
+            '''
+
+        df = self.db.get_dataframe(query_string)
+
+        return df
+    
     def get_portfolio_defaults(self, fund) -> pd.DataFrame:
         query_string = f'''
             SELECT * FROM PORTFOLIO WHERE FUND = '{fund}';
