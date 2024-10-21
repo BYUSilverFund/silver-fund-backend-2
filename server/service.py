@@ -355,6 +355,20 @@ class Service:
 
         return json.dumps(result)
     
+    def query_cron_logs(self, start_date: str, end_date: str, funds: str):
+        if ',' in funds:
+            funds = tuple(funds.split(','))
+        else:
+            funds = tuple([funds])
+
+        df = self.query.get_user_cron_logs(start_date, end_date, funds)
+
+        df['caldt'] = pd.to_datetime(df['caldt']).dt.strftime("%Y-%m-%d")
+
+        result = df.to_dict(orient='records')
+
+        return json.dumps(result)
+    
 
     ############################# Portfolio Optimizer #############################
 

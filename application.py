@@ -183,6 +183,16 @@ def cron_log():
     response = service.cron_logs()
     return response
 
+@application.route("/query_cron_logs", methods=["GET"])
+def query_cron_logs():
+    start_date = request.args.get("start_date")
+    end_date = request.args.get("end_date")
+    funds = request.args.get("funds")
+
+    response = service.query_cron_logs(start_date, end_date, funds)
+    return response
+
+
 ############################# Portfolio Optimizer #############################
 
 @application.route("/portfolio_defaults", methods=["GET"])

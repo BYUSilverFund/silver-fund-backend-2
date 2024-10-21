@@ -612,11 +612,34 @@ class Query:
     
     def get_cron_log(self) -> pd.DataFrame:
         query_string = f'''
-        SELECT * FROM "ETL_CRON_LOG"
-        ORDER BY CALDT DESC
-        LIMIT 8
-        ;
+        WITH LAST_5_DAYS AS (
+            SELECT DISTINCT CALDT AS MAX_DATE FROM LOGS
+            ORDER BY CALDT DESC
+            LIMIT 5
+        ) SELECT * FROM LOGS
+        WHERE CALDT IN (SELECT MAX_DATE FROM LAST_5_DAYS)
+        ORDER BY CALDT DESC;
         '''
+
+        df = self.db.get_dataframe(query_string)
+
+        return df
+    
+    def get_user_cron_logs(self, start_date: str, end_date: str, funds: tuple) -> pd.DataFrame:
+
+        if len(funds) == 1:
+            query_string = f'''
+            SELECT * FROM LOGS
+            WHERE CALDT BETWEEN '{start_date}' AND '{end_date}'
+            AND FUND = '{funds[0]}';
+            '''
+
+        else:
+            query_string = f'''
+            SELECT * FROM LOGS
+            WHERE CALDT BETWEEN '{start_date}' AND '{end_date}'
+            AND FUND IN {funds};
+            '''
 
         df = self.db.get_dataframe(query_string)
 
@@ -705,6 +728,3 @@ class Query:
                 TARGET_PRICE = EXCLUDED.TARGET_PRICE;
         '''
         self.db.execute_sql(query_string)
-
-
-

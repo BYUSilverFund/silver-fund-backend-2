@@ -3,6 +3,7 @@
 *.env*
 Archive.zip
 *.csv
+*.env-dev
 
 Archive.zip
 
