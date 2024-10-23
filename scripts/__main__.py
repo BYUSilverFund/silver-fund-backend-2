@@ -6,7 +6,7 @@ import pandas as pd
 import boto3
 import os
 
-FUNDS = ['grad', 'undergrad']
+FUNDS = ['grad', 'undergrad', 'brigham_capital', 'quant']
 
 def query_fund_positions(fund: str, db: Database) -> pd.DataFrame:
 
