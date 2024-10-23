@@ -89,13 +89,14 @@ class Query:
                 ),
                 DIVIDENDS_QUERY AS(
                     SELECT
-                        CALDT,
+                        MIN(CALDT) AS CALDT,
                         FUND,
                         TICKER,
+                        ACTION_ID,
                         AVG(GROSS_AMOUNT) AS DIV_GROSS_AMOUNT
                     FROM DIVIDENDS
                     WHERE FUND = '{fund}'
-                    GROUP BY CALDT, FUND, TICKER
+                    GROUP BY FUND, TICKER, ACTION_ID
                 ),
                 DIVIDENDS_XF AS(
                     SELECT
@@ -151,15 +152,16 @@ class Query:
                 ),
                 DIVIDENDS_QUERY AS (
                     SELECT
-                        CALDT,
+                        MIN(CALDT) AS CALDT,
                         FUND,
                         TICKER,
+                        ACTION_ID,
                         AVG(GROSS_RATE) AS DIV_GROSS_RATE,
                         AVG(GROSS_AMOUNT) AS DIV_GROSS_AMOUNT
                     FROM DIVIDENDS
                     WHERE FUND = '{fund}'
                         AND TICKER = '{ticker}'
-                    GROUP BY CALDT, FUND, TICKER
+                    GROUP BY FUND, TICKER, ACTION_ID
                 ),
                 TRADES_QUERY AS (
                     SELECT
@@ -326,15 +328,16 @@ class Query:
                 ),
                 DIVIDENDS_QUERY AS (
                     SELECT
-                        CALDT,
+                        MIN(CALDT) AS CALDT,
                         FUND,
                         TICKER,
+                        ACTION_ID,
                         AVG(GROSS_RATE) AS DIV_GROSS_RATE,
                         AVG(GROSS_AMOUNT) AS DIV_GROSS_AMOUNT
                     FROM DIVIDENDS
                     WHERE FUND = '{fund}'
                         AND TICKER != 'VMFXX'
-                    GROUP BY CALDT, FUND, TICKER
+                    GROUP BY FUND, TICKER, ACTION_ID
                 ),
                 TRADES_QUERY AS(
                     SELECT
@@ -571,15 +574,16 @@ class Query:
         query_string = f'''
         SELECT
             FUND,
-            CALDT,
-            TICKER AS TICKER,
+            MIN(CALDT) AS CALDT,
+            TICKER,
+            ACTION_ID,
             AVG(GROSS_RATE) AS GROSS_RATE,
             AVG(GROSS_AMOUNT) AS GROSS_AMOUNT
         FROM DIVIDENDS
         WHERE TICKER = '{ticker}'
             AND FUND = '{fund}'
             AND CALDT BETWEEN '{start_date}' AND '{end_date}'
-        GROUP BY FUND, CALDT, TICKER
+        GROUP BY FUND, TICKER, ACTION_ID
         ORDER BY CALDT;
         '''
 
