@@ -9,7 +9,7 @@ class Database:
 
     def __init__(self):
         # Load environment variables from .env file
-        load_dotenv()
+        load_dotenv(override=True)
 
         # Fetch the RDS details from environment variables
         self.db_endpoint = os.getenv('DB_ENDPOINT')
