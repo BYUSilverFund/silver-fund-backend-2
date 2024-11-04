@@ -19,16 +19,6 @@ config = {
             "trades": 989567,
         }
     },
-    "quant": {
-        "token": 2755429139866727041920,
-        "queries": {
-            "nav": 1029491,
-            "delta_nav": 1029495,
-            "positions": 1029501,
-            "dividends": 1029496,
-            "trades": 1029498,
-        }
-    },
     "brigham_capital": {
         "token": 170229039687872048124200,
         "queries": {
@@ -37,6 +27,16 @@ config = {
             "positions": 989602,
             "dividends": 989603,
             "trades": 989605,
+        }
+    },
+    "quant": {
+        "token": 2755429139866727041920,
+        "queries": {
+            "nav": 1029491,
+            "delta_nav": 1029495,
+            "positions": 1029501,
+            "dividends": 1029496,
+            "trades": 1029498,
         }
     },
 }

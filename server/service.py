@@ -150,7 +150,6 @@ class Service:
         results = pd.DataFrame()
         with pd.option_context('future.no_silent_downcasting', True):  # This just prevents a future warning from printing
             left = pd.merge(left=df, right=bmk, how='left', on='caldt', suffixes=('_port', '_bmk')).fillna(0)
-            outer = pd.merge(left=df, right=bmk, how='outer', on='caldt', suffixes=('_port', '_bmk')).fillna(0)
 
         # DF metrics
         results['ticker'] = df['ticker'].unique()
@@ -182,9 +181,11 @@ class Service:
             include_groups=False).reset_index(drop=True)
 
         # OUTER Metrics
-        results['alpha_contribution'] = outer.groupby('ticker').apply(
-            lambda group: alpha_contribution(group['xs_div_return_port'], group['xs_div_return_bmk'], group['weight'], annualized=False),
-            include_groups=False).reset_index(drop=True)
+        def group_alpha_contribution(group, bmk):
+            outer = pd.merge(left=group, right=bmk, how='outer', on='caldt', suffixes=('_port', '_bmk')).fillna(0)
+            return alpha_contribution(outer['xs_div_return_port'], outer['xs_div_return_bmk'], outer['weight'], annualized=False)
+
+        results['alpha_contribution'] = df.groupby('ticker').apply(lambda group: group_alpha_contribution(group,bmk), include_groups=False).reset_index(drop=True)
 
         # Formatting
         results['initial_weight'] = round(results['initial_weight'], 4)
