@@ -497,11 +497,15 @@ class Query:
             ),
             DIVIDEND_QUERY AS(
                 SELECT
-                    CALDT,
+                    MIN(CALDT) AS CALDT,
+                    FUND,
+                    TICKER,
+                    ACTION_ID,
+                    ACTION_ID,
                     AVG(GROSS_RATE) AS DIV_GROSS_RATE
                 FROM DIVIDENDS
                 WHERE FUND = 'undergrad' AND TICKER = 'IWV'
-                GROUP BY CALDT
+                GROUP BY FUND, TICKER, ACTION_ID
             ),
             BMK_XF AS(
                 SELECT
