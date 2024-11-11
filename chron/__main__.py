@@ -106,8 +106,8 @@ def main():
         db.load_dataframe(rf_dataframe, stage_table)
 
         # Merge
-        logger.info(f"Mering {stage_table} into RISK_FREE_RATE")
-        merge_rf_template = f"chron/sql/merge/merge_risk_free_rate.sql"
+        logger.info(f"Merging {stage_table} into RISK_FREE_RATE")
+        merge_rf_template = "chron/sql/merge/merge_risk_free_rate.sql"
         merge_rf_params = {'xf_table': stage_table}
         merge_rf_query = render_sql(merge_rf_template, merge_rf_params)
         db.execute_sql(merge_rf_query)
@@ -126,7 +126,7 @@ def main():
 
         # Create
         logger.info("Creating benchmark table from undergrad IWV position data")
-        create_rf_template = f"chron/sql/create/create_benchmark.sql"
+        create_rf_template = "chron/sql/create/create_benchmark.sql"
         create_rf_query = render_sql(create_rf_template)
         db.execute_sql(create_rf_query)
 
