@@ -105,15 +105,6 @@ def holding_chart():
     return response
 
 
-@application.route("/benchmark_chart", methods=["GET"])
-def benchmark_chart():
-    start_date = request.args.get("start")
-    end_date = request.args.get("end")
-
-    response = service.benchmark_chart_data(start_date, end_date)
-    return response
-
-
 @application.route("/all_portfolios_summary", methods=["GET"])
 def all_portfolios_summary():
     start_date = request.args.get("start")
