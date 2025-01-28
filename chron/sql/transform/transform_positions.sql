@@ -9,4 +9,5 @@ SELECT DISTINCT
     "MarkPrice"::NUMERIC(18,6)              AS PRICE,
     "FXRateToBase"::NUMERIC(18,6)           AS FX_RATE
 FROM "{{stage_table}}"
-WHERE "ClientAccountID" != 'ClientAccountID';
+WHERE "ClientAccountID" != 'ClientAccountID'
+AND "SubCategory" != "TENDER"; -- TODO: Fix this to happen in a better step.
