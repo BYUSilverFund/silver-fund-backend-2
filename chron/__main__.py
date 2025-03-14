@@ -148,7 +148,7 @@ def main():
         logger.error(f"An error occurred during the calendar step: {str(e)}")
         send_message_to_slack(f"An error occurred during the calendar step: {str(e)}")
 
-    send_message_to_slack("Chron pipeline has completed successfully")
+    # send_message_to_slack("Chron pipeline has completed successfully")
 
 if __name__ == '__main__':
     main()
