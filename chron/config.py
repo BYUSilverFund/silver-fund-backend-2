@@ -20,7 +20,7 @@ config = {
         }
     },
     "brigham_capital": {
-        "token": 170229039687872048124200,
+        "token": 4690576030587561843750,
         "queries": {
             "nav": 989606,
             "delta_nav": 989601,
