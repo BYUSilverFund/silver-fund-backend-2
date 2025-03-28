@@ -2,12 +2,13 @@ import numpy as np
 import pandas as pd
 from shared.database import Database
 
+
 class Query:
     def __init__(self):
         self.db = Database()
 
     def get_fund_df(self, start_date: str, end_date: str) -> pd.DataFrame:
-        query_string = f'''
+        query_string = f"""
             WITH
                 FUND_QUERY AS(
                     SELECT
@@ -60,14 +61,16 @@ class Query:
                     ORDER BY CALDT
                 )
             SELECT * FROM JOIN_TABLE;
-        '''
+        """
 
         df = self.db.get_dataframe(query_string)
 
         return df
 
-    def get_portfolio_df(self, fund: str, start_date: str, end_date: str) -> pd.DataFrame:
-        query_string = f'''
+    def get_portfolio_df(
+        self, fund: str, start_date: str, end_date: str
+    ) -> pd.DataFrame:
+        query_string = f"""
             WITH
                 PORT_QUERY AS(
                     SELECT 
@@ -125,14 +128,16 @@ class Query:
                         AND P.CALDT BETWEEN '{start_date}' AND '{end_date}'
                 )
             SELECT * FROM JOIN_TABLE
-        '''
+        """
 
         df = self.db.get_dataframe(query_string)
 
         return df
 
-    def get_holding_df(self, fund: str, ticker: str, start_date: str, end_date: str) -> pd.DataFrame:
-        query_string = f'''
+    def get_holding_df(
+        self, fund: str, ticker: str, start_date: str, end_date: str
+    ) -> pd.DataFrame:
+        query_string = f"""
             WITH
                 POSITIONS_QUERY AS (
                     SELECT
@@ -301,14 +306,14 @@ class Query:
                     WHERE A.CALDT BETWEEN '{start_date}' AND '{end_date}'
                 )
             SELECT * FROM JOIN_TABLE_5;
-        '''
+        """
 
         df = self.db.get_dataframe(query_string)
 
         return df
 
     def get_all_holdings_df(self, fund: str, start_date: str, end_date: str):
-        query_string = f'''
+        query_string = f"""
             WITH
                 POSITIONS_QUERY AS (
                     SELECT
@@ -479,7 +484,7 @@ class Query:
                     ORDER BY TICKER, A.CALDT
                 )
                 SELECT * FROM JOIN_TABLE_5;
-        '''
+        """
 
         df = self.db.get_dataframe(query_string)
 
@@ -544,7 +549,7 @@ class Query:
         return df
 
     def get_tickers(self, fund, start_date, end_date) -> np.ndarray:
-        query_string = f'''
+        query_string = f"""
             SELECT TICKER
             FROM POSITIONS
             WHERE FUND = '{fund}'
@@ -553,14 +558,14 @@ class Query:
                 AND CALDT BETWEEN '{start_date}' AND '{end_date}'
             GROUP BY TICKER
             ORDER BY TICKER;
-        '''
+        """
 
         df = self.db.get_dataframe(query_string)
 
-        return df['ticker'].tolist()
+        return df["ticker"].tolist()
 
     def get_current_tickers(self, fund):
-        query_string = f'''
+        query_string = f"""
         SELECT TICKER
         FROM POSITIONS
         WHERE FUND = '{fund}'
@@ -568,14 +573,14 @@ class Query:
             AND ASSET_CLASS != 'CASH'
             AND CALDT = (SELECT MAX(CALDT) FROM POSITIONS WHERE FUND = '{fund}')
         ORDER BY TICKER;
-        '''
+        """
 
         df = self.db.get_dataframe(query_string)
 
-        return df['ticker'].tolist()
+        return df["ticker"].tolist()
 
     def get_dividends(self, fund, ticker, start_date, end_date):
-        query_string = f'''
+        query_string = f"""
         SELECT
             FUND,
             MIN(CALDT) AS CALDT,
@@ -589,14 +594,14 @@ class Query:
             AND CALDT BETWEEN '{start_date}' AND '{end_date}'
         GROUP BY FUND, TICKER, ACTION_ID
         ORDER BY CALDT;
-        '''
+        """
 
         df = self.db.get_dataframe(query_string)
 
         return df
 
     def get_trades(self, fund, ticker, start_date, end_date):
-        query_string = f'''
+        query_string = f"""
         SELECT
             CALDT,
             FUND,
@@ -612,14 +617,14 @@ class Query:
         GROUP BY CALDT, FUND, TICKER, BUY_SELL
         ORDER BY CALDT
         ;
-        '''
+        """
 
         df = self.db.get_dataframe(query_string)
 
         return df
-    
+
     def get_cron_log(self) -> pd.DataFrame:
-        query_string = f'''
+        query_string = f"""
         WITH LAST_5_DAYS AS (
             SELECT DISTINCT CALDT AS MAX_DATE FROM LOGS
             ORDER BY CALDT DESC
@@ -627,41 +632,43 @@ class Query:
         ) SELECT * FROM LOGS
         WHERE CALDT IN (SELECT MAX_DATE FROM LAST_5_DAYS)
         ORDER BY CALDT DESC;
-        '''
+        """
 
         df = self.db.get_dataframe(query_string)
 
         return df
-    
-    def get_user_cron_logs(self, start_date: str, end_date: str, funds: tuple) -> pd.DataFrame:
+
+    def get_user_cron_logs(
+        self, start_date: str, end_date: str, funds: tuple
+    ) -> pd.DataFrame:
 
         if len(funds) == 1:
-            query_string = f'''
+            query_string = f"""
             SELECT * FROM LOGS
             WHERE CALDT BETWEEN '{start_date}' AND '{end_date}'
             AND FUND = '{funds[0]}';
-            '''
+            """
 
         else:
-            query_string = f'''
+            query_string = f"""
             SELECT * FROM LOGS
             WHERE CALDT BETWEEN '{start_date}' AND '{end_date}'
             AND FUND IN {funds};
-            '''
+            """
 
         df = self.db.get_dataframe(query_string)
 
         return df
-    
+
     def get_portfolio_defaults(self, fund) -> pd.DataFrame:
-        query_string = f'''
+        query_string = f"""
             SELECT * FROM PORTFOLIO WHERE FUND = '{fund}';
-        '''
+        """
         df = self.db.get_dataframe(query_string)
         return df
-    
+
     def upsert_portfolio(self, fund, bmk_return, target_te) -> None:
-        query_string = f'''
+        query_string = f"""
             INSERT INTO PORTFOLIO
             (FUND, BENCHMARK_RETURN, TARGET_TRACKING_ERROR)
             VALUES
@@ -670,11 +677,11 @@ class Query:
             DO UPDATE SET
                 BENCHMARK_RETURN = EXCLUDED.BENCHMARK_RETURN,
                 TARGET_TRACKING_ERROR = EXCLUDED.TARGET_TRACKING_ERROR;
-        '''
+        """
         self.db.execute_sql(query_string)
 
     def get_all_holdings(self, fund):
-        query_string = f'''
+        query_string = f"""
         WITH
         POSITIONS_QUERY AS(
             SELECT
@@ -720,19 +727,35 @@ class Query:
         FROM POSITIONS_XF P
         FULL OUTER JOIN HOLDING H ON H.TICKER = P.TICKER AND H.FUND = P.FUND
         WHERE P.FUND = '{fund}';
-        '''
+        """
 
         df = self.db.get_dataframe(query_string)
 
         return df
-    
+
     def upsert_holding(self, fund, ticker, horizon, target) -> None:
-        query_string = f'''
+        query_string = f"""
             INSERT INTO HOLDING (FUND, TICKER, HORIZON_DATE, TARGET_PRICE)
             VALUES ('{fund}','{ticker}','{horizon}',{target})
             ON CONFLICT (FUND, TICKER)
             DO UPDATE SET
                 HORIZON_DATE = EXCLUDED.HORIZON_DATE,
                 TARGET_PRICE = EXCLUDED.TARGET_PRICE;
-        '''
+        """
         self.db.execute_sql(query_string)
+
+    def get_cov_matrix_tickers(self, date) -> dict:
+        funds = ["undergrad", "grad", "brigham_capital", "quant"]
+
+        query_string = f"""
+            SELECT TICKER, FUND FROM POSITIONS WHERE CALDT = '{date}';
+        """
+
+        df = self.db.get_dataframe(query_string)
+
+        funds_ticker_json = {}
+        for fund in funds:
+            funds_ticker_json[fund] = df[df["fund"] == fund]["ticker"].tolist()
+        funds_ticker_json["all_tickers"] = list(set(df["ticker"].tolist()))
+
+        return funds_ticker_json
