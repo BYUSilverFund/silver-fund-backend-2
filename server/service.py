@@ -1,8 +1,9 @@
 import json
 import pandas as pd
+import polars as pl
 import os
 import boto3
-from io import StringIO
+from io import BytesIO
 from server.query import Query
 from server.functions import *
 
@@ -526,12 +527,56 @@ class Service:
 
     def get_cov_matrix_tickers(self, date):
         funds_ticker_json = self.query.get_cov_matrix_tickers(date)
+
+        def get_tickers(df: pl.LazyFrame) -> list[str]:
+            return [col for col in df.collect_schema().keys()]
+
+        df = pl.scan_parquet(
+            f"s3://barra-covariance-matrices/USSLOW/USSLOW_{date}.parquet",
+            storage_options={
+                "aws_access_key_id": os.getenv("COGNITO_ACCESS_KEY_ID"),
+                "aws_secret_access_key": os.getenv("COGNITO_SECRET_ACCESS_KEY"),
+                "aws_region": "us-west-2",
+            },
+        )
+        availableTickers = get_tickers(df)
+        funds_ticker_json["all_tickers"] = availableTickers
         return json.dumps(funds_ticker_json)
 
     def get_cov_matrix(self, tickers, date):
-        tickers = set(tickers)
-        year, month, day = date.split("-")
 
+        def splice(df: pl.LazyFrame, tickers: list[str]) -> pl.DataFrame:
+            return (
+                df.filter(pl.col("ticker").is_in(tickers))
+                .select(["ticker", *sorted(tickers)])
+                .sort("ticker")
+                .collect()
+            )
+
+        def get_tickers(df: pl.LazyFrame) -> list[str]:
+            return [col for col in df.collect_schema().keys()]
+
+        tickers = set(tickers)
+
+        df = pl.scan_parquet(
+            f"s3://barra-covariance-matrices/USSLOW/USSLOW_{date}.parquet",
+            storage_options={
+                "aws_access_key_id": os.getenv("COGNITO_ACCESS_KEY_ID"),
+                "aws_secret_access_key": os.getenv("COGNITO_SECRET_ACCESS_KEY"),
+                "aws_region": "us-west-2",
+            },
+        )
+
+        availableTickers = get_tickers(df)
+        res_tickers = set(availableTickers).intersection(tickers)
+
+        spliced_df = splice(df, res_tickers)
+
+        csv = spliced_df.write_csv()
+
+        return {"cov_matrix": csv}
+
+    def get_latest_cov_matrix_date(self):
         s3 = boto3.client(
             "s3",
             region_name="us-west-2",
@@ -539,20 +584,20 @@ class Service:
             aws_secret_access_key=os.getenv("COGNITO_SECRET_ACCESS_KEY"),
         )
 
-        res = s3.get_object(
-            Bucket="silver-fund-cov-matrices",
-            Key=f"{year}/{month}/{day}_cov_matrix.csv",
+        response = s3.list_objects_v2(
+            Bucket="barra-covariance-matrices",
+            Prefix="USSLOW/",
         )
 
-        obj = res["Body"].read().decode("utf-8")
-        df = pd.read_csv(StringIO(obj))
+        latest_date = None
+        for obj in response.get("Contents", []):
+            key = obj["Key"]
+            if key.endswith(".parquet"):
+                date_str = key.split("_")[-1].split(".")[0].split("-")
+                date_str = "_".join(date_str)
+                date = pd.to_datetime(date_str, format="%Y_%m_%d")
+                if latest_date is None or date > latest_date:
+                    latest_date = date
 
-        # TODO: filter to only the tickers that are in the tickers set, wait until this is implemented on the backend
-        # column names are the tickers and the first column is an index of all the tickers
-        # filter to only the tickers that are in the tickers set
-        # df = df[df.columns.intersection(tickers)]
-        # df = df[df.index.isin(tickers)]
-
-        csv = df.to_csv(index=False)
-
-        return {"cov_matrix": csv}
+        latest_date = latest_date.strftime("%Y-%m-%d")
+        return {"latest_cov_matrix_date": latest_date}

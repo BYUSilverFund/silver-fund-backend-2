@@ -247,6 +247,12 @@ def cov_matrix():
     return cov_csv
 
 
+@application.route("/latest_cov_matrix_date", methods=["GET"])
+def latest_cov_matrix_date():
+    response = service.get_latest_cov_matrix_date()
+    return response
+
+
 if __name__ == "__main__":
     environment = os.getenv("ENVIRONMENT")
 
