@@ -12,21 +12,30 @@ service = Service()
 
 Talisman(application)
 
+
 def check_user(username):
-    cognito = boto3.client("cognito-idp", region_name="us-west-2", aws_access_key_id=os.getenv("COGNITO_ACCESS_KEY_ID"),
-                           aws_secret_access_key=os.getenv("COGNITO_SECRET_ACCESS_KEY"))
+    cognito = boto3.client(
+        "cognito-idp",
+        region_name="us-west-2",
+        aws_access_key_id=os.getenv("COGNITO_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.getenv("COGNITO_SECRET_ACCESS_KEY"),
+    )
     try:
         response = cognito.admin_get_user(
-            UserPoolId=os.getenv("COGNITO_USER_POOL_ID"),
-            Username=username
+            UserPoolId=os.getenv("COGNITO_USER_POOL_ID"), Username=username
         )
         return True
     except Exception as e:
         return False
 
+
 @application.before_request
 def before_request():
-    if request.method != "OPTIONS" and request.endpoint != "home" and request.endpoint != "health_check":
+    if (
+        request.method != "OPTIONS"
+        and request.endpoint != "home"
+        and request.endpoint != "health_check"
+    ):
         if request.headers.get("x-api-key") is None:
             return json.dumps({"error": "No authorization token provided"}), 401
 
@@ -35,7 +44,9 @@ def before_request():
             return json.dumps({"error": "Invalid username provided"}), 401
 
         api_key = request.headers.get("x-api-key")
-        if not bcrypt.checkpw(api_key.encode("utf-8"), os.getenv("HASHED_API_KEY").encode("utf-8")):
+        if not bcrypt.checkpw(
+            api_key.encode("utf-8"), os.getenv("HASHED_API_KEY").encode("utf-8")
+        ):
             return json.dumps({"error": "Invalid authorization token"}), 401
 
 
@@ -50,7 +61,7 @@ def health_check():
     return response
 
 
-@application.route("/test", methods=['GET'])
+@application.route("/test", methods=["GET"])
 def test():
     parameter = request.args.get("fund")
     return json.dumps({"fund": parameter})
@@ -169,10 +180,12 @@ def benchmark_summary():
 
     return response
 
+
 @application.route("/cron_logs", methods=["GET"])
 def cron_log():
     response = service.cron_logs()
     return response
+
 
 @application.route("/query_cron_logs", methods=["GET"])
 def query_cron_logs():
@@ -186,18 +199,21 @@ def query_cron_logs():
 
 ############################# Portfolio Optimizer #############################
 
+
 @application.route("/portfolio_defaults", methods=["GET"])
 def portfolio_defaults():
     fund = request.args.get("fund")
     response = service.get_portfolio_defaults(fund)
     return response
 
+
 @application.route("/upsert_portfolio", methods=["POST"])
 def upsert_portfolio():
     fund = request.args.get("fund")
     bmk_return = request.args.get("bmk_return")
     target_te = request.args.get("target_te")
-    service.upsert_portfolio(fund,bmk_return,target_te)
+    service.upsert_portfolio(fund, bmk_return, target_te)
+
 
 @application.route("/holding_defaults", methods=["GET"])
 def holding_defaults():
@@ -205,21 +221,45 @@ def holding_defaults():
     response = service.get_all_holdings(fund)
     return response
 
+
 @application.route("/upsert_holding", methods=["POST"])
 def upsert_holding():
     fund = request.args.get("fund")
     ticker = request.args.get("ticker")
     horizon = request.args.get("horizon")
     target = request.args.get("target")
-    service.upsert_holding(fund,ticker,horizon,target)
+    service.upsert_holding(fund, ticker, horizon, target)
+
+
+@application.route("/cov_matrix_tickers", methods=["GET"])
+def cov_matrix_tickers():
+    date = request.args.get("date")
+    response = service.get_cov_matrix_tickers(date)
+    return response
+
+
+@application.route("/cov_matrix", methods=["POST"])
+def cov_matrix():
+    json_data = request.get_json()
+    date = json_data["date"]
+    tickers = json_data["tickers"]
+    cov_csv = service.get_cov_matrix(tickers, date)
+    return cov_csv
+
+
+@application.route("/latest_cov_matrix_date", methods=["GET"])
+def latest_cov_matrix_date():
+    response = service.get_latest_cov_matrix_date()
+    return response
+
 
 if __name__ == "__main__":
-    environment = os.getenv('ENVIRONMENT')
-    
-    if environment == 'PRODUCTION':
+    environment = os.getenv("ENVIRONMENT")
+
+    if environment == "PRODUCTION":
         serve(application, host="0.0.0.0", port=5000, url_scheme="https")
 
-    elif environment == 'DEVELOPMENT':
+    elif environment == "DEVELOPMENT":
         application.debug = True
         application.run()
 
