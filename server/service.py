@@ -539,6 +539,7 @@ class Service:
                 "aws_region": "us-west-2",
             },
         )
+
         availableTickers = get_tickers(df)
         funds_ticker_json["all_tickers"] = availableTickers
         return json.dumps(funds_ticker_json)
@@ -556,8 +557,6 @@ class Service:
         def get_tickers(df: pl.LazyFrame) -> list[str]:
             return [col for col in df.collect_schema().keys()]
 
-        tickers = set(tickers)
-
         df = pl.scan_parquet(
             f"s3://barra-covariance-matrices/USSLOW/USSLOW_{date}.parquet",
             storage_options={
@@ -567,8 +566,9 @@ class Service:
             },
         )
 
-        availableTickers = get_tickers(df)
-        res_tickers = set(availableTickers).intersection(tickers)
+        available_tickers = get_tickers(df)
+        tickers_set = set(tickers)
+        res_tickers = set(available_tickers).intersection(tickers_set)
 
         spliced_df = splice(df, res_tickers)
 
