@@ -5,7 +5,7 @@ from shared.database import Database
 from shared.s3 import S3
 from datetime import datetime
 from .logger import PipelineLogger
-from slack.slack import send_message_to_slack
+# from slack.slack import send_message_to_slack
 
 def main():
     db = Database()
@@ -68,12 +68,12 @@ def main():
 
                 except Exception as query_error:
                     logger.error(f"An error occurred during the {query} query for {fund}: {str(query_error)}")
-                    send_message_to_slack(f"An error occurred during the {query} query for {fund}: {str(query_error)}")
+                    # send_message_to_slack(f"An error occurred during the {query} query for {fund}: {str(query_error)}")
                     continue  # Continue with the next query
 
         except Exception as fund_error:
             logger.error(f"An error occurred for the {fund} fund: {str(fund_error)}")
-            send_message_to_slack(f"An error occurred for the {fund} fund: {str(fund_error)}")
+            # send_message_to_slack(f"An error occurred for the {fund} fund: {str(fund_error)}")
             continue  # Continue with the next fund
 
         # Create logs table if not exists
@@ -124,7 +124,7 @@ def main():
 
     except Exception as e:
         logger.error(f"An error occurred during the risk free rate step: {str(e)}")
-        send_message_to_slack(f"An error occurred during the risk free rate step: {str(e)}")
+        # send_message_to_slack(f"An error occurred during the risk free rate step: {str(e)}")
 
     try:
 
@@ -136,7 +136,7 @@ def main():
 
     except Exception as e:
         logger.error(f"An error occurred during the benchmark step: {str(e)}")
-        send_message_to_slack(f"An error occurred during the benchmark step: {str(e)}")
+        # send_message_to_slack(f"An error occurred during the benchmark step: {str(e)}")
 
     try:
         # Create
@@ -146,7 +146,7 @@ def main():
 
     except Exception as e:
         logger.error(f"An error occurred during the calendar step: {str(e)}")
-        send_message_to_slack(f"An error occurred during the calendar step: {str(e)}")
+        # send_message_to_slack(f"An error occurred during the calendar step: {str(e)}")
 
     # send_message_to_slack("Chron pipeline has completed successfully")
 

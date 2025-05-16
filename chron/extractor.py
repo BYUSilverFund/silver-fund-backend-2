@@ -23,7 +23,10 @@ def ibkr_query(fund, token, query_id):
     url = f'https://ndcdyn.interactivebrokers.com/AccountManagement/FlexWebService/SendRequest?t={token}&q={query_id}&v=3'
     user_agent = {'User-agent': 'Python/3.9'}
     response = requests.get(url, headers=user_agent)
-    reference_code = re.findall('(?<=<ReferenceCode>)\d*(?=<\/ReferenceCode>)', response.text)[0]
+    reference_codes = re.findall(r'(?<=<ReferenceCode>)\d*(?=</ReferenceCode>)', response.text)
+    if not reference_codes:
+        raise ValueError(f'No ReferenceCode found in response from ndcdyn.interactivebrokers.com endpoint this is likely due to an expired token')
+    reference_code = reference_codes[0]
 
     # Request 2
     time_to_sleep = 15 if fund == 'quant' else 10
