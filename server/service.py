@@ -15,6 +15,8 @@ class Service:
 
     def fund_summary(self, start_date: str, end_date: str) -> json:
         df = self.query.get_fund_df(start_date, end_date)
+        if df.empty:
+            return json.dumps({"error": "No fund data found for the given date range."}), 404
         bmk = self.query.get_benchmark_df(start_date, end_date)
 
         with pd.option_context(
@@ -59,6 +61,8 @@ class Service:
 
     def portfolio_summary(self, fund: str, start_date: str, end_date: str) -> json:
         df = self.query.get_portfolio_df(fund, start_date, end_date)
+        if df.empty:
+            return json.dumps({"error": "No portfolio data found for the given fund and date range."}), 404
         bmk = self.query.get_benchmark_df(start_date, end_date)
 
         with pd.option_context(
@@ -177,9 +181,11 @@ class Service:
 
         return json.dumps(result)
 
-    def all_holdings_summary(self, fund: str, start_date: str, end_date: str) -> json:
-        df = Query().get_all_holdings_df(fund, start_date, end_date)
-        bmk = Query().get_benchmark_df(start_date, end_date)
+    def all_holdings_summary(self, fund: str, start_date: str, end_date: str):
+        df = self.query.get_all_holdings_df(fund, start_date, end_date)
+        if df.empty:
+            return json.dumps({"error": "No holdings data found for the given fund and date range."}), 404
+        bmk = self.query.get_benchmark_df(start_date, end_date)
         current_tickers = Query().get_current_tickers(fund)
 
         results = pd.DataFrame()
