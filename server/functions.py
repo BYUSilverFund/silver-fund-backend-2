@@ -106,6 +106,18 @@ def alpha(xs_returns: pd.Series, xs_bmk_returns: pd.Series, annualized: bool = T
     X = xs_bmk_returns
     Y = xs_returns
 
+    # Ensure X and Y are numeric
+    X = pd.to_numeric(X, errors='coerce')
+    Y = pd.to_numeric(Y, errors='coerce')
+
+    # Drop any rows with NaN values in either X or Y
+    valid = X.notna() & Y.notna()
+    X = X[valid]
+    Y = Y[valid]
+
+    if len(X) < 2 or len(Y) < 2:
+        return 0
+
     X = sm.add_constant(X)
     model = sm.OLS(Y, X).fit()
 
@@ -132,6 +144,18 @@ def beta(xs_returns: pd.Series, xs_bmk_returns: pd.Series) -> float:
     X = xs_bmk_returns
     Y = xs_returns
 
+    # Ensure X and Y are numeric
+    X = pd.to_numeric(X, errors='coerce')
+    Y = pd.to_numeric(Y, errors='coerce')
+
+    # Drop any rows with NaN values in either X or Y
+    valid = X.notna() & Y.notna()
+    X = X[valid]
+    Y = Y[valid]
+
+    if len(X) < 2 or len(Y) < 2:
+        return 0
+    
     X = sm.add_constant(X)
     model = sm.OLS(Y, X).fit()
 
@@ -226,6 +250,18 @@ def alpha_contribution(xs_returns: pd.Series, xs_bmk_returns: pd.Series, weights
     X = xs_bmk_returns * weights
     Y = xs_returns
 
+    # Ensure X and Y are numeric
+    X = pd.to_numeric(X, errors='coerce')
+    Y = pd.to_numeric(Y, errors='coerce')
+
+    # Drop any rows with NaN values in either X or Y
+    valid = X.notna() & Y.notna()
+    X = X[valid]
+    Y = Y[valid]
+
+    if len(X) < 2 or len(Y) < 2:
+        return 0
+    
     X = sm.add_constant(X)
     model = sm.OLS(Y, X).fit()
 
