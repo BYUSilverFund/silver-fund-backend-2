@@ -29,14 +29,16 @@ def ibkr_query(fund, token, query_id):
     reference_code = reference_codes[0]
 
     # Request 2
-    time_to_sleep = 15 if fund == 'quant' else 10
-    time.sleep(time_to_sleep) # Consider changing this so that it adapts base on which fund is querying
-    url = f'https://ndcdyn.interactivebrokers.com/AccountManagement/FlexWebService/GetStatement?t={token}&q={reference_code}&v=3'
-    response = requests.get(url)
-
-    # Result
-    csv_string = StringIO(response.text)
-    df = pd.read_csv(csv_string)
+    if reference_code is not None:
+        time_to_sleep = 15 if fund == 'quant' else 10
+        time.sleep(time_to_sleep) # Consider changing this so that it adapts base on which fund is querying
+        url = f'https://ndcdyn.interactivebrokers.com/AccountManagement/FlexWebService/GetStatement?t={token}&q={reference_code}&v=3'
+        response = requests.get(url)
+        if response.status_code != 200:
+            raise ValueError(f'Error fetching data from ndcdyn.interactivebrokers.com: {response.status_code} - {response.text}')
+        # Result
+        csv_string = StringIO(response.text)
+        df = pd.read_csv(csv_string)
 
     return df
 

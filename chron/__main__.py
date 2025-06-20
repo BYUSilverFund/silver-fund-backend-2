@@ -129,7 +129,7 @@ def main():
     try:
 
         # Create
-        logger.info("Creating benchmark table from undergrad IWV position data")
+        logger.info("Creating benchmark table from grad IWV position data")
         create_rf_template = "chron/sql/create/create_benchmark.sql"
         create_rf_query = render_sql(create_rf_template)
         db.execute_sql(create_rf_query)
